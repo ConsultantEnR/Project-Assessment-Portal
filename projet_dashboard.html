@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tableau de bord projet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --border: #E2E0DB;
+    --border-focus: #3A7BD5;
+    --text: #1A1A1A;
+    --text-muted: #7A7670;
+    --text-light: #A5A09A;
+    --accent: #3A7BD5;
+    --accent-hover: #2D62B3;
+    --accent-light: rgba(58,123,213,0.08);
+    --accent-lighter: rgba(58,123,213,0.04);
+    --success: #2E9E6E;
+    --sidebar-bg: #1B1F26;
+    --sidebar-text: #C0BDB8;
+    --sidebar-text-active: #FFFFFF;
+    --sidebar-hover: rgba(255,255,255,0.06);
+    --sidebar-active: rgba(58,123,213,0.2);
+    --sidebar-width: 240px;
+    --header-height: 72px;
+    --radius: 10px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+}
+
+/* ═══════════════════ SIDEBAR ═══════════════════ */
+.sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    overflow-y: auto;
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 22px 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.sidebar-logo-icon {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.sidebar-logo-text {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 17px;
+    color: #fff;
+    letter-spacing: -0.2px;
+}
+
+/* User section */
+.sidebar-user {
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.sidebar-user-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 6px;
+}
+
+.sidebar-user-name {
+    font-size: 13.5px;
+    color: var(--sidebar-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-avatar {
+    width: 28px; height: 28px;
+    background: rgba(58,123,213,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+/* Navigation */
+.sidebar-nav {
+    flex: 1;
+    padding: 12px 10px;
+}
+
+.nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.25);
+    padding: 12px 10px 6px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    transition: background var(--transition), color var(--transition);
+    cursor: pointer;
+    margin-bottom: 2px;
+}
+
+.nav-item:hover {
+    background: var(--sidebar-hover);
+    color: var(--sidebar-text-active);
+}
+
+.nav-item.active {
+    background: var(--sidebar-active);
+    color: var(--sidebar-text-active);
+    font-weight: 500;
+}
+
+.nav-item svg {
+    width: 18px; height: 18px;
+    opacity: 0.6;
+    flex-shrink: 0;
+}
+
+.nav-item.active svg {
+    opacity: 1;
+}
+
+.nav-item .nav-badge {
+    margin-left: auto;
+    background: rgba(58,123,213,0.35);
+    color: #B8D4FF;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 12px;
+}
+
+/* Sidebar footer */
+.sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+}
+
+/* ═══════════════════ MAIN CONTENT ═══════════════════ */
+.main {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header - project info bar */
+.project-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 36px;
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.project-name {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: -0.3px;
+    color: var(--text);
+    flex-shrink: 0;
+}
+
+.header-divider {
+    width: 1px;
+    height: 28px;
+    background: var(--border);
+    flex-shrink: 0;
+}
+
+.header-meta {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.meta-item svg {
+    width: 15px; height: 15px;
+    opacity: 0.5;
+}
+
+.meta-label {
+    font-weight: 500;
+    color: var(--text-light);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.meta-value {
+    font-weight: 500;
+    color: var(--text);
+}
+
+/* Content area */
+.content {
+    flex: 1;
+    padding: 36px;
+}
+
+/* Sites section */
+.section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+.sites-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px;
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+}
+
+.sites-empty-icon {
+    width: 56px; height: 56px;
+    background: var(--accent-light);
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.sites-empty-icon svg {
+    width: 26px; height: 26px;
+    color: var(--accent);
+}
+
+.sites-empty-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.sites-empty-text {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.btn-add-site {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background var(--transition), transform 0.1s, box-shadow var(--transition);
+    box-shadow: 0 2px 8px rgba(58,123,213,0.2);
+}
+
+.btn-add-site:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 4px 16px rgba(58,123,213,0.3);
+}
+
+.btn-add-site:active {
+    transform: scale(0.985);
+}
+
+.btn-add-site svg {
+    width: 18px; height: 18px;
+}
+
+/* Sites table */
+.sites-table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.sites-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+}
+
+.sites-table thead tr {
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+}
+
+.sites-table th {
+    padding: 11px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+.sites-table td {
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+}
+
+.sites-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.sites-table tbody tr:hover td {
+    background: var(--accent-lighter);
+}
+
+.site-name-cell {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.tech-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+.tech-badge.pv {
+    background: rgba(255,185,0,0.12);
+    color: #9A6C00;
+}
+
+.tech-badge.bess {
+    background: rgba(58,123,213,0.1);
+    color: var(--accent);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-badge.dev     { background: rgba(120,120,120,0.10); color: #555; }
+.status-badge.permis  { background: rgba(58,123,213,0.10);  color: var(--accent); }
+.status-badge.rtb     { background: rgba(255,140,0,0.12);   color: #B06000; }
+.status-badge.constr  { background: rgba(200,100,0,0.10);   color: #8A4500; }
+.status-badge.oper    { background: rgba(46,158,110,0.12);  color: var(--success); }
+
+.capacity-cell {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.cell-muted { color: var(--text-muted); }
+
+/* Add site button inline */
+.btn-add-inline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px;
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--accent);
+    background: var(--accent-lighter);
+    border: 2px dashed rgba(58,123,213,0.25);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background var(--transition), border-color var(--transition);
+}
+
+.btn-add-inline:hover {
+    background: var(--accent-light);
+    border-color: var(--accent);
+}
+
+.btn-add-inline svg {
+    width: 18px; height: 18px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-12px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.sidebar { animation: slideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.main { animation: fadeIn 0.4s ease 0.15s both; }
+
+/* ═══════════════════ RESPONSIVE ═══════════════════ */
+@media (max-width: 768px) {
+    :root { --sidebar-width: 56px; }
+
+    .sidebar-logo-text,
+    .sidebar-user,
+    .nav-section-label,
+    .nav-item span,
+    .nav-item .nav-badge,
+    .sidebar-footer { display: none; }
+
+    .sidebar-logo { padding: 16px 12px; justify-content: center; }
+    .sidebar-nav { padding: 8px 6px; }
+    .nav-item { justify-content: center; padding: 10px; }
+    .nav-item svg { margin: 0; }
+
+    .project-header { padding: 0 20px; gap: 16px; }
+    .content { padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">PI</div>
+        <div class="sidebar-logo-text">Portail Investissement</div>
+    </div>
+
+    <div class="sidebar-user">
+        <div class="sidebar-user-label">Utilisateur</div>
+        <div class="sidebar-user-name">
+            <div class="user-avatar">U</div>
+            Utilisateur (à définir)
+        </div>
+    </div>
+
+    <div class="sidebar-nav">
+        <div class="nav-section-label">Navigation</div>
+
+        <a class="nav-item" href="#" id="navProjets" title="Projets">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span>Projets</span>
+            <span class="nav-badge" id="navProjectCount">0</span>
+        </a>
+
+        <a class="nav-item" href="creer_projet.html" title="Créer Projet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            <span>Créer Projet</span>
+        </a>
+
+        <a class="nav-item" href="#" title="Données" id="navDonnees">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            <span>Données</span>
+        </a>
+    </div>
+
+    <div class="sidebar-footer">v1.0</div>
+</nav>
+
+<!-- ═══════════════════ MAIN ═══════════════════ -->
+<div class="main">
+
+    <!-- Project header bar -->
+    <header class="project-header">
+        <div class="project-name" id="headerProjectName">—</div>
+        <div class="header-divider"></div>
+        <div class="header-meta">
+            <div class="meta-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                <div>
+                    <div class="meta-label">Courtier</div>
+                    <div class="meta-value" id="headerCourtier">—</div>
+                </div>
+            </div>
+            <div class="meta-item" id="headerEmailWrap" style="display:none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <div>
+                    <div class="meta-label">Contact</div>
+                    <div class="meta-value" id="headerEmail">—</div>
+                </div>
+            </div>
+            <div class="meta-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <div>
+                    <div class="meta-label">Vendeur</div>
+                    <div class="meta-value" id="headerVendeur">—</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <div class="content">
+        <div class="section-title">Sites du projet</div>
+
+        <!-- Sites table -->
+        <div class="sites-table-wrap" id="sitesTableWrap" style="display:none;">
+            <table class="sites-table">
+                <thead>
+                    <tr>
+                        <th>Nom du site</th>
+                        <th>Pays</th>
+                        <th>Localisation</th>
+                        <th>Technologies</th>
+                        <th>Statut</th>
+                        <th>Cap. PV (MWc)</th>
+                        <th>BESS (MW / MWh)</th>
+                    </tr>
+                </thead>
+                <tbody id="sitesTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Empty state / Add button -->
+        <div class="sites-panel" id="sitesEmptyPanel">
+            <div class="sites-empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            </div>
+            <div class="sites-empty-title">Aucun site ajouté</div>
+            <p class="sites-empty-text">Commencez par ajouter un premier site à ce projet<br>pour renseigner ses caractéristiques techniques et financières.</p>
+            <button class="btn-add-site" onclick="addSite()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Ajouter un site
+            </button>
+        </div>
+
+        <!-- Add-site button when sites already exist -->
+        <button class="btn-add-inline" id="btnAddInline" style="display:none;" onclick="addSite()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter un site
+        </button>
+    </div>
+</div>
+
+<script>
+const STORAGE_PROJECTS = 'pi_projects';
+
+function getProjects() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_PROJECTS)) || []; }
+    catch { return []; }
+}
+
+function getProjectId() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id');
+}
+
+function getProject() {
+    const id = getProjectId();
+    const projects = getProjects();
+    return projects.find(p => p.id === id) || null;
+}
+
+function saveProject(project) {
+    const projects = getProjects();
+    const idx = projects.findIndex(p => p.id === project.id);
+    if (idx >= 0) projects[idx] = project;
+    localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(projects));
+}
+
+// ─── Load project data into UI ───
+function loadProject() {
+    const project = getProject();
+    if (!project) {
+        document.getElementById('headerProjectName').textContent = 'Projet introuvable';
+        return;
+    }
+
+    document.title = project.name + ' — Portail Investissement';
+    document.getElementById('headerProjectName').textContent = project.name;
+    document.getElementById('headerCourtier').textContent = project.courtier;
+    document.getElementById('headerVendeur').textContent = project.vendeur;
+
+    if (project.courtierEmail) {
+        document.getElementById('headerEmailWrap').style.display = 'flex';
+        document.getElementById('headerEmail').textContent = project.courtierEmail;
+    }
+
+    // Project count in nav
+    const projects = getProjects();
+    document.getElementById('navProjectCount').textContent = projects.length;
+
+    // Render sites
+    renderSites(project);
+}
+
+function statusBadge(status) {
+    const map = {
+        'En développement': 'dev',
+        'Permis déposé':    'permis',
+        'RTB':              'rtb',
+        'En construction':  'constr',
+        'En opération':     'oper'
+    };
+    const cls = map[status] || 'dev';
+    return `<span class="status-badge ${cls}">${status || '—'}</span>`;
+}
+
+function renderSites(project) {
+    const sites = project.sites || [];
+    const emptyPanel  = document.getElementById('sitesEmptyPanel');
+    const tableWrap   = document.getElementById('sitesTableWrap');
+    const tbody       = document.getElementById('sitesTableBody');
+    const btnInline   = document.getElementById('btnAddInline');
+
+    if (sites.length === 0) {
+        emptyPanel.style.display = 'block';
+        tableWrap.style.display  = 'none';
+        btnInline.style.display  = 'none';
+    } else {
+        emptyPanel.style.display = 'none';
+        tableWrap.style.display  = 'block';
+        btnInline.style.display  = 'flex';
+
+        tbody.innerHTML = '';
+        sites.forEach((site, i) => {
+            // Tech badges
+            let techHtml = '';
+            if (site.hasPV)   techHtml += '<span class="tech-badge pv">☀️ PV</span>';
+            if (site.hasBESS) techHtml += '<span class="tech-badge bess">🔋 BESS</span>';
+            if (!techHtml)    techHtml  = '<span class="cell-muted">—</span>';
+
+            // PV capacity in MWc
+            let pvCell = '<span class="cell-muted">—</span>';
+            if (site.hasPV && site.pvCapacity != null) {
+                pvCell = `<span class="capacity-cell">${(site.pvCapacity / 1000).toLocaleString('fr-FR', {maximumFractionDigits: 3})} MWc</span>`;
+            }
+
+            // BESS MW / MWh
+            let bessCell = '<span class="cell-muted">—</span>';
+            if (site.hasBESS && (site.bessPower != null || site.bessCapacity != null)) {
+                const mw  = site.bessPower   != null ? (site.bessPower   / 1000).toLocaleString('fr-FR', {maximumFractionDigits: 3}) + ' MW'  : '?';
+                const mwh = site.bessCapacity != null ? (site.bessCapacity / 1000).toLocaleString('fr-FR', {maximumFractionDigits: 3}) + ' MWh' : '?';
+                bessCell = `<span class="capacity-cell">${mw} / ${mwh}</span>`;
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="site-name-cell">${site.name || 'Site ' + (i + 1)}</td>
+                <td style="font-size:18px;">${site.countryFlag || ''} <span style="font-size:13px;">${site.country || '—'}</span></td>
+                <td>${site.location || '<span class="cell-muted">—</span>'}</td>
+                <td>${techHtml}</td>
+                <td>${statusBadge(site.status)}</td>
+                <td>${pvCell}</td>
+                <td>${bessCell}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+}
+
+// ─── Add site ───
+function addSite() {
+    const projectId = getProjectId();
+    window.location.href = 'creation_site.html?project=' + projectId;
+}
+
+// ─── Nav link: Projets (placeholder) ───
+document.getElementById('navProjets').addEventListener('click', function(e) {
+    e.preventDefault();
+    const projects = getProjects();
+    if (projects.length <= 1) {
+        alert('Portail de liste des projets (à créer ultérieurement).');
+        return;
+    }
+    // Simple: show the last different project, or alert
+    alert('Portail de liste des projets (à créer ultérieurement).\n\n' +
+        projects.map(p => '• ' + p.name).join('\n'));
+});
+
+// ─── Nav link: Données (placeholder) ───
+document.getElementById('navDonnees').addEventListener('click', function(e) {
+    e.preventDefault();
+    alert('Portail Données — Ressources et bases de données transverses (à créer ultérieurement).');
+});
+
+// ─── Init ───
+loadProject();
+</script>
+</body>
+</html>
