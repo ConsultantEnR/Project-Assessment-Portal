@@ -345,11 +345,6 @@ body::before {
         Retour aux projets
     </a>
 
-    <a href="#" id="existingProjectsLink" class="projects-link" style="display:none;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        Voir les projets existants <span class="badge" id="projectCount">0</span>
-    </a>
-
     <div class="card">
         <h1 class="card-title">Créer un projet</h1>
         <p class="card-subtitle">Renseignez les informations du portefeuille pour initialiser le projet.</p>
@@ -474,12 +469,6 @@ function initCustomOptions() {
         }
     });
 
-    // Show projects link if any exist
-    const projects = getProjects();
-    if (projects.length > 0) {
-        document.getElementById('existingProjectsLink').style.display = 'inline-flex';
-        document.getElementById('projectCount').textContent = projects.length;
-    }
 }
 
 // ─── Toggle "Autre" custom input ───
@@ -578,15 +567,6 @@ function validateAndCreate() {
 
     window.location.href = 'projet_dashboard.html?id=' + project.id;
 }
-
-// ─── Existing projects link ───
-document.getElementById('existingProjectsLink').addEventListener('click', function(e) {
-    e.preventDefault();
-    const projects = getProjects();
-    if (projects.length === 0) return;
-    const lastProject = projects[projects.length - 1];
-    window.location.href = 'projet_dashboard.html?id=' + lastProject.id;
-});
 
 // ─── Init ───
 initCustomOptions();

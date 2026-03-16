@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analyse de marché — Portail Investissement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+:root {
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --border: #E2E0DB;
+    --text: #1A1A1A;
+    --text-muted: #7A7670;
+    --text-light: #A5A09A;
+    --accent: #1863DC;
+    --accent-hover: #1250B0;
+    --accent-light: rgba(24,99,220,0.08);
+    --accent-lighter: rgba(24,99,220,0.04);
+    --success: #2E9E6E;
+    --warning: #E8A020;
+    --danger: #D9534F;
+    --sidebar-bg: #0E1520;
+    --sidebar-text: #B8C4D8;
+    --sidebar-text-active: #FFFFFF;
+    --sidebar-hover: rgba(255,255,255,0.07);
+    --sidebar-active: rgba(24,99,220,0.22);
+    --sidebar-width: 240px;
+    --header-height: 72px;
+    --radius: 10px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; display: flex; position: relative;
+}
+body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("Banque d'images/solar-panels-and-wind-energy-plants-e1696032292423.jpg");
+    background-size: cover; background-position: center;
+    opacity: 0.08; pointer-events: none; z-index: 0;
+}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar { position: fixed; left: 0; top: 0; width: var(--sidebar-width); height: 100vh; background: var(--sidebar-bg); display: flex; flex-direction: column; z-index: 100; border-right: 1px solid rgba(255,255,255,0.05); overflow-y: auto; }
+.sidebar-logo { display: flex; align-items: center; justify-content: center; padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.sidebar-logo-img { height: 44px; width: auto; object-fit: contain; filter: brightness(0) invert(1); opacity: 0.92; }
+.sidebar-user { padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.sidebar-user-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.3); margin-bottom: 6px; font-family: 'Poppins', sans-serif; }
+.sidebar-user-name { font-size: 13px; color: var(--sidebar-text); display: flex; align-items: center; gap: 8px; }
+.user-avatar { width: 28px; height: 28px; background: rgba(24,99,220,0.35); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff; flex-shrink: 0; font-family: 'Poppins', sans-serif; }
+.sidebar-nav { flex: 1; padding: 12px 10px; }
+.nav-section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.25); padding: 12px 10px 6px; font-family: 'Poppins', sans-serif; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; font-size: 13px; color: var(--sidebar-text); text-decoration: none; transition: background var(--transition), color var(--transition); cursor: pointer; margin-bottom: 2px; }
+.nav-item:hover { background: var(--sidebar-hover); color: var(--sidebar-text-active); }
+.nav-item.active { background: var(--sidebar-active); color: var(--sidebar-text-active); font-weight: 500; }
+.nav-item svg { width: 18px; height: 18px; opacity: 0.6; flex-shrink: 0; }
+.nav-item.active svg { opacity: 1; }
+.nav-item .nav-badge { margin-left: auto; background: rgba(24,99,220,0.35); color: #B8D4FF; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 12px; font-family: 'Poppins', sans-serif; }
+.sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px; color: rgba(255,255,255,0.2); font-family: 'Poppins', sans-serif; }
+
+/* ═══ MAIN ═══ */
+.main { margin-left: var(--sidebar-width); flex: 1; min-height: 100vh; display: flex; flex-direction: column; position: relative; z-index: 1; }
+.page-header { background: rgba(255,255,255,0.96); border-bottom: 1px solid var(--border); padding: 0 36px; height: var(--header-height); display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 50; backdrop-filter: blur(4px); }
+.page-title { font-family: 'Teko', sans-serif; font-size: 26px; font-weight: 500; letter-spacing: 0.5px; color: var(--text); line-height: 1; }
+.page-sub { font-size: 12px; color: var(--text-muted); }
+.content { flex: 1; padding: 28px 36px 48px; display: flex; flex-direction: column; gap: 28px; }
+
+/* ═══ SECTION LABELS ═══ */
+.section-label { font-size: 10.5px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px; font-family: 'Poppins', sans-serif; }
+
+/* ═══ CARDS ═══ */
+.card { background: rgba(255,255,255,0.97); border: 1px solid var(--border); border-radius: 14px; padding: 24px 28px; box-shadow: var(--shadow-sm); }
+.card-title { font-family: 'Teko', sans-serif; font-size: 20px; font-weight: 500; letter-spacing: 0.4px; margin-bottom: 4px; }
+.card-subtitle { font-family: 'Poppins', sans-serif; font-size: 11px; color: var(--text-muted); margin-bottom: 16px; }
+.chart-wrap { position: relative; }
+
+/* ═══ CONTROLS BAR ═══ */
+.controls-bar {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 12px;
+    margin-bottom: 16px;
+}
+.ctrl-group { display: flex; align-items: center; gap: 8px; }
+.ctrl-label { font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+
+/* Country chips */
+.country-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 20px; cursor: pointer;
+    font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 500;
+    border: 1.5px solid transparent; transition: all 0.15s;
+    user-select: none;
+}
+.chip.active { border-color: currentColor; }
+.chip:not(.active) { opacity: 0.45; background: #eee; color: #666; }
+
+/* Period tabs */
+.period-tabs { display: flex; gap: 4px; background: #eee; border-radius: 8px; padding: 3px; }
+.period-tab {
+    padding: 5px 12px; border-radius: 6px; cursor: pointer;
+    font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 500;
+    color: var(--text-muted); transition: all 0.15s; border: none; background: none;
+}
+.period-tab.active { background: #fff; color: var(--accent); box-shadow: var(--shadow-sm); font-weight: 600; }
+
+/* Fetch row */
+.fetch-row { display: flex; align-items: center; gap: 10px; }
+.btn-fetch {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 8px; padding: 8px 16px;
+    font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 600;
+    cursor: pointer; transition: background var(--transition);
+}
+.btn-fetch:hover { background: var(--accent-hover); }
+.btn-fetch:disabled { background: #aaa; cursor: default; }
+.status-badge {
+    font-family: 'Poppins', sans-serif; font-size: 10.5px; font-weight: 500;
+    padding: 3px 10px; border-radius: 12px;
+}
+.status-badge.ok     { background: rgba(46,158,110,0.12); color: var(--success); }
+.status-badge.loading { background: rgba(232,160,32,0.12); color: var(--warning); }
+.status-badge.error  { background: rgba(217,83,79,0.12); color: var(--danger); }
+.status-badge.cached { background: var(--accent-light); color: var(--accent); }
+.last-update { font-family: 'Poppins', sans-serif; font-size: 10px; color: var(--text-light); }
+
+/* KPI pills */
+.kpi-pills { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.kpi-pill { background: var(--accent-lighter); border: 1px solid var(--accent-light); border-radius: 8px; padding: 8px 14px; }
+.kpi-pill-label { font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+.kpi-pill-value { font-family: 'Teko', sans-serif; font-size: 22px; font-weight: 500; letter-spacing: 0.3px; color: var(--accent); }
+.kpi-pill-sub { font-family: 'Poppins', sans-serif; font-size: 10px; color: var(--text-light); }
+
+/* Spinner */
+.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); font-family: 'Poppins', sans-serif; font-size: 13px; }
+.empty-state svg { opacity: 0.2; margin-bottom: 12px; }
+
+/* Negative hours table */
+.neg-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.neg-table th { background: #f0efe9; font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); padding: 8px 12px; text-align: right; border-bottom: 2px solid var(--border); white-space: nowrap; }
+.neg-table th:first-child { text-align: left; }
+.neg-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+.neg-table td:first-child { text-align: left; font-weight: 600; font-family: 'Poppins', sans-serif; font-size: 11px; }
+.neg-bar { display: inline-block; height: 8px; border-radius: 4px; background: var(--danger); opacity: 0.65; min-width: 2px; vertical-align: middle; margin-right: 4px; }
+
+@keyframes slideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+.sidebar { animation: slideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.main { animation: fadeIn 0.4s ease 0.15s both; }
+
+@media (max-width: 768px) {
+    :root { --sidebar-width: 56px; }
+    .sidebar-user, .nav-section-label, .nav-item span, .nav-item .nav-badge, .sidebar-footer { display: none; }
+    .sidebar-logo { padding: 16px 12px; } .sidebar-logo-img { height: 32px; }
+    .sidebar-nav { padding: 8px 6px; } .nav-item { justify-content: center; padding: 10px; }
+    .content { padding: 20px; } .page-header { padding: 0 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <img src="Banque d'images/DOL-COG-IV-020-A -Logo final Groupe Dolfines FR transp.png" class="sidebar-logo-img" alt="Dolfines">
+    </div>
+    <div class="sidebar-user">
+        <div class="sidebar-user-label">Utilisateur</div>
+        <div class="sidebar-user-name"><div class="user-avatar">U</div>Utilisateur</div>
+    </div>
+    <div class="sidebar-nav">
+        <div class="nav-section-label">Navigation</div>
+        <a class="nav-item" href="portefeuille_projets.html" title="Projets">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span>Projets</span><span class="nav-badge" id="navProjectCount">0</span>
+        </a>
+        <a class="nav-item" href="creer_projet.html" title="Créer Projet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            <span>Créer Projet</span>
+        </a>
+        <a class="nav-item active" href="donnees.html" title="Données">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            <span>Données</span>
+        </a>
+    </div>
+    <div class="sidebar-footer">v1.0</div>
+</nav>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+
+    <header class="page-header">
+        <div>
+            <div class="page-title">Analyse de marché</div>
+            <div class="page-sub">Prix spot européens — Source : Energy Charts (Fraunhofer ISE) · Mise à jour automatique quotidienne</div>
+        </div>
+    </header>
+
+    <div class="content">
+
+        <!-- ══════════════════════════════════════════════
+             SECTION 1 — HISTORIQUE DES PRIX SPOT
+        ══════════════════════════════════════════════ -->
+        <div>
+            <div class="section-label">1. Historique des prix spot (€/MWh)</div>
+            <div class="card">
+                <div class="card-title">Prix spot day-ahead par pays</div>
+                <div class="card-subtitle">Données horaires agrégées en moyenne journalière. Cliquez sur les pays pour les afficher/masquer.</div>
+
+                <!-- Country chips -->
+                <div class="controls-bar">
+                    <div class="ctrl-group">
+                        <span class="ctrl-label">Pays :</span>
+                        <div class="country-chips" id="countryChips"></div>
+                    </div>
+                </div>
+
+                <!-- Period tabs -->
+                <div class="controls-bar">
+                    <div class="ctrl-group">
+                        <span class="ctrl-label">Période :</span>
+                        <div class="period-tabs" id="periodTabs">
+                            <button class="period-tab" data-days="7">7 jours</button>
+                            <button class="period-tab" data-days="30">30 jours</button>
+                            <button class="period-tab active" data-days="90">3 mois</button>
+                            <button class="period-tab" data-days="180">6 mois</button>
+                            <button class="period-tab" data-days="365">1 an</button>
+                            <button class="period-tab" data-days="730">2 ans</button>
+                        </div>
+                    </div>
+                    <div class="fetch-row">
+                        <button class="btn-fetch" id="btnFetch" onclick="fetchAll()">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+                            Actualiser les données
+                        </button>
+                        <span class="status-badge" id="fetchStatus" style="display:none"></span>
+                        <span class="last-update" id="lastUpdateLabel"></span>
+                    </div>
+                </div>
+
+                <!-- KPI pills -->
+                <div class="kpi-pills" id="spotKpis"></div>
+
+                <!-- Chart -->
+                <div class="chart-wrap" style="height:320px">
+                    <canvas id="chartSpot"></canvas>
+                </div>
+                <div id="spotEmpty" class="empty-state" style="display:none">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><polyline points="7 16 11 11 15 13 20 7"/></svg>
+                    <div>Aucune donnée disponible.<br>Cliquez sur <strong>Actualiser</strong> pour charger les prix spot.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════
+             SECTION 2 — PROJECTIONS DES PRIX
+        ══════════════════════════════════════════════ -->
+        <div>
+            <div class="section-label">2. Projections des prix (€/MWh)</div>
+            <div class="card">
+                <div class="card-title">Forecast des prix spot</div>
+                <div class="card-subtitle">Modèle statistique — tendance linéaire + saisonnalité mensuelle. Basé sur l'historique chargé.</div>
+
+                <div class="controls-bar">
+                    <div class="ctrl-group">
+                        <span class="ctrl-label">Horizon :</span>
+                        <div class="period-tabs" id="forecastTabs">
+                            <button class="period-tab active" data-years="1">1 an</button>
+                            <button class="period-tab" data-years="2">2 ans</button>
+                            <button class="period-tab" data-years="5">5 ans</button>
+                        </div>
+                    </div>
+                    <button class="btn-fetch" onclick="computeForecasts()">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        Calculer les projections
+                    </button>
+                </div>
+
+                <div class="chart-wrap" style="height:300px">
+                    <canvas id="chartForecast"></canvas>
+                </div>
+                <div id="forecastEmpty" class="empty-state" style="display:none">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <div>Chargez d'abord l'historique des prix spot (section 1), puis cliquez sur <strong>Calculer les projections</strong>.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════
+             SECTION 3 — HEURES NÉGATIVES
+        ══════════════════════════════════════════════ -->
+        <div>
+            <div class="section-label">3. Heures à prix négatifs</div>
+            <div class="card">
+                <div class="card-title">Historique et projection des heures négatives</div>
+                <div class="card-subtitle">Nombre d'heures avec un prix spot ≤ 0 €/MWh. Tendance basée sur l'historique chargé.</div>
+
+                <div class="controls-bar">
+                    <div class="ctrl-group">
+                        <span class="ctrl-label">Pays :</span>
+                        <div id="negCountryChips" class="country-chips"></div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start;">
+                    <div>
+                        <div class="card-subtitle" style="margin-bottom:8px;">Heures négatives par mois</div>
+                        <div class="chart-wrap" style="height:240px">
+                            <canvas id="chartNegHours"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="card-subtitle" style="margin-bottom:8px;">Synthèse annuelle</div>
+                        <div id="negTableWrap">
+                            <div class="empty-state" style="padding:40px 20px">
+                                <div>Chargez d'abord l'historique (section 1)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════════════════
+const COUNTRIES = {
+    'France':      { bzn: 'FR',       color: '#1863DC', flag: '🇫🇷' },
+    'Allemagne':   { bzn: 'DE-LU',    color: '#2E9E6E', flag: '🇩🇪' },
+    'Espagne':     { bzn: 'ES',       color: '#E8A020', flag: '🇪🇸' },
+    'Portugal':    { bzn: 'PT',       color: '#D9534F', flag: '🇵🇹' },
+    'Italie':      { bzn: 'IT-North', color: '#7F77DD', flag: '🇮🇹' },
+    'Belgique':    { bzn: 'BE',       color: '#1D9E75', flag: '🇧🇪' },
+    'Pays-Bas':    { bzn: 'NL',       color: '#FF6B6B', flag: '🇳🇱' },
+    'Pologne':     { bzn: 'PL',       color: '#A67C52', flag: '🇵🇱' },
+    'Roumanie':    { bzn: 'RO',       color: '#6C757D', flag: '🇷🇴' },
+};
+const COUNTRY_NAMES = Object.keys(COUNTRIES);
+const CACHE_TTL_MS  = 23 * 60 * 60 * 1000; // 23 hours
+const CACHE_KEY     = (bzn, days) => `pi_market_${bzn}_${days}d`;
+const API_BASE      = 'https://api.energy-charts.info/price';
+
+// State
+let activeCountries = new Set(['France', 'Allemagne', 'Portugal']);
+let activePeriod    = 90;  // days
+let activeForecastYears = 1;
+let activeNegCountry    = 'France';
+let cachedData      = {};  // { [name]: { dates:[], prices:[], fetchedAt: ts } }
+let chartSpot       = null;
+let chartForecast   = null;
+let chartNegHours   = null;
+
+// ══════════════════════════════════════════════════════════
+//  SIDEBAR NAV BADGE
+// ══════════════════════════════════════════════════════════
+(function() {
+    try {
+        const p = JSON.parse(localStorage.getItem('pi_projects')) || [];
+        document.getElementById('navProjectCount').textContent = p.length;
+    } catch(e) {}
+})();
+
+// ══════════════════════════════════════════════════════════
+//  DATE HELPERS
+// ══════════════════════════════════════════════════════════
+function isoDate(d) {
+    // Return YYYY-MM-DDThh:mm+01:00
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T00:00+01:00`;
+}
+function dateRange(days) {
+    const end   = new Date();
+    const start = new Date(end.getTime() - days * 86400000);
+    return { start: isoDate(start), end: isoDate(end) };
+}
+function tsToDate(unix) {
+    const d = new Date(unix * 1000);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function today() { const d = new Date(); return d.toLocaleDateString('fr-FR'); }
+
+// ══════════════════════════════════════════════════════════
+//  COUNTRY CHIPS
+// ══════════════════════════════════════════════════════════
+function buildChips() {
+    const container = document.getElementById('countryChips');
+    const negContainer = document.getElementById('negCountryChips');
+
+    container.innerHTML = COUNTRY_NAMES.map(name => {
+        const c = COUNTRIES[name];
+        const isActive = activeCountries.has(name);
+        return `<span class="chip ${isActive ? 'active' : ''}"
+            style="color:${c.color}; background:${isActive ? c.color+'18' : ''}"
+            onclick="toggleCountry('${name}')">${c.flag} ${name}</span>`;
+    }).join('');
+
+    negContainer.innerHTML = COUNTRY_NAMES.map(name => {
+        const c = COUNTRIES[name];
+        return `<span class="chip ${name===activeNegCountry?'active':''}"
+            style="color:${c.color}; background:${name===activeNegCountry ? c.color+'18' : ''}"
+            onclick="setNegCountry('${name}')">${c.flag} ${name}</span>`;
+    }).join('');
+}
+
+function toggleCountry(name) {
+    if (activeCountries.has(name)) {
+        if (activeCountries.size === 1) return; // keep at least one
+        activeCountries.delete(name);
+    } else {
+        activeCountries.add(name);
+    }
+    buildChips();
+    renderSpotChart();
+}
+
+function setNegCountry(name) {
+    activeNegCountry = name;
+    buildChips();
+    renderNegHours();
+}
+
+// ══════════════════════════════════════════════════════════
+//  PERIOD TABS
+// ══════════════════════════════════════════════════════════
+document.getElementById('periodTabs').addEventListener('click', e => {
+    const btn = e.target.closest('.period-tab');
+    if (!btn) return;
+    activePeriod = parseInt(btn.dataset.days);
+    document.querySelectorAll('#periodTabs .period-tab').forEach(b => b.classList.toggle('active', b === btn));
+    fetchAll();
+});
+document.getElementById('forecastTabs').addEventListener('click', e => {
+    const btn = e.target.closest('.period-tab');
+    if (!btn) return;
+    activeForecastYears = parseInt(btn.dataset.years);
+    document.querySelectorAll('#forecastTabs .period-tab').forEach(b => b.classList.toggle('active', b === btn));
+    computeForecasts();
+});
+
+// ══════════════════════════════════════════════════════════
+//  FETCH FROM API (with localStorage cache, 23h TTL)
+// ══════════════════════════════════════════════════════════
+async function fetchCountry(name, days) {
+    const cacheKey = CACHE_KEY(COUNTRIES[name].bzn, days);
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+    if (cached && (Date.now() - cached.fetchedAt) < CACHE_TTL_MS) {
+        return { ...cached, fromCache: true };
+    }
+
+    const { start, end } = dateRange(days);
+    const url = `${API_BASE}?bzn=${encodeURIComponent(COUNTRIES[name].bzn)}&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
+
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const json = await resp.json();
+
+    // Aggregate hourly → daily averages
+    const dailyMap = {};
+    const prices = json.price || [];
+    const times  = json.unix_seconds || [];
+
+    times.forEach((ts, i) => {
+        if (prices[i] === null || prices[i] === undefined) return;
+        const d = tsToDate(ts);
+        if (!dailyMap[d]) dailyMap[d] = { sum: 0, count: 0, hours: [] };
+        dailyMap[d].sum   += prices[i];
+        dailyMap[d].count += 1;
+        dailyMap[d].hours.push(prices[i]);
+    });
+
+    const sortedDates = Object.keys(dailyMap).sort();
+    const dailyPrices = sortedDates.map(d => +(dailyMap[d].sum / dailyMap[d].count).toFixed(2));
+    const hourlyAll   = { times, prices }; // raw hourly for negative hours calc
+
+    const result = {
+        dates:     sortedDates,
+        prices:    dailyPrices,
+        hourlyAll,
+        dailyMap,
+        fetchedAt: Date.now(),
+    };
+    localStorage.setItem(cacheKey, JSON.stringify(result));
+    return { ...result, fromCache: false };
+}
+
+async function fetchAll() {
+    setStatus('loading', 'Chargement…');
+    const btn = document.getElementById('btnFetch');
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span> Chargement…`;
+
+    let anyNew = false;
+    let errors = 0;
+    for (const name of COUNTRY_NAMES) {
+        try {
+            const data = await fetchCountry(name, activePeriod);
+            cachedData[name] = data;
+            if (!data.fromCache) anyNew = true;
+        } catch(e) {
+            console.warn(`Erreur pour ${name}:`, e);
+            errors++;
+        }
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg> Actualiser les données`;
+
+    if (errors === COUNTRY_NAMES.length) {
+        setStatus('error', 'Erreur de connexion');
+    } else if (errors > 0) {
+        setStatus('ok', `${COUNTRY_NAMES.length - errors}/${COUNTRY_NAMES.length} pays chargés`);
+    } else {
+        setStatus(anyNew ? 'ok' : 'cached', anyNew ? 'Données à jour' : 'Cache utilisé');
+    }
+    document.getElementById('lastUpdateLabel').textContent = `Dernière actualisation : ${today()}`;
+
+    renderSpotChart();
+    renderSpotKpis();
+    renderNegHours();
+}
+
+function setStatus(type, text) {
+    const el = document.getElementById('fetchStatus');
+    el.style.display = 'inline';
+    el.className = `status-badge ${type}`;
+    el.textContent = text;
+}
+
+// ══════════════════════════════════════════════════════════
+//  SPOT CHART
+// ══════════════════════════════════════════════════════════
+function renderSpotChart() {
+    const datasets = [];
+    let allDates = new Set();
+
+    activeCountries.forEach(name => {
+        const d = cachedData[name];
+        if (d) d.dates.forEach(dt => allDates.add(dt));
+    });
+    const labels = [...allDates].sort();
+
+    if (labels.length === 0) {
+        document.getElementById('spotEmpty').style.display = '';
+        if (chartSpot) { chartSpot.destroy(); chartSpot = null; }
+        return;
+    }
+    document.getElementById('spotEmpty').style.display = 'none';
+
+    activeCountries.forEach(name => {
+        const d = cachedData[name];
+        if (!d) return;
+        const c = COUNTRIES[name];
+        const priceMap = {};
+        d.dates.forEach((dt, i) => priceMap[dt] = d.prices[i]);
+        datasets.push({
+            label: `${c.flag} ${name}`,
+            data:  labels.map(dt => priceMap[dt] ?? null),
+            borderColor: c.color,
+            backgroundColor: c.color + '15',
+            fill: false,
+            tension: 0.3,
+            pointRadius: labels.length > 200 ? 0 : 2,
+            borderWidth: 1.8,
+            spanGaps: true,
+        });
+    });
+
+    if (chartSpot) { chartSpot.destroy(); }
+    chartSpot = new Chart(document.getElementById('chartSpot'), {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'top', labels: { font: { family: 'Poppins', size: 10 }, boxWidth: 12, padding: 14 } },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y !== null ? ctx.parsed.y.toFixed(1) + ' €/MWh' : '—'}`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { font: { family: 'Poppins', size: 9 }, maxTicksLimit: 12, maxRotation: 0 },
+                    grid: { color: 'rgba(0,0,0,0.04)' }
+                },
+                y: {
+                    grid: { color: 'rgba(0,0,0,0.04)' },
+                    ticks: { font: { family: 'Poppins', size: 9 }, callback: v => v.toFixed(0) + ' €/MWh' }
+                }
+            }
+        }
+    });
+}
+
+function renderSpotKpis() {
+    const container = document.getElementById('spotKpis');
+    const pills = [];
+    activeCountries.forEach(name => {
+        const d = cachedData[name];
+        if (!d || !d.prices.length) return;
+        const prices = d.prices.filter(p => p !== null);
+        const avg = prices.reduce((a,b) => a+b, 0) / prices.length;
+        const min = Math.min(...prices);
+        const max = Math.max(...prices);
+        const c = COUNTRIES[name];
+        pills.push(`
+            <div class="kpi-pill">
+                <div class="kpi-pill-label" style="color:${c.color}">${c.flag} ${name}</div>
+                <div class="kpi-pill-value" style="color:${c.color}">${avg.toFixed(1)} €/MWh</div>
+                <div class="kpi-pill-sub">min ${min.toFixed(0)} · max ${max.toFixed(0)}</div>
+            </div>`);
+    });
+    container.innerHTML = pills.join('');
+}
+
+// ══════════════════════════════════════════════════════════
+//  FORECAST (linear trend + monthly seasonality)
+// ══════════════════════════════════════════════════════════
+function computeForecasts() {
+    const forecastDatasets = [];
+    const histDatasets = [];
+    let hasData = false;
+
+    activeCountries.forEach(name => {
+        const d = cachedData[name];
+        if (!d || d.prices.length < 30) return;
+        hasData = true;
+
+        const c = COUNTRIES[name];
+        // Compute monthly averages from history
+        const monthlyMap = {};
+        d.dates.forEach((dt, i) => {
+            if (d.prices[i] === null) return;
+            const m = dt.substring(0, 7); // YYYY-MM
+            if (!monthlyMap[m]) monthlyMap[m] = [];
+            monthlyMap[m].push(d.prices[i]);
+        });
+        const months = Object.keys(monthlyMap).sort();
+        const monthlyAvg = months.map(m => monthlyMap[m].reduce((a,b)=>a+b,0)/monthlyMap[m].length);
+
+        // Linear regression on monthly averages (OLS)
+        const n = months.length;
+        if (n < 3) return;
+        const xs = months.map((_,i) => i);
+        const xm = xs.reduce((a,b)=>a+b,0)/n;
+        const ym = monthlyAvg.reduce((a,b)=>a+b,0)/n;
+        const slope = xs.reduce((s,x,i) => s + (x-xm)*(monthlyAvg[i]-ym), 0) /
+                      xs.reduce((s,x) => s + (x-xm)**2, 0);
+        const intercept = ym - slope * xm;
+
+        // Seasonal factors (deviation from trend)
+        const seasonalFactor = {}; // by month-of-year (1-12)
+        months.forEach((m, i) => {
+            const trend = intercept + slope * i;
+            const monNum = parseInt(m.split('-')[1]);
+            if (!seasonalFactor[monNum]) seasonalFactor[monNum] = [];
+            seasonalFactor[monNum].push(monthlyAvg[i] - trend);
+        });
+        const avgSeasonal = {};
+        for (let mo = 1; mo <= 12; mo++) {
+            const arr = seasonalFactor[mo] || [0];
+            avgSeasonal[mo] = arr.reduce((a,b)=>a+b,0)/arr.length;
+        }
+
+        // Generate forecast
+        const lastDate = new Date(months[months.length-1] + '-01');
+        const forecastMonths = activeForecastYears * 12;
+        const fLabels = [], fValues = [];
+        for (let i = 1; i <= forecastMonths; i++) {
+            const fd = new Date(lastDate);
+            fd.setMonth(fd.getMonth() + i);
+            const label = `${fd.getFullYear()}-${String(fd.getMonth()+1).padStart(2,'0')}`;
+            const monNum = fd.getMonth() + 1;
+            const projected = intercept + slope * (n + i - 1) + (avgSeasonal[monNum] || 0);
+            fLabels.push(label);
+            fValues.push(+projected.toFixed(2));
+        }
+
+        // Historical monthly line
+        histDatasets.push({
+            label: `${c.flag} ${name} (historique)`,
+            data: months.map((m,i) => ({ x: m, y: +monthlyAvg[i].toFixed(2) })),
+            borderColor: c.color,
+            borderWidth: 1.5,
+            pointRadius: 2,
+            fill: false, tension: 0.3,
+            borderDash: undefined,
+        });
+        // Forecast line (dashed)
+        forecastDatasets.push({
+            label: `${c.flag} ${name} (projection)`,
+            data: fLabels.map((m,i) => ({ x: m, y: fValues[i] })),
+            borderColor: c.color,
+            borderWidth: 1.5,
+            borderDash: [5, 4],
+            pointRadius: 0,
+            fill: false, tension: 0.3,
+        });
+    });
+
+    if (!hasData) {
+        document.getElementById('forecastEmpty').style.display = '';
+        return;
+    }
+    document.getElementById('forecastEmpty').style.display = 'none';
+
+    if (chartForecast) { chartForecast.destroy(); }
+    chartForecast = new Chart(document.getElementById('chartForecast'), {
+        type: 'line',
+        data: { datasets: [...histDatasets, ...forecastDatasets] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'top', labels: { font: { family: 'Poppins', size: 10 }, boxWidth: 12, padding: 12 } },
+                tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y?.toFixed(1)} €/MWh` } }
+            },
+            scales: {
+                x: { type: 'category', ticks: { font: { family: 'Poppins', size: 9 }, maxTicksLimit: 14, maxRotation: 0 }, grid: { color: 'rgba(0,0,0,0.04)' } },
+                y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Poppins', size: 9 }, callback: v => v.toFixed(0) + ' €/MWh' } }
+            }
+        }
+    });
+}
+
+// ══════════════════════════════════════════════════════════
+//  NEGATIVE HOURS
+// ══════════════════════════════════════════════════════════
+function renderNegHours() {
+    const data = cachedData[activeNegCountry];
+    if (!data || !data.hourlyAll) {
+        document.getElementById('negTableWrap').innerHTML = '<div class="empty-state" style="padding:40px 20px"><div>Données non disponibles pour ce pays</div></div>';
+        return;
+    }
+
+    const { times, prices } = data.hourlyAll;
+    const negByMonth = {};
+    const totalByMonth = {};
+
+    times.forEach((ts, i) => {
+        if (prices[i] === null || prices[i] === undefined) return;
+        const d = new Date(ts * 1000);
+        const m = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        totalByMonth[m] = (totalByMonth[m] || 0) + 1;
+        if (prices[i] <= 0) negByMonth[m] = (negByMonth[m] || 0) + 1;
+    });
+
+    const months = Object.keys(totalByMonth).sort();
+    const negCounts = months.map(m => negByMonth[m] || 0);
+    const negPcts   = months.map((m,i) => totalByMonth[m] > 0 ? +(negCounts[i] / totalByMonth[m] * 100).toFixed(1) : 0);
+    const maxNeg    = Math.max(...negCounts, 1);
+    const c = COUNTRIES[activeNegCountry];
+
+    // Bar chart
+    if (chartNegHours) { chartNegHours.destroy(); }
+    chartNegHours = new Chart(document.getElementById('chartNegHours'), {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Heures négatives',
+                data: negCounts,
+                backgroundColor: '#D9534F99',
+                borderColor: '#D9534F',
+                borderWidth: 1,
+                borderRadius: 3,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} h (${negPcts[ctx.dataIndex]}%)` } }
+            },
+            scales: {
+                x: { ticks: { font: { family: 'Poppins', size: 9 }, maxRotation: 45, maxTicksLimit: 18 }, grid: { display: false } },
+                y: { ticks: { font: { family: 'Poppins', size: 9 } }, grid: { color: 'rgba(0,0,0,0.04)' }, title: { display: true, text: 'Heures', font: { size: 10, family: 'Poppins' } } }
+            }
+        }
+    });
+
+    // Annual summary table
+    const byYear = {};
+    months.forEach((m, i) => {
+        const y = m.substring(0,4);
+        if (!byYear[y]) byYear[y] = { neg: 0, total: 0 };
+        byYear[y].neg   += negCounts[i];
+        byYear[y].total += totalByMonth[m];
+    });
+    const years = Object.keys(byYear).sort();
+
+    // Compute YoY trend for forecast
+    const yearCounts = years.map(y => byYear[y].neg);
+    let forecastTrend = '';
+    if (yearCounts.length >= 2) {
+        const growthRates = yearCounts.slice(1).map((v,i) => yearCounts[i] > 0 ? (v - yearCounts[i]) / yearCounts[i] * 100 : 0);
+        const avgGrowth = growthRates.reduce((a,b)=>a+b,0) / growthRates.length;
+        const nextYearEst = Math.round(yearCounts[yearCounts.length-1] * (1 + avgGrowth/100));
+        const nextYear = parseInt(years[years.length-1]) + 1;
+        forecastTrend = `<tr style="background:rgba(217,83,79,0.04); font-weight:600">
+            <td>${nextYear} <span style="font-size:10px;color:#888;font-weight:400">(prévision)</span></td>
+            <td colspan="3" style="text-align:right;color:#D9534F">~${nextYearEst} h estimées (tendance ${avgGrowth>0?'+':''}${avgGrowth.toFixed(0)}%/an)</td>
+        </tr>`;
+    }
+
+    document.getElementById('negTableWrap').innerHTML = `
+        <table class="neg-table">
+            <thead><tr><th>Année</th><th>Heures négatives</th><th>% du temps</th><th>Visualisation</th></tr></thead>
+            <tbody>
+                ${years.map(y => {
+                    const pct = byYear[y].total > 0 ? (byYear[y].neg / byYear[y].total * 100).toFixed(1) : '0.0';
+                    const barW = Math.round(byYear[y].neg / maxNeg * 80);
+                    return `<tr>
+                        <td>${y}</td>
+                        <td style="color:#D9534F;font-weight:600">${byYear[y].neg} h</td>
+                        <td>${pct}%</td>
+                        <td><span class="neg-bar" style="width:${barW}px"></span></td>
+                    </tr>`;
+                }).join('')}
+                ${forecastTrend}
+            </tbody>
+        </table>`;
+}
+
+// ══════════════════════════════════════════════════════════
+//  AUTO-REFRESH CHECK ON PAGE LOAD
+//  Si les données ont plus de 23h → re-fetch automatiquement
+// ══════════════════════════════════════════════════════════
+function loadFromCache() {
+    let allCached = true;
+    let oldestFetch = Infinity;
+    for (const name of COUNTRY_NAMES) {
+        const cacheKey = CACHE_KEY(COUNTRIES[name].bzn, activePeriod);
+        const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+        if (cached) {
+            cachedData[name] = cached;
+            oldestFetch = Math.min(oldestFetch, cached.fetchedAt);
+        } else {
+            allCached = false;
+        }
+    }
+    if (!allCached || (Date.now() - oldestFetch) > CACHE_TTL_MS) {
+        // Auto-fetch on load
+        fetchAll();
+    } else {
+        const d = new Date(oldestFetch);
+        document.getElementById('lastUpdateLabel').textContent = `Cache du ${d.toLocaleDateString('fr-FR')} à ${d.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}`;
+        setStatus('cached', 'Données en cache');
+        renderSpotChart();
+        renderSpotKpis();
+        renderNegHours();
+    }
+}
+
+// ══════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════
+buildChips();
+loadFromCache();
+
+// Show empty forecast state initially
+document.getElementById('forecastEmpty').style.display = '';
+</script>
+</body>
+</html>

@@ -466,6 +466,58 @@ body::before {
 
 .charts-grid .card.full { grid-column: 1 / -1; }
 
+/* ═══════════════════ INPUTS PANEL ═══════════════════ */
+.inputs-panel {
+    background: rgba(255,255,255,0.97);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    box-shadow: var(--shadow-sm);
+}
+.inputs-panel-header {
+    display: flex; align-items: center; justify-content: space-between; cursor: pointer;
+    user-select: none;
+}
+.inputs-panel-title { font-family: 'Teko', sans-serif; font-size: 20px; font-weight: 500; letter-spacing: 0.4px; }
+.inputs-toggle-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 600;
+    color: var(--accent); background: var(--accent-light); border: none; border-radius: 6px;
+    padding: 5px 12px; cursor: pointer;
+}
+.inputs-toggle-btn svg { transition: transform 0.25s; }
+.inputs-toggle-btn.open svg { transform: rotate(180deg); }
+.inputs-body {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px 20px;
+    max-height: 0; opacity: 0; overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s;
+    margin-top: 0;
+}
+.inputs-body.open { max-height: 1200px; opacity: 1; margin-top: 18px; }
+.inp-group { display: flex; flex-direction: column; gap: 4px; }
+.inp-group label { font-family: 'Poppins', sans-serif; font-size: 10.5px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.inp-group input[type="number"] {
+    width: 100%; border: 1px solid var(--border); border-radius: 6px;
+    padding: 6px 10px; font-family: 'Montserrat', sans-serif; font-size: 13px;
+    color: var(--text); background: var(--bg); transition: border-color var(--transition);
+}
+.inp-group input[type="number"]:focus { outline: none; border-color: var(--accent); background: #fff; }
+.inp-divider {
+    grid-column: 1 / -1;
+    font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent);
+    border-top: 1px solid var(--accent-light); padding-top: 10px; margin-top: 4px;
+}
+.recalc-btn {
+    grid-column: 1 / -1;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 8px; padding: 10px 20px;
+    font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: background var(--transition); justify-self: start;
+}
+.recalc-btn:hover { background: var(--accent-hover); }
+
 /* ═══════════════════ RESPONSIVE ═══════════════════ */
 @media (max-width: 1100px) {
     .kpi-grid { grid-template-columns: repeat(2, 1fr); }
@@ -539,7 +591,9 @@ body::before {
         <a class="nav-item active" href="test_modele_financier.html" title="Modèle financier">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                  stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                <path d="M18 6C16.5 4.3 14.4 3 12 3C7.6 3 4 7 4 12s3.6 9 8 9c2.4 0 4.5-1.3 6-3"/>
+                <line x1="3" y1="10" x2="14" y2="10"/>
+                <line x1="3" y1="14" x2="14" y2="14"/>
             </svg>
             <span>Modèle financier</span>
         </a>
@@ -560,9 +614,61 @@ body::before {
     <!-- ─── Content ─── -->
     <div class="content">
 
-        <!-- Parameters recap -->
+        <!-- Inputs panel — editable parameters -->
         <div>
-            <div class="section-label">Hypothèses du scénario</div>
+            <div class="section-label">Paramètres du scénario</div>
+            <div class="inputs-panel">
+                <div class="inputs-panel-header" onclick="toggleInputs()">
+                    <div class="inputs-panel-title">Hypothèses de modélisation</div>
+                    <button class="inputs-toggle-btn" id="inputsToggleBtn">
+                        <span id="inputsToggleLabel">Modifier</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                </div>
+                <div class="inputs-body" id="inputsBody">
+
+                    <div class="inp-divider">Installation PV</div>
+                    <div class="inp-group"><label>Capacité PV (kWc)</label><input type="number" id="i_pvCapacity" value="50000" min="100" step="100"></div>
+                    <div class="inp-group"><label>P90 (kWh/kWc/an)</label><input type="number" id="i_pvProdP90" value="1450" min="100" step="10"></div>
+                    <div class="inp-group"><label>Dégradation (%/an)</label><input type="number" id="i_pvDeg" value="0.5" min="0" max="5" step="0.1"></div>
+                    <div class="inp-group"><label>Durée de vie (ans)</label><input type="number" id="i_lifetime" value="25" min="5" max="40" step="1"></div>
+                    <div class="inp-group"><label>CAPEX PV (€)</label><input type="number" id="i_capexPv" value="35000000" min="0" step="100000"></div>
+                    <div class="inp-group"><label>OPEX PV (€/kWc/an)</label><input type="number" id="i_omPv" value="12" min="0" step="0.5"></div>
+
+                    <div class="inp-divider">Stockage BESS</div>
+                    <div class="inp-group"><label>Puissance BESS (kW)</label><input type="number" id="i_bessPower" value="25000" min="0" step="500"></div>
+                    <div class="inp-group"><label>Capacité BESS (kWh)</label><input type="number" id="i_bessCapacity" value="50000" min="0" step="500"></div>
+                    <div class="inp-group"><label>Cycles/jour</label><input type="number" id="i_bessCycles" value="1.5" min="0" max="4" step="0.1"></div>
+                    <div class="inp-group"><label>Dégradation BESS (%/an)</label><input type="number" id="i_bessDeg" value="2.0" min="0" max="10" step="0.1"></div>
+                    <div class="inp-group"><label>CAPEX BESS (€)</label><input type="number" id="i_capexBess" value="18000000" min="0" step="100000"></div>
+                    <div class="inp-group"><label>OPEX BESS (€/kWc/an)</label><input type="number" id="i_omBess" value="8" min="0" step="0.5"></div>
+
+                    <div class="inp-divider">Hypothèses économiques</div>
+                    <div class="inp-group"><label>Prix électricité Y1 (€/MWh)</label><input type="number" id="i_elecPrice" value="90" min="0" step="1"></div>
+                    <div class="inp-group"><label>Escalation prix (%/an)</label><input type="number" id="i_elecEsc" value="1.5" min="0" step="0.1"></div>
+                    <div class="inp-group"><label>Spread BESS (€/MWh)</label><input type="number" id="i_bessSpread" value="35" min="0" step="1"></div>
+                    <div class="inp-group"><label>Inflation OPEX (%/an)</label><input type="number" id="i_inflation" value="2.0" min="0" step="0.1"></div>
+                    <div class="inp-group"><label>Taux IS (%)</label><input type="number" id="i_tax" value="25" min="0" max="60" step="0.5"></div>
+                    <div class="inp-group"><label>WACC (%)</label><input type="number" id="i_wacc" value="8.0" min="0" step="0.1"></div>
+
+                    <div class="inp-divider">Financement</div>
+                    <div class="inp-group"><label>Gearing dette (%)</label><input type="number" id="i_debtPct" value="70" min="0" max="100" step="1"></div>
+                    <div class="inp-group"><label>Taux dette senior (%)</label><input type="number" id="i_seniorRate" value="4.5" min="0" step="0.1"></div>
+                    <div class="inp-group"><label>Durée endettement (ans)</label><input type="number" id="i_debtDur" value="18" min="1" max="30" step="1"></div>
+                    <div class="inp-group"><label>DSRA (mois)</label><input type="number" id="i_dsra" value="6" min="0" max="24" step="1"></div>
+                    <div class="inp-group"><label>DSCR cible</label><input type="number" id="i_dscrTarget" value="1.15" min="1" step="0.01"></div>
+
+                    <button class="recalc-btn" onclick="recalcAll()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+                        Recalculer le modèle
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parameters recap (dynamic) -->
+        <div>
+            <div class="section-label">Récapitulatif des hypothèses</div>
             <div class="card" style="padding: 20px 22px;">
                 <div class="capex-row" id="capexRow"></div>
                 <div class="params-grid" id="paramsGrid"></div>
@@ -632,46 +738,6 @@ body::before {
 
 <script>
 // ─────────────────────────────────────────────────────────
-//  TEST DATA
-// ─────────────────────────────────────────────────────────
-const testSite = {
-    hasPV:  true,
-    hasBESS: true,
-    pvCapacity:      50000,   // 50 MWc
-    pvProdP90:        1450,   // kWh/kWc/an (Portugal)
-    pvProdP75:        1520,
-    pvDegradation:     0.5,   // %/an
-    pvLifetime:          25,  // years
-    pvGridPower:      60000,  // kVA
-    bessPower:        25000,  // 25 MW
-    bessCapacity:     50000,  // 50 MWh
-    bessCyclesPerDay:    1.5,
-    bessEffACDC:        95,
-    bessEffDCAC:        95,
-    bessDegradation:     2.0, // %/an
-    bessMinSoH:          80,  // %
-    capexPv:       35000000,  // 35 M€
-    capexBess:     18000000,  // 18 M€
-    omPv: 12,   insPv: 4,  amPv: 2,  rmPv: 2,
-    omBess: 8,  insBess: 3, amBess: 2, rmBess: 2,
-    rentEuros: 120000,
-};
-
-const testParams = {
-    electricityPrice:      90,
-    electricityEscalation:  1.5,
-    bessSpreadPrice:        35,
-    inflation:               2.0,
-    tax:                    25.0,
-    wacc:                    8.0,
-    debtPercent:            70,
-    seniorRate:              4.5,
-    debtDuration:           18,
-    dsraMonths:              6,
-    dscrTarget:              1.15,
-};
-
-// ─────────────────────────────────────────────────────────
 //  HELPERS
 // ─────────────────────────────────────────────────────────
 const FM  = window.FinancialModel;
@@ -679,99 +745,116 @@ const fmt = FM.formatEur;
 const pct = FM.formatPct;
 
 function k(v) {
-    // Format as k€ with 0 decimals
     if (v === null || v === undefined || !isFinite(v)) return '—';
     return Math.round(v / 1000).toLocaleString('fr-FR');
 }
-
 function fNum(v, dec = 2) {
     if (v === null || v === undefined || !isFinite(v)) return '—';
     return v.toLocaleString('fr-FR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
 }
+function nv(id) { return parseFloat(document.getElementById(id).value) || 0; }
 
 // ─────────────────────────────────────────────────────────
-//  COMPUTE
+//  READ INPUTS
 // ─────────────────────────────────────────────────────────
-const result  = FM.compute(testSite, testParams);
-const annual  = result.annual;
-const monthly = result.monthly;
-const kpis    = result.kpis;
+function getTestSite() {
+    return {
+        hasPV: true, hasBESS: true,
+        pvCapacity:      nv('i_pvCapacity'),
+        pvProdP90:       nv('i_pvProdP90'),
+        pvProdP75:       nv('i_pvProdP90') * 1.05,
+        pvDegradation:   nv('i_pvDeg'),
+        pvLifetime:      nv('i_lifetime'),
+        pvGridPower:     nv('i_pvCapacity') * 1.2,
+        bessPower:       nv('i_bessPower'),
+        bessCapacity:    nv('i_bessCapacity'),
+        bessCyclesPerDay: nv('i_bessCycles'),
+        bessEffACDC: 95, bessEffDCAC: 95,
+        bessDegradation: nv('i_bessDeg'),
+        bessMinSoH: 80,
+        capexPv:    nv('i_capexPv'),
+        capexBess:  nv('i_capexBess'),
+        omPv: nv('i_omPv'), insPv: 4, amPv: 2, rmPv: 2,
+        omBess: nv('i_omBess'), insBess: 3, amBess: 2, rmBess: 2,
+        rentEuros: 120000,
+    };
+}
+function getTestParams() {
+    return {
+        electricityPrice:      nv('i_elecPrice'),
+        electricityEscalation: nv('i_elecEsc'),
+        bessSpreadPrice:       nv('i_bessSpread'),
+        inflation:             nv('i_inflation'),
+        tax:                   nv('i_tax'),
+        wacc:                  nv('i_wacc'),
+        debtPercent:           nv('i_debtPct'),
+        seniorRate:            nv('i_seniorRate'),
+        debtDuration:          nv('i_debtDur'),
+        dsraMonths:            nv('i_dsra'),
+        dscrTarget:            nv('i_dscrTarget'),
+    };
+}
+
+// ─────────────────────────────────────────────────────────
+//  TOGGLE INPUTS PANEL
+// ─────────────────────────────────────────────────────────
+function toggleInputs() {
+    const body = document.getElementById('inputsBody');
+    const btn  = document.getElementById('inputsToggleBtn');
+    const lbl  = document.getElementById('inputsToggleLabel');
+    const open = body.classList.toggle('open');
+    btn.classList.toggle('open', open);
+    lbl.textContent = open ? 'Réduire' : 'Modifier';
+}
+
+// ─────────────────────────────────────────────────────────
+//  CHART INSTANCES (global to allow destroy on recalc)
+// ─────────────────────────────────────────────────────────
+let _chartPL = null, _chartDSCR = null, _chartMonthly = null;
 
 // ─────────────────────────────────────────────────────────
 //  PARAMETERS RECAP
 // ─────────────────────────────────────────────────────────
-(function renderParams() {
-    const capexRow = document.getElementById('capexRow');
-    capexRow.innerHTML = `
-        <span class="capex-pill">CAPEX PV : ${fmt(testSite.capexPv)}</span>
-        <span class="capex-pill">CAPEX BESS : ${fmt(testSite.capexBess)}</span>
+function renderParams(site, params, kpis) {
+    document.getElementById('capexRow').innerHTML = `
+        <span class="capex-pill">CAPEX PV : ${fmt(site.capexPv)}</span>
+        <span class="capex-pill">CAPEX BESS : ${fmt(site.capexBess)}</span>
         <span class="capex-pill">CAPEX Total : ${fmt(kpis.totalCapex)}</span>
-        <span class="capex-pill">Dette : ${fmt(kpis.debt)} (${testParams.debtPercent}%)</span>
+        <span class="capex-pill">Dette : ${fmt(kpis.debt)} (${params.debtPercent}%)</span>
         <span class="capex-pill">Fonds propres : ${fmt(kpis.equity)}</span>
     `;
-
     const items = [
-        ['Prix électricité Y1', `${testParams.electricityPrice} €/MWh`],
-        ['Escalation prix', `${testParams.electricityEscalation} %/an`],
-        ['Spread BESS', `${testParams.bessSpreadPrice} €/MWh`],
-        ['Inflation OPEX', `${testParams.inflation} %/an`],
-        ['Taux d\'imposition', `${testParams.tax} %`],
-        ['WACC', `${testParams.wacc} %`],
-        ['Taux dette senior', `${testParams.seniorRate} %`],
-        ['Durée endettement', `${testParams.debtDuration} ans`],
-        ['Durée de vie', `${testSite.pvLifetime} ans`],
-        ['DSCR cible', `≥ ${testParams.dscrTarget}`],
+        ['Prix électricité Y1', `${params.electricityPrice} €/MWh`],
+        ['Escalation prix', `${params.electricityEscalation} %/an`],
+        ['Spread BESS', `${params.bessSpreadPrice} €/MWh`],
+        ['Inflation OPEX', `${params.inflation} %/an`],
+        ['Taux d\'imposition', `${params.tax} %`],
+        ['WACC', `${params.wacc} %`],
+        ['Taux dette senior', `${params.seniorRate} %`],
+        ['Durée endettement', `${params.debtDuration} ans`],
+        ['Durée de vie', `${site.pvLifetime} ans`],
+        ['DSCR cible', `≥ ${params.dscrTarget}`],
     ];
-
-    const grid = document.getElementById('paramsGrid');
-    grid.innerHTML = items.map(([label, value]) => `
-        <div class="param-item">
-            <span class="param-label">${label}</span>
-            <span class="param-value">${value}</span>
-        </div>
+    document.getElementById('paramsGrid').innerHTML = items.map(([label, value]) => `
+        <div class="param-item"><span class="param-label">${label}</span><span class="param-value">${value}</span></div>
     `).join('');
-})();
+}
 
 // ─────────────────────────────────────────────────────────
 //  KPI CARDS
 // ─────────────────────────────────────────────────────────
-(function renderKPIs() {
+function renderKPIs(kpis, params) {
     const dscrClass = kpis.dscrMin === null ? 'accent'
-        : kpis.dscrMin >= testParams.dscrTarget ? 'success'
+        : kpis.dscrMin >= params.dscrTarget ? 'success'
         : kpis.dscrMin >= 1.0 ? 'warning'
         : 'danger';
 
     const cards = [
-        {
-            label: 'TRI Projet',
-            value: isFinite(kpis.projectIRR) ? pct(kpis.projectIRR) : '—',
-            sub:   `WACC : ${testParams.wacc} %`,
-            cls:   'accent',
-            cardCls: '',
-        },
-        {
-            label: 'TRI Equity',
-            value: isFinite(kpis.equityIRR) ? pct(kpis.equityIRR) : '—',
-            sub:   `Levier : ${testParams.debtPercent}%`,
-            cls:   'accent',
-            cardCls: '',
-        },
-        {
-            label: 'VAN Projet',
-            value: fmt(kpis.van),
-            sub:   `Actualisation ${testParams.wacc}%`,
-            cls:   kpis.van >= 0 ? 'success' : 'danger',
-            cardCls: kpis.van >= 0 ? 'success' : 'danger',
-        },
-        {
-            label: 'DSCR Min',
-            value: kpis.dscrMin !== null ? fNum(kpis.dscrMin) : '—',
-            sub:   `Moy. période : ${kpis.dscrAvg !== null ? fNum(kpis.dscrAvg) : '—'}`,
-            cls:   dscrClass,
-            cardCls: dscrClass === 'success' ? 'success' : dscrClass === 'warning' ? 'warning' : 'danger',
-        },
+        { label: 'TRI Projet', value: isFinite(kpis.projectIRR) ? pct(kpis.projectIRR) : '—', sub: `WACC : ${params.wacc} %`, cls: 'accent', cardCls: '' },
+        { label: 'TRI Equity', value: isFinite(kpis.equityIRR)  ? pct(kpis.equityIRR)  : '—', sub: `Levier : ${params.debtPercent}%`, cls: 'accent', cardCls: '' },
+        { label: 'VAN Projet', value: fmt(kpis.van), sub: `Actualisation ${params.wacc}%`, cls: kpis.van >= 0 ? 'success' : 'danger', cardCls: kpis.van >= 0 ? 'success' : 'danger' },
+        { label: 'DSCR Min',   value: kpis.dscrMin !== null ? fNum(kpis.dscrMin) : '—', sub: `Moy. période : ${kpis.dscrAvg !== null ? fNum(kpis.dscrAvg) : '—'}`, cls: dscrClass, cardCls: dscrClass === 'success' ? 'success' : dscrClass === 'warning' ? 'warning' : 'danger' },
     ];
-
     document.getElementById('kpiGrid').innerHTML = cards.map(c => `
         <div class="kpi-card ${c.cardCls}">
             <div class="kpi-label">${c.label}</div>
@@ -779,16 +862,17 @@ const kpis    = result.kpis;
             <div class="kpi-sub">${c.sub}</div>
         </div>
     `).join('');
-})();
+}
 
 // ─────────────────────────────────────────────────────────
 //  CHART: Annual P&L
 // ─────────────────────────────────────────────────────────
-(function renderChartPL() {
+function renderChartPL(annual) {
+    if (_chartPL) { _chartPL.destroy(); _chartPL = null; }
     const labels = annual.map(a => `A${a.year}`);
     const toM = arr => arr.map(v => +(v / 1e6).toFixed(3));
 
-    new Chart(document.getElementById('chartPL'), {
+    _chartPL = new Chart(document.getElementById('chartPL'), {
         type: 'line',
         data: {
             labels: labels,
@@ -866,16 +950,17 @@ const kpis    = result.kpis;
             },
         },
     });
-})();
+}
 
 // ─────────────────────────────────────────────────────────
 //  CHART: DSCR per year
 // ─────────────────────────────────────────────────────────
-(function renderChartDSCR() {
+function renderChartDSCR(annual, params) {
+    if (_chartDSCR) { _chartDSCR.destroy(); _chartDSCR = null; }
     const debtYears = annual.filter(a => a.dscr !== null);
     const labels    = debtYears.map(a => `A${a.year}`);
     const dscrData  = debtYears.map(a => +a.dscr.toFixed(4));
-    const dscrTarget = testParams.dscrTarget;
+    const dscrTarget = params.dscrTarget;
 
     // Color each bar
     const barColors = dscrData.map(v =>
@@ -889,7 +974,7 @@ const kpis    = result.kpis;
         :                     '#D9534F'
     );
 
-    new Chart(document.getElementById('chartDSCR'), {
+    _chartDSCR = new Chart(document.getElementById('chartDSCR'), {
         type: 'bar',
         data: {
             labels: labels,
@@ -955,18 +1040,19 @@ const kpis    = result.kpis;
             },
         }],
     });
-})();
+}
 
 // ─────────────────────────────────────────────────────────
 //  CHART: Monthly cashflows — years 1-5 (60 months)
 // ─────────────────────────────────────────────────────────
-(function renderChartMonthly() {
+function renderChartMonthly(monthly) {
+    if (_chartMonthly) { _chartMonthly.destroy(); _chartMonthly = null; }
     const first60 = monthly.filter(m => m.period <= 60);
     const labels  = first60.map(m => `M${m.period}`);
 
     const toK = arr => arr.map(v => +(v / 1000).toFixed(2));
 
-    new Chart(document.getElementById('chartMonthly'), {
+    _chartMonthly = new Chart(document.getElementById('chartMonthly'), {
         type: 'line',
         data: {
             labels: labels,
@@ -1042,58 +1128,57 @@ const kpis    = result.kpis;
             },
         },
     });
-})();
+}
 
 // ─────────────────────────────────────────────────────────
 //  TABLE: Annual P&L — first 10 years
 // ─────────────────────────────────────────────────────────
-(function renderTable() {
+function renderTable(annual, params) {
     const first10 = annual.slice(0, 10);
-    const tbody   = document.getElementById('plTableBody');
-
-    tbody.innerHTML = first10.map(row => {
-        // DSCR formatting
-        let dscrDisplay = '—';
-        let dscrClass   = '';
+    document.getElementById('plTableBody').innerHTML = first10.map(row => {
+        let dscrDisplay = '—', dscrClass = '';
         if (row.dscr !== null) {
             dscrDisplay = fNum(row.dscr);
-            dscrClass   = row.dscr >= testParams.dscrTarget ? 'dscr-ok'
-                        : row.dscr >= 1.0                   ? 'dscr-warn'
-                        :                                     'dscr-bad';
+            dscrClass   = row.dscr >= params.dscrTarget ? 'dscr-ok'
+                        : row.dscr >= 1.0               ? 'dscr-warn'
+                        :                                 'dscr-bad';
         }
-
         const fcfCls = row.fcfEquity >= 0 ? 'positive' : 'negative';
         const ebtCls = row.ebt       >= 0 ? 'positive' : 'negative';
-
-        return `
-            <tr>
-                <td>${row.year}</td>
-                <td>${fNum(row.production / 1e6, 2)} GWh</td>
-                <td>${k(row.totalRevenue)}</td>
-                <td>${k(row.ebitda)}</td>
-                <td class="${ebtCls}">${k(row.ebt)}</td>
-                <td>${k(row.netIncome)}</td>
-                <td class="accent">${k(row.cfads)}</td>
-                <td>${k(row.debtService)}</td>
-                <td class="${dscrClass}">${dscrDisplay}</td>
-                <td class="${fcfCls}">${k(row.fcfEquity)}</td>
-            </tr>
-        `;
+        return `<tr>
+            <td>${row.year}</td>
+            <td>${fNum(row.production / 1e6, 2)} GWh</td>
+            <td>${k(row.totalRevenue)}</td>
+            <td>${k(row.ebitda)}</td>
+            <td class="${ebtCls}">${k(row.ebt)}</td>
+            <td>${k(row.netIncome)}</td>
+            <td class="accent">${k(row.cfads)}</td>
+            <td>${k(row.debtService)}</td>
+            <td class="${dscrClass}">${dscrDisplay}</td>
+            <td class="${fcfCls}">${k(row.fcfEquity)}</td>
+        </tr>`;
     }).join('');
-})();
+}
 
 // ─────────────────────────────────────────────────────────
-//  CONSOLE SUMMARY (developer debug)
+//  MASTER RECALC — called on load + on button click
 // ─────────────────────────────────────────────────────────
-console.group('FinancialModel — Scénario test');
-console.log('CAPEX total    :', FM.formatEur(kpis.totalCapex));
-console.log('Dette          :', FM.formatEur(kpis.debt));
-console.log('Fonds propres  :', FM.formatEur(kpis.equity));
-console.log('TRI Projet     :', FM.formatPct(kpis.projectIRR));
-console.log('TRI Equity     :', FM.formatPct(kpis.equityIRR));
-console.log('VAN            :', FM.formatEur(kpis.van));
-console.log('DSCR min       :', kpis.dscrMin !== null ? kpis.dscrMin.toFixed(4) : '—');
-console.log('DSCR moy.      :', kpis.dscrAvg !== null ? kpis.dscrAvg.toFixed(4) : '—');
+function recalcAll() {
+    const site   = getTestSite();
+    const params = getTestParams();
+    const result = FM.compute(site, params);
+    const { annual, monthly, kpis } = result;
+
+    renderParams(site, params, kpis);
+    renderKPIs(kpis, params);
+    renderChartPL(annual);
+    renderChartDSCR(annual, params);
+    renderChartMonthly(monthly);
+    renderTable(annual, params);
+}
+
+// Initial render
+recalcAll();
 console.log('CA Y1          :', FM.formatEur(kpis.annualRevY1));
 console.log('EBITDA Y1      :', FM.formatEur(kpis.ebitdaY1));
 console.groupEnd();
