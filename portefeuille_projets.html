@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portefeuille de projets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --border: #E2E0DB;
+    --border-focus: #1863DC;
+    --text: #1A1A1A;
+    --text-muted: #7A7670;
+    --text-light: #A5A09A;
+    --accent: #1863DC;
+    --accent-hover: #1250B0;
+    --accent-light: rgba(24,99,220,0.08);
+    --accent-lighter: rgba(24,99,220,0.04);
+    --success: #2E9E6E;
+    --sidebar-bg: #0E1520;
+    --sidebar-text: #B8C4D8;
+    --sidebar-text-active: #FFFFFF;
+    --sidebar-hover: rgba(255,255,255,0.07);
+    --sidebar-active: rgba(24,99,220,0.22);
+    --sidebar-width: 240px;
+    --header-height: 72px;
+    --radius: 10px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("Banque d'images/solar-panels-and-wind-energy-plants-e1696032292423.jpg");
+    background-size: cover;
+    background-position: center;
+    opacity: 0.12;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ═══════════════════ SIDEBAR ═══════════════════ */
+.sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    overflow-y: auto;
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.sidebar-logo-img {
+    height: 44px;
+    width: auto;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+    opacity: 0.92;
+}
+
+.sidebar-user {
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.sidebar-user-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 6px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.sidebar-user-name {
+    font-size: 13px;
+    color: var(--sidebar-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 400;
+}
+
+.user-avatar {
+    width: 28px; height: 28px;
+    background: rgba(24,99,220,0.35);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    flex-shrink: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 12px 10px;
+}
+
+.nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.25);
+    padding: 12px 10px 6px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    transition: background var(--transition), color var(--transition);
+    cursor: pointer;
+    margin-bottom: 2px;
+    font-weight: 400;
+}
+
+.nav-item:hover {
+    background: var(--sidebar-hover);
+    color: var(--sidebar-text-active);
+}
+
+.nav-item.active {
+    background: var(--sidebar-active);
+    color: var(--sidebar-text-active);
+    font-weight: 500;
+}
+
+.nav-item svg {
+    width: 18px; height: 18px;
+    opacity: 0.6;
+    flex-shrink: 0;
+}
+
+.nav-item.active svg { opacity: 1; }
+
+.nav-item .nav-badge {
+    margin-left: auto;
+    background: rgba(24,99,220,0.35);
+    color: #B8D4FF;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 12px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ═══════════════════ MAIN CONTENT ═══════════════════ */
+.main {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+}
+
+.project-header {
+    background: rgba(255,255,255,0.96);
+    border-bottom: 1px solid var(--border);
+    padding: 0 36px;
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(4px);
+}
+
+.project-name {
+    font-family: 'Teko', sans-serif;
+    font-size: 26px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--text);
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.header-divider {
+    width: 1px;
+    height: 28px;
+    background: var(--border);
+    flex-shrink: 0;
+}
+
+.header-meta {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.meta-item svg {
+    width: 15px; height: 15px;
+    opacity: 0.5;
+}
+
+.meta-label {
+    font-weight: 600;
+    color: var(--text-light);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: 'Poppins', sans-serif;
+}
+
+.meta-value {
+    font-weight: 500;
+    color: var(--text);
+    font-size: 13px;
+}
+
+.content {
+    flex: 1;
+    padding: 36px;
+}
+
+.section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Empty state panel */
+.sites-panel {
+    background: rgba(255,255,255,0.96);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 40px 32px;
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+}
+
+.sites-empty-icon {
+    width: 56px; height: 56px;
+    background: var(--accent-light);
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.sites-empty-icon svg {
+    width: 26px; height: 26px;
+    color: var(--accent);
+}
+
+.sites-empty-title {
+    font-family: 'Teko', sans-serif;
+    letter-spacing: 0.3px;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.sites-empty-text {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    line-height: 1.6;
+    font-weight: 300;
+}
+
+.btn-add-site {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background var(--transition), transform 0.1s, box-shadow var(--transition);
+    box-shadow: 0 2px 8px rgba(24,99,220,0.25);
+    letter-spacing: 0.2px;
+    text-decoration: none;
+}
+
+.btn-add-site:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 4px 16px rgba(24,99,220,0.35);
+}
+
+.btn-add-site:active { transform: scale(0.985); }
+
+.btn-add-site svg { width: 18px; height: 18px; }
+
+/* Projects table */
+.sites-table-wrap {
+    background: rgba(255,255,255,0.96);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.sites-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.sites-table thead tr {
+    background: rgba(247,246,243,0.98);
+    border-bottom: 1px solid var(--border);
+}
+
+.sites-table th {
+    padding: 11px 16px;
+    text-align: left;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    font-family: 'Poppins', sans-serif;
+}
+
+.sites-table td {
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+}
+
+.sites-table tbody tr:last-child td { border-bottom: none; }
+
+.sites-table tbody tr {
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.sites-table tbody tr:hover td { background: var(--accent-lighter); }
+
+.project-name-cell {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--accent);
+}
+
+.cell-muted { color: var(--text-muted); }
+
+.btn-add-inline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px;
+    width: 100%;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    background: var(--accent-lighter);
+    border: 2px dashed rgba(24,99,220,0.25);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background var(--transition), border-color var(--transition);
+    text-decoration: none;
+}
+
+.btn-add-inline:hover {
+    background: var(--accent-light);
+    border-color: var(--accent);
+}
+
+.btn-add-inline svg { width: 18px; height: 18px; }
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-12px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.sidebar { animation: slideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.main { animation: fadeIn 0.4s ease 0.15s both; }
+
+@media (max-width: 768px) {
+    :root { --sidebar-width: 56px; }
+    .sidebar-logo-text, .sidebar-user, .nav-section-label,
+    .nav-item span, .nav-item .nav-badge, .sidebar-footer { display: none; }
+    .sidebar-logo { padding: 16px 12px; }
+    .sidebar-logo-img { height: 32px; }
+    .sidebar-nav { padding: 8px 6px; }
+    .nav-item { justify-content: center; padding: 10px; }
+    .nav-item svg { margin: 0; }
+    .project-header { padding: 0 20px; gap: 16px; }
+    .content { padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <img src="Banque d'images/DOL-COG-IV-020-A -Logo final Groupe Dolfines FR transp.png" class="sidebar-logo-img" alt="Dolfines">
+    </div>
+
+    <div class="sidebar-user">
+        <div class="sidebar-user-label">Utilisateur</div>
+        <div class="sidebar-user-name">
+            <div class="user-avatar">U</div>
+            Utilisateur (à définir)
+        </div>
+    </div>
+
+    <div class="sidebar-nav">
+        <div class="nav-section-label">Navigation</div>
+
+        <a class="nav-item active" href="portefeuille_projets.html" id="navProjets" title="Projets">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span>Projets</span>
+            <span class="nav-badge" id="navProjectCount">0</span>
+        </a>
+
+        <a class="nav-item" href="creer_projet.html" title="Créer Projet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            <span>Créer Projet</span>
+        </a>
+
+        <a class="nav-item" href="donnees.html" title="Données">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            <span>Données</span>
+        </a>
+    </div>
+
+    <div class="sidebar-footer">v1.0</div>
+</nav>
+
+<!-- ═══════════════════ MAIN ═══════════════════ -->
+<div class="main">
+
+    <!-- Header -->
+    <header class="project-header">
+        <div class="project-name">Portefeuille de projets</div>
+        <div class="header-divider"></div>
+        <div class="header-meta">
+            <div class="meta-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <div>
+                    <div class="meta-label">Projets ajoutés</div>
+                    <div class="meta-value" id="headerProjectCount">0</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <div class="content">
+        <div class="section-title">Projets à l'étude</div>
+
+        <!-- Projects table -->
+        <div class="sites-table-wrap" id="projectsTableWrap" style="display:none;">
+            <table class="sites-table">
+                <thead>
+                    <tr>
+                        <th>Nom du projet</th>
+                        <th>Courtier</th>
+                        <th>Vendeur</th>
+                        <th>Nb. de sites</th>
+                        <th>Date de création</th>
+                    </tr>
+                </thead>
+                <tbody id="projectsTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Empty state -->
+        <div class="sites-panel" id="projectsEmptyPanel">
+            <div class="sites-empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <div class="sites-empty-title">Aucun projet ajouté</div>
+            <p class="sites-empty-text">Commencez par créer un premier projet<br>pour renseigner ses caractéristiques et ses sites.</p>
+            <a class="btn-add-site" href="creer_projet.html">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Ajouter un projet
+            </a>
+        </div>
+
+        <!-- Add button when projects already exist -->
+        <a class="btn-add-inline" id="btnAddInline" style="display:none;" href="creer_projet.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter un projet
+        </a>
+    </div>
+</div>
+
+<script>
+const STORAGE_PROJECTS = 'pi_projects';
+
+function getProjects() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_PROJECTS)) || []; }
+    catch { return []; }
+}
+
+function init() {
+    const projects = getProjects();
+
+    document.getElementById('navProjectCount').textContent = projects.length;
+    document.getElementById('headerProjectCount').textContent = projects.length;
+
+    const emptyPanel  = document.getElementById('projectsEmptyPanel');
+    const tableWrap   = document.getElementById('projectsTableWrap');
+    const btnInline   = document.getElementById('btnAddInline');
+    const tbody       = document.getElementById('projectsTableBody');
+
+    if (projects.length === 0) {
+        emptyPanel.style.display = 'block';
+        tableWrap.style.display  = 'none';
+        btnInline.style.display  = 'none';
+        return;
+    }
+
+    emptyPanel.style.display = 'none';
+    tableWrap.style.display  = 'block';
+    btnInline.style.display  = 'flex';
+
+    tbody.innerHTML = '';
+    projects.forEach(p => {
+        const sitesCount = (p.sites || []).length;
+        const date = p.createdAt
+            ? new Date(p.createdAt).toLocaleDateString('fr-FR')
+            : '<span class="cell-muted">—</span>';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="project-name-cell">${p.name || '—'}</td>
+            <td>${p.courtier || '<span class="cell-muted">—</span>'}</td>
+            <td>${p.vendeur  || '<span class="cell-muted">—</span>'}</td>
+            <td>${sitesCount}</td>
+            <td>${date}</td>
+        `;
+        tr.addEventListener('click', () => {
+            window.location.href = 'projet_dashboard.html?id=' + p.id;
+        });
+        tbody.appendChild(tr);
+    });
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tableau de bord site</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root {
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --border: #E2E0DB;
+    --text: #1A1A1A;
+    --text-muted: #7A7670;
+    --text-light: #A5A09A;
+    --accent: #1863DC;
+    --accent-hover: #1250B0;
+    --accent-light: rgba(24,99,220,0.08);
+    --accent-lighter: rgba(24,99,220,0.04);
+    --success: #2E9E6E;
+    --sidebar-bg: #0E1520;
+    --sidebar-text: #B8C4D8;
+    --sidebar-text-active: #FFFFFF;
+    --sidebar-hover: rgba(255,255,255,0.07);
+    --sidebar-active: rgba(24,99,220,0.22);
+    --sidebar-width: 240px;
+    --header-height: 72px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("Banque d'images/solar-panels-and-wind-energy-plants-e1696032292423.jpg");
+    background-size: cover;
+    background-position: center;
+    opacity: 0.10;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ═══════════════════ SIDEBAR ═══════════════════ */
+.sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    overflow-y: auto;
+    animation: slideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.sidebar-logo-img {
+    height: 44px;
+    width: auto;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+    opacity: 0.92;
+}
+
+.sidebar-user {
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.sidebar-user-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 6px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.sidebar-user-name {
+    font-size: 13px;
+    color: var(--sidebar-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-avatar {
+    width: 28px; height: 28px;
+    background: rgba(24,99,220,0.35);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    flex-shrink: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 12px 10px;
+}
+
+.nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.25);
+    padding: 12px 10px 6px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    transition: background var(--transition), color var(--transition);
+    cursor: pointer;
+    margin-bottom: 2px;
+    font-weight: 400;
+}
+
+.nav-item:hover { background: var(--sidebar-hover); color: var(--sidebar-text-active); }
+.nav-item.active { background: var(--sidebar-active); color: var(--sidebar-text-active); font-weight: 500; }
+.nav-item svg { width: 18px; height: 18px; opacity: 0.6; flex-shrink: 0; }
+.nav-item.active svg { opacity: 1; }
+
+.nav-item .nav-badge {
+    margin-left: auto;
+    background: rgba(24,99,220,0.35);
+    color: #B8D4FF;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 12px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ═══════════════════ MAIN ═══════════════════ */
+.main {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+    animation: fadeIn 0.4s ease 0.15s both;
+}
+
+/* Header */
+.project-header {
+    background: rgba(255,255,255,0.96);
+    border-bottom: 1px solid var(--border);
+    padding: 0 36px;
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(4px);
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.breadcrumb a {
+    font-family: 'Teko', sans-serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--text-muted);
+    text-decoration: none;
+    letter-spacing: 0.3px;
+    transition: color var(--transition);
+}
+
+.breadcrumb a:hover { color: var(--accent); }
+
+.breadcrumb-sep {
+    color: var(--text-light);
+    font-size: 16px;
+}
+
+.site-name-header {
+    font-family: 'Teko', sans-serif;
+    font-size: 26px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--text);
+    line-height: 1;
+}
+
+.header-divider {
+    width: 1px;
+    height: 28px;
+    background: var(--border);
+    flex-shrink: 0;
+    margin: 0 8px;
+}
+
+.header-meta {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.meta-item svg { width: 14px; height: 14px; opacity: 0.5; }
+
+.meta-label {
+    font-weight: 600;
+    color: var(--text-light);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: 'Poppins', sans-serif;
+}
+
+.meta-value { font-weight: 500; color: var(--text); font-size: 13px; }
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    font-family: 'Poppins', sans-serif;
+}
+
+.status-badge.dev     { background: rgba(120,120,120,0.10); color: #555; }
+.status-badge.permis  { background: rgba(24,99,220,0.10);   color: var(--accent); }
+.status-badge.rtb     { background: rgba(255,140,0,0.12);   color: #B06000; }
+.status-badge.constr  { background: rgba(200,100,0,0.10);   color: #8A4500; }
+.status-badge.oper    { background: rgba(46,158,110,0.12);  color: var(--success); }
+
+/* Content */
+.content {
+    flex: 1;
+    padding: 32px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.section-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ═══════════════════ KPI ROW ═══════════════════ */
+.kpi-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.kpi-card {
+    background: rgba(255,255,255,0.96);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.kpi-icon {
+    width: 44px; height: 44px;
+    background: var(--accent-light);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--accent);
+}
+
+.kpi-icon svg { width: 22px; height: 22px; }
+
+.kpi-body {}
+
+.kpi-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-light);
+    font-family: 'Poppins', sans-serif;
+    margin-bottom: 4px;
+}
+
+.kpi-value {
+    font-family: 'Teko', sans-serif;
+    font-size: 30px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    color: var(--text);
+    line-height: 1;
+}
+
+.kpi-value.positive { color: var(--success); }
+.kpi-value.negative { color: #D94F4F; }
+.kpi-value.neutral  { color: var(--accent); }
+.kpi-value.pending  { color: var(--text-light); font-size: 18px; font-family: 'Montserrat', sans-serif; font-weight: 400; }
+
+.kpi-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-weight: 300;
+}
+
+/* ═══════════════════ CHARTS ROW ═══════════════════ */
+.charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.chart-card {
+    background: rgba(255,255,255,0.96);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-card.clickable {
+    cursor: pointer;
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.chart-card.clickable:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 20px rgba(24,99,220,0.12);
+}
+
+.chart-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.chart-card-title {
+    font-family: 'Teko', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    color: var(--text);
+}
+
+.chart-card-link {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.chart-card-link svg { width: 13px; height: 13px; }
+
+.chart-placeholder {
+    flex: 1;
+    min-height: 220px;
+    position: relative;
+}
+
+.chart-placeholder canvas { width: 100% !important; }
+
+.placeholder-note {
+    font-size: 10.5px;
+    color: var(--text-light);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    text-align: center;
+    margin-top: 8px;
+    font-style: italic;
+}
+
+/* ═══════════════════ DATA CARD ═══════════════════ */
+.data-card {
+    background: rgba(255,255,255,0.96);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+}
+
+.data-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.data-card-title {
+    font-family: 'Teko', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    color: var(--text);
+}
+
+.data-card-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    font-family: 'Poppins', sans-serif;
+    text-decoration: none;
+    padding: 6px 14px;
+    border: 1.5px solid var(--accent);
+    border-radius: 8px;
+    transition: background var(--transition);
+}
+
+.data-card-action:hover { background: var(--accent-light); }
+.data-card-action svg { width: 13px; height: 13px; }
+
+.data-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.data-item {}
+
+.data-item-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-light);
+    font-family: 'Poppins', sans-serif;
+    margin-bottom: 4px;
+}
+
+.data-item-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.data-item-value.muted { font-weight: 400; color: var(--text-muted); }
+
+/* Tech badges */
+.tech-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 4px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.tech-badge.pv   { background: rgba(255,185,0,0.12); color: #9A6C00; }
+.tech-badge.bess { background: rgba(24,99,220,0.10);  color: var(--accent); }
+
+/* Animations */
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+
+@media (max-width: 1100px) {
+    .kpi-row        { grid-template-columns: repeat(3, 1fr); }
+    .charts-row     { grid-template-columns: 1fr; }
+    .data-grid      { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+    :root { --sidebar-width: 56px; }
+    .sidebar-user, .nav-section-label, .nav-item span, .nav-item .nav-badge, .sidebar-footer { display: none; }
+    .sidebar-logo { padding: 16px 12px; }
+    .sidebar-logo-img { height: 32px; }
+    .sidebar-nav { padding: 8px 6px; }
+    .nav-item { justify-content: center; padding: 10px; }
+    .kpi-row { grid-template-columns: 1fr; }
+    .content { padding: 20px; }
+    .data-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ═══ DATA ROOM ═══ */
+.dataroom-card {
+    background: rgba(255,255,255,0.96);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+}
+
+.dataroom-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.dataroom-title { font-family: 'Teko', sans-serif; font-size: 18px; font-weight: 500; letter-spacing: 0.3px; color: var(--text); }
+
+.dropzone {
+    border: 2px dashed rgba(24,99,220,0.3);
+    border-radius: 12px;
+    padding: 32px 20px;
+    text-align: center;
+    background: var(--accent-lighter);
+    cursor: pointer;
+    transition: all var(--transition);
+    margin-bottom: 20px;
+    position: relative;
+}
+.dropzone:hover, .dropzone.drag-over { border-color: var(--accent); background: var(--accent-light); }
+.dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.dropzone-icon { color: var(--accent); margin-bottom: 12px; }
+.dropzone-text { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.dropzone-hint { font-size: 11px; color: var(--text-muted); font-family: 'Poppins', sans-serif; }
+
+.file-list { display: flex; flex-direction: column; gap: 8px; }
+
+.file-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: border-color var(--transition);
+}
+.file-item:hover { border-color: var(--accent); }
+
+.file-type-badge {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+    flex-shrink: 0;
+}
+.file-type-badge.pdf  { background: rgba(217,79,79,0.12);   color: #D94F4F; }
+.file-type-badge.xlsx { background: rgba(46,158,110,0.12);  color: #2E9E6E; }
+.file-type-badge.csv  { background: rgba(46,158,110,0.12);  color: #2E9E6E; }
+.file-type-badge.docx { background: rgba(24,99,220,0.10);   color: var(--accent); }
+.file-type-badge.other{ background: rgba(120,120,120,0.10); color: #666; }
+
+.file-info { flex: 1; min-width: 0; }
+.file-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-meta { font-size: 11px; color: var(--text-muted); font-family: 'Poppins', sans-serif; margin-top: 2px; }
+
+.file-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.btn-analyze {
+    padding: 6px 14px;
+    font-size: 12px; font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    color: var(--accent);
+    background: var(--accent-light);
+    border: 1px solid rgba(24,99,220,0.2);
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+.btn-analyze:hover { background: rgba(24,99,220,0.15); border-color: var(--accent); }
+.btn-analyze.analyzed { color: var(--success); background: rgba(46,158,110,0.08); border-color: rgba(46,158,110,0.3); }
+.btn-analyze.analyzing { opacity: 0.6; pointer-events: none; }
+
+.btn-delete-file { background: none; border: none; cursor: pointer; padding: 4px; color: var(--text-light); border-radius: 6px; transition: color var(--transition); }
+.btn-delete-file:hover { color: var(--danger); }
+
+.extraction-badge { font-size: 10px; font-weight: 600; font-family: 'Poppins', sans-serif; padding: 2px 8px; border-radius: 12px; }
+.extraction-badge.ok { background: rgba(46,158,110,0.12); color: #2E9E6E; }
+.extraction-badge.none { background: rgba(120,120,120,0.10); color: #888; }
+
+/* Extraction modal */
+.modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.15s ease;
+}
+.modal-overlay.hidden { display: none; }
+
+.modal-box {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%; max-width: 680px;
+    max-height: 80vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.modal-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+}
+.modal-title { font-family: 'Teko', sans-serif; font-size: 20px; font-weight: 500; color: var(--text); }
+.modal-close { background: none; border: none; cursor: pointer; padding: 4px; color: var(--text-muted); border-radius: 6px; }
+.modal-close:hover { color: var(--text); }
+.modal-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+.extraction-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: border-color var(--transition);
+}
+.extraction-item:hover { border-color: var(--accent); }
+.extraction-item input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; flex-shrink: 0; }
+.extraction-item-label { font-size: 11px; font-weight: 600; color: var(--text-muted); font-family: 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; width: 180px; flex-shrink: 0; }
+.extraction-item-value { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+.extraction-item-confidence { font-size: 10px; font-family: 'Poppins', sans-serif; padding: 1px 6px; border-radius: 10px; }
+.extraction-item-confidence.high { background: rgba(46,158,110,0.12); color: #2E9E6E; }
+.extraction-item-confidence.medium { background: rgba(239,159,39,0.12); color: #B07000; }
+.extraction-item-confidence.low { background: rgba(217,79,79,0.10); color: #D94F4F; }
+
+.btn-primary-sm { padding: 9px 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; color: #fff; background: var(--accent); border: none; border-radius: 8px; cursor: pointer; transition: background var(--transition); }
+.btn-primary-sm:hover { background: var(--accent-hover); }
+.btn-cancel { padding: 9px 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-muted); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all var(--transition); }
+.btn-cancel:hover { border-color: var(--text-muted); color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <img src="Banque d'images/DOL-COG-IV-020-A -Logo final Groupe Dolfines FR transp.png" class="sidebar-logo-img" alt="Dolfines">
+    </div>
+
+    <div class="sidebar-user">
+        <div class="sidebar-user-label">Utilisateur</div>
+        <div class="sidebar-user-name">
+            <div class="user-avatar">U</div>
+            Utilisateur (à définir)
+        </div>
+    </div>
+
+    <div class="sidebar-nav">
+        <div class="nav-section-label">Navigation</div>
+
+        <a class="nav-item" href="portefeuille_projets.html" title="Projets">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span>Projets</span>
+            <span class="nav-badge" id="navProjectCount">0</span>
+        </a>
+
+        <a class="nav-item" href="creer_projet.html" title="Créer Projet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            <span>Créer Projet</span>
+        </a>
+
+        <a class="nav-item" href="donnees.html" title="Données">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            <span>Données</span>
+        </a>
+    </div>
+
+    <div class="sidebar-footer">v1.0</div>
+</nav>
+
+<!-- ═══════════════════ MAIN ═══════════════════ -->
+<div class="main">
+
+    <header class="project-header">
+        <div class="breadcrumb">
+            <a href="#" id="projectLink">—</a>
+            <span class="breadcrumb-sep">›</span>
+            <span class="site-name-header" id="headerSiteName">—</span>
+        </div>
+        <div class="header-divider"></div>
+        <div class="header-meta">
+            <div class="meta-item">
+                <div>
+                    <div class="meta-label">Pays</div>
+                    <div class="meta-value" id="headerCountry">—</div>
+                </div>
+            </div>
+            <div class="meta-item">
+                <div>
+                    <div class="meta-label">Statut</div>
+                    <div class="meta-value"><span class="status-badge" id="headerStatus">—</span></div>
+                </div>
+            </div>
+            <div class="meta-item" id="headerTechWrap">
+                <div>
+                    <div class="meta-label">Technologies</div>
+                    <div class="meta-value" id="headerTech">—</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="content">
+
+        <!-- ═══ KPI ROW ═══ -->
+        <div>
+            <div class="section-label">Indicateurs clés du site</div>
+            <div class="kpi-row">
+
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background:rgba(46,158,110,0.1);color:#2E9E6E;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-label">VAN site</div>
+                        <div class="kpi-value pending" id="kpiVAN">À calculer</div>
+                        <div class="kpi-sub">Valeur Actuelle Nette</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background:rgba(24,99,220,0.08);color:#1863DC;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-label">TRI site</div>
+                        <div class="kpi-value pending" id="kpiTRI">À calculer</div>
+                        <div class="kpi-sub">Taux de Rendement Interne</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background:rgba(255,159,39,0.1);color:#EF9F27;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-label">Revenu annuel estimé</div>
+                        <div class="kpi-value neutral" id="kpiRevenu">—</div>
+                        <div class="kpi-sub" id="kpiRevenuSub">Année 1, base P90</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ═══ CHARTS ROW ═══ -->
+        <div>
+            <div class="section-label">Analyses</div>
+            <div class="charts-row">
+
+                <!-- Résultats financiers -->
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div class="chart-card-title">Résultats financiers</div>
+                        <span style="font-size:10px;color:var(--text-light);font-family:'Poppins',sans-serif;font-style:italic;" id="finNote">Projection indicative</span>
+                    </div>
+                    <div class="chart-placeholder">
+                        <canvas id="chartFinancier"></canvas>
+                    </div>
+                    <div class="placeholder-note" id="finPlaceholderNote"></div>
+                </div>
+
+                <!-- Profil énergétique -->
+                <div class="chart-card clickable" id="energyCard" title="Ouvrir la simulation des flux énergétiques">
+                    <div class="chart-card-header">
+                        <div class="chart-card-title">Profil énergétique</div>
+                        <span class="chart-card-link">
+                            Voir la simulation
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                        </span>
+                    </div>
+                    <div class="chart-placeholder">
+                        <canvas id="chartEnergie"></canvas>
+                    </div>
+                    <div class="placeholder-note" id="energyNote">Simulation horaire journalière type (profil PV)</div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ═══ DATA CARD ═══ -->
+        <div>
+            <div class="section-label">Données site</div>
+            <div class="data-card">
+                <div class="data-card-header">
+                    <div class="data-card-title">Caractéristiques du site</div>
+                    <a href="#" class="data-card-action" id="dataDetailLink" title="Fiche complète du site">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        Fiche complète
+                    </a>
+                </div>
+                <div class="data-grid" id="dataGrid">
+                    <!-- filled by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ DATA ROOM ═══ -->
+        <div>
+            <div class="section-label">Data Room</div>
+            <div class="dataroom-card">
+                <div class="dataroom-header">
+                    <div class="dataroom-title">Documents du site</div>
+                    <span style="font-size:11px;color:var(--text-muted);font-family:'Poppins',sans-serif;">
+                        Glissez des documents pour remplir automatiquement la fiche
+                    </span>
+                </div>
+
+                <!-- Drop zone -->
+                <div class="dropzone" id="dropzone">
+                    <input type="file" id="fileInput" multiple accept=".pdf,.xlsx,.xls,.csv,.docx,.doc">
+                    <div class="dropzone-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <div class="dropzone-text">Glissez vos documents ici ou cliquez pour sélectionner</div>
+                    <div class="dropzone-hint">PDF, Excel, CSV, Word — Teasers, études techniques, modèles financiers</div>
+                </div>
+
+                <!-- File list -->
+                <div class="file-list" id="fileList">
+                    <!-- populated by JS -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Extraction Modal -->
+<div class="modal-overlay hidden" id="extractionModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title" id="modalTitle">Données extraites</div>
+            <button class="modal-close" onclick="closeExtractionModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <!-- populated by JS -->
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeExtractionModal()">Annuler</button>
+            <button class="btn-primary-sm" onclick="applyExtractedData()">Appliquer les données sélectionnées</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const STORAGE_PROJECTS = 'pi_projects';
+
+function getParams() {
+    const p = new URLSearchParams(window.location.search);
+    return { projectId: p.get('project'), siteId: p.get('site') };
+}
+
+function getProjects() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_PROJECTS)) || []; }
+    catch { return []; }
+}
+
+// ─── Load data ───
+function loadData() {
+    const { projectId, siteId } = getParams();
+    const projects = getProjects();
+    const project  = projects.find(p => p.id === projectId);
+    const site     = project && siteId ? (project.sites || []).find(s => s.id === siteId) : null;
+
+    document.getElementById('navProjectCount').textContent = projects.length;
+
+    if (!project || !site) {
+        document.getElementById('headerSiteName').textContent = 'Site introuvable';
+        return;
+    }
+
+    document.title = site.name + ' — ' + project.name;
+
+    // Breadcrumb
+    document.getElementById('projectLink').textContent = project.name;
+    document.getElementById('projectLink').href = 'projet_dashboard.html?id=' + projectId;
+    document.getElementById('headerSiteName').textContent = site.name || '—';
+
+    // Header meta
+    document.getElementById('headerCountry').textContent = (site.countryFlag || '') + ' ' + (site.country || '—');
+    const statusEl = document.getElementById('headerStatus');
+    statusEl.textContent = site.status || '—';
+    const statusMap = { 'En développement': 'dev', 'Permis déposé': 'permis', 'RTB': 'rtb', 'En construction': 'constr', 'En opération': 'oper' };
+    statusEl.className = 'status-badge ' + (statusMap[site.status] || 'dev');
+
+    let techHtml = '';
+    if (site.hasPV)   techHtml += '<span class="tech-badge pv">☀️ PV</span>';
+    if (site.hasBESS) techHtml += '<span class="tech-badge bess">🔋 BESS</span>';
+    document.getElementById('headerTech').innerHTML = techHtml || '—';
+
+    // KPIs
+    const revenu = estimateAnnualRevenue(site);
+    if (revenu !== null) {
+        document.getElementById('kpiRevenu').textContent = formatKEur(revenu);
+        document.getElementById('kpiRevenu').className = 'kpi-value neutral';
+        document.getElementById('kpiRevenu').style.fontSize = '28px';
+    }
+
+    // Energy card link
+    document.getElementById('energyCard').addEventListener('click', () => {
+        window.location.href = 'simulation_flux_energetiques.html?project=' + projectId + '&site=' + siteId;
+    });
+
+    // Data grid
+    renderDataGrid(site);
+
+    // Charts
+    renderFinancialChart(site);
+    renderEnergyChart(site);
+
+    // Fiche complète link
+    document.getElementById('dataDetailLink').href = 'fiche_site.html?project=' + projectId + '&site=' + siteId;
+    document.getElementById('dataDetailLink').title = 'Fiche complète du site';
+
+    // Data Room
+    initDataRoom(siteId);
+}
+
+// ─── Revenue estimate ───
+function estimateAnnualRevenue(site) {
+    if (!site.hasPV || !site.pvCapacity) return null;
+    const prodP90 = site.pvProdP90 || 1300; // kWh/kWc/an
+    const price   = 0.085; // €/kWh assumed
+    const om      = site.omPv || 12; // €/kWc/an
+    const rev     = site.pvCapacity * prodP90 * price / 1000; // k€
+    const omCost  = site.pvCapacity * om / 1000; // k€
+    return rev - omCost; // k€ net
+}
+
+function formatKEur(keur) {
+    if (Math.abs(keur) >= 1000) {
+        return (keur / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' M€';
+    }
+    return keur.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' k€';
+}
+
+// ─── Data grid ───
+function renderDataGrid(site) {
+    const items = [];
+
+    if (site.location) items.push({ label: 'Localisation', value: site.location });
+    if (site.country)  items.push({ label: 'Pays', value: (site.countryFlag || '') + ' ' + site.country });
+    if (site.commissioningDate) items.push({ label: 'Mise en service', value: site.commissioningDate });
+    if (site.ownership) items.push({ label: 'Régime foncier', value: site.ownership });
+    if (site.area)     items.push({ label: 'Superficie', value: site.area.toLocaleString('fr-FR') + ' m²' });
+
+    if (site.hasPV && site.pvCapacity) {
+        items.push({ label: 'Capacité PV', value: (site.pvCapacity / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 3 }) + ' MWc' });
+        if (site.pvProdP90) items.push({ label: 'Productible P90', value: site.pvProdP90.toLocaleString('fr-FR') + ' kWh/kWc/an' });
+        if (site.pvLifetime) items.push({ label: 'Durée de vie', value: site.pvLifetime + ' ans' });
+        if (site.pvGridType) items.push({ label: 'Réseau', value: site.pvGridType });
+        if (site.pvGridPower) items.push({ label: 'Raccordement', value: (site.pvGridPower / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' MVA' });
+        if (site.pvDegradation) items.push({ label: 'Dégradation PV', value: site.pvDegradation + ' %/an' });
+    }
+
+    if (site.hasBESS) {
+        if (site.bessPower)    items.push({ label: 'Puissance BESS', value: (site.bessPower / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' MW' });
+        if (site.bessCapacity) items.push({ label: 'Capacité BESS', value: (site.bessCapacity / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' MWh' });
+        if (site.bessCRate)    items.push({ label: 'C-rate', value: site.bessCRate });
+        if (site.bessEffACDC)  items.push({ label: 'Rend. AC/DC', value: site.bessEffACDC + ' %' });
+    }
+
+    const grid = document.getElementById('dataGrid');
+    grid.innerHTML = items.length
+        ? items.map(it => `
+            <div class="data-item">
+                <div class="data-item-label">${it.label}</div>
+                <div class="data-item-value">${it.value}</div>
+            </div>`).join('')
+        : '<p style="color:var(--text-muted);font-size:13px;">Aucune donnée disponible.</p>';
+}
+
+// ─── Financial chart ───
+function renderFinancialChart(site) {
+    const years    = site.pvLifetime || 25;
+    const pvCap    = site.pvCapacity || 10000;  // kWc
+    const prodP90  = site.pvProdP90  || 1300;   // kWh/kWc/an
+    const degrad   = (site.pvDegradation || 0.5) / 100;
+    const price    = 0.085;  // €/kWh
+    const omKwc    = site.omPv || 12;  // €/kWc/an
+
+    const labels = [], ca = [], ebitda = [], ebt = [], fcf = [];
+
+    for (let y = 1; y <= years; y++) {
+        const factor = Math.pow(1 - degrad, y - 1);
+        const caK    = pvCap * prodP90 * factor * price / 1000; // k€
+        const omK    = pvCap * omKwc / 1000; // k€
+        const ebitdaK = caK - omK;
+        const capex  = site.capexPv || pvCap * 600; // €
+        const deprK  = capex / years / 1000; // k€
+        const ebtK   = ebitdaK - deprK;
+        const fcfK   = ebtK * 0.75;
+        labels.push('A' + y);
+        ca.push(+caK.toFixed(1));
+        ebitda.push(+ebitdaK.toFixed(1));
+        ebt.push(+ebtK.toFixed(1));
+        fcf.push(+fcfK.toFixed(1));
+    }
+
+    const isPlaceholder = !site.pvCapacity;
+    document.getElementById('finPlaceholderNote').textContent = isPlaceholder
+        ? 'Données PV manquantes — courbes illustratives uniquement'
+        : 'Projection sur ' + years + ' ans, prix elec. 85 €/MWh (hypothèse)';
+
+    new Chart(document.getElementById('chartFinancier'), {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                { label: "Chiffre d'affaires", data: ca,     borderColor: '#378ADD', backgroundColor: 'rgba(55,138,221,0.12)', fill: true, tension: 0.35, pointRadius: 0, borderWidth: 2 },
+                { label: 'EBITDA',              data: ebitda, borderColor: '#2E9E6E', backgroundColor: 'rgba(46,158,110,0.10)', fill: true, tension: 0.35, pointRadius: 0, borderWidth: 2 },
+                { label: 'EBT',                 data: ebt,    borderColor: '#EF9F27', backgroundColor: 'rgba(239,159,39,0.08)', fill: true, tension: 0.35, pointRadius: 0, borderWidth: 1.5 },
+                { label: 'FCF',                 data: fcf,    borderColor: '#7F77DD', backgroundColor: 'rgba(127,119,221,0.08)', fill: true, tension: 0.35, pointRadius: 0, borderWidth: 1.5 },
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 10, family: 'Poppins' }, boxWidth: 10, padding: 14 } },
+                tooltip: {
+                    mode: 'index', intersect: false,
+                    callbacks: { label: ctx => ctx.dataset.label + ' : ' + ctx.raw.toLocaleString('fr-FR') + ' k€' }
+                }
+            },
+            scales: {
+                x: { ticks: { font: { size: 9 }, maxTicksLimit: 10, autoSkip: true }, grid: { display: false } },
+                y: { ticks: { font: { size: 10 }, callback: v => v.toLocaleString('fr-FR') + ' k€' }, title: { display: true, text: 'k€', font: { size: 10 } } }
+            }
+        }
+    });
+}
+
+// ─── Energy simulation (ported from flux_énergétiques_site.py) ───
+function simulatePV(site) {
+    const hours = Array.from({ length: 24 }, (_, i) => i);
+
+    const pvMw  = (site.pvCapacity || 10000) / 1000;
+    const prod  = site.pvProdP90 || 1300;
+    const dailyProdMWh = pvMw * prod / 365;
+
+    // Gaussian PV profile
+    const raw   = hours.map(h => Math.max(0, Math.exp(-0.5 * Math.pow((h - 12.5) / 3.2, 2))));
+    const total = raw.reduce((a, b) => a + b, 0);
+    const pv    = raw.map(v => +(v * dailyProdMWh / total).toFixed(3));
+
+    const bessCapMwh = (site.bessCapacity || 0) / 1000;
+    const bessPowMw  = (site.bessPower    || 0) / 1000;
+    const effCh      = (site.bessEffACDC  || 95) / 100;
+    const effDisch   = (site.bessEffDCAC  || 95) / 100;
+    const gridMw     = (site.pvGridPower  || pvMw * 1000) / 1000;
+    const dodMax     = 0.90;
+    const socMin     = (1 - dodMax) * bessCapMwh;
+    const socMax     = bessCapMwh;
+
+    // Cycle windows
+    const [c1cs, c1ce, c1ds, c1de] = [7, 10, 11, 13];
+    const [c2cs, c2ce, c2ds, c2de] = [13, 16, 18, 21];
+    const inW = (h, s, e) => h >= s && h <= e;
+
+    let soc = bessCapMwh * 0.05;
+    const ch = [], di = [], injD = [], injB = [], curt = [], socPct = [];
+
+    for (let h = 0; h < 24; h++) {
+        let s = soc, pvH = pv[h], chH = 0, diH = 0;
+
+        if (bessCapMwh > 0 && (inW(h, c1cs, c1ce) || inW(h, c2cs, c2ce))) {
+            const room = Math.max(0, (socMax - s) / effCh);
+            chH = Math.min(pvH, bessPowMw, room);
+            s  += chH * effCh;
+        }
+        if (bessCapMwh > 0 && (inW(h, c1ds, c1de) || inW(h, c2ds, c2de))) {
+            const nSlots = inW(h, c1ds, c1de) ? (c1de - c1ds + 1) : (c2de - c2ds + 1);
+            const avail  = Math.max(0, (s - socMin) * effDisch);
+            diH = Math.min(bessPowMw, avail / nSlots);
+            s  -= diH / effDisch;
+        }
+
+        soc = Math.min(socMax, Math.max(socMin, s));
+        ch.push(+chH.toFixed(3));
+        di.push(+diH.toFixed(3));
+
+        const pvNet  = Math.max(0, pvH - chH);
+        const injRaw = pvNet + diH;
+        const cH     = Math.max(0, injRaw - gridMw);
+        const idV    = Math.min(pvNet, gridMw);
+        const ibV    = Math.max(0, Math.min(diH, gridMw - idV));
+        injD.push(+idV.toFixed(3));
+        injB.push(+ibV.toFixed(3));
+        curt.push(+cH.toFixed(3));
+        socPct.push(bessCapMwh > 0 ? +(soc / bessCapMwh * 100).toFixed(1) : 0);
+    }
+
+    return { pv, ch, injD, injB, curt, soc: socPct };
+}
+
+function renderEnergyChart(site) {
+    const sim    = simulatePV(site);
+    const labels = Array.from({ length: 24 }, (_, i) => i + 'h');
+    const inj    = sim.injD.map((v, i) => +(v + sim.injB[i]).toFixed(3));
+
+    const hasBESS = site.hasBESS && (site.bessCapacity || 0) > 0;
+
+    const datasets = [
+        { label: 'Production PV',    data: sim.pv,  borderColor: '#378ADD', backgroundColor: 'rgba(55,138,221,0.15)', fill: true, tension: 0.35, pointRadius: 2, borderWidth: 2 },
+        { label: 'Injection réseau', data: inj,     borderColor: '#EF9F27', backgroundColor: 'rgba(239,159,39,0.10)', fill: true, tension: 0.35, pointRadius: 1.5, borderWidth: 1.5 },
+    ];
+
+    if (hasBESS) {
+        datasets.push({ label: 'Charge BESS',   data: sim.ch.map(v => -v), borderColor: '#2E9E6E', fill: false, tension: 0.3, pointRadius: 0, borderWidth: 1.5, borderDash: [4,3] });
+        datasets.push({ label: 'Décharge BESS', data: sim.injB, borderColor: '#BA7517', fill: false, tension: 0.3, pointRadius: 0, borderWidth: 1.5 });
+    }
+
+    if (sim.curt.some(v => v > 0)) {
+        datasets.push({ label: 'Écrêtement', data: sim.curt, borderColor: '#E24B4A', fill: false, tension: 0.3, pointRadius: 0, borderWidth: 1, borderDash: [3,3] });
+    }
+
+    document.getElementById('energyNote').textContent = site.pvCapacity
+        ? 'Simulation horaire (PV ' + (site.pvCapacity / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' MWc, P90 ' + (site.pvProdP90 || 1300) + ' kWh/kWc/an) — cliquer pour la simulation complète'
+        : 'Profil journalier type — cliquer pour la simulation complète';
+
+    new Chart(document.getElementById('chartEnergie'), {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 10, family: 'Poppins' }, boxWidth: 10, padding: 12 } },
+                tooltip: { callbacks: { label: ctx => ctx.dataset.label + ' : ' + Math.abs(ctx.raw).toFixed(2) + ' MWh' } }
+            },
+            scales: {
+                x: { ticks: { font: { size: 9 }, autoSkip: false }, grid: { display: false } },
+                y: { ticks: { font: { size: 10 }, callback: v => v.toFixed(1) }, title: { display: true, text: 'MWh', font: { size: 10 } } }
+            }
+        }
+    });
+}
+
+// ─── Init ───
+loadData();
+
+// ════════════════════════════════════════════════════
+// DATA ROOM
+// ════════════════════════════════════════════════════
+
+let _drSiteId = null;
+let _drActiveFileId = null;
+let _drActiveMatches = [];
+
+function drKey(siteId) { return 'pi_dataroom_' + siteId; }
+
+function drGetFiles(siteId) {
+    try { return JSON.parse(localStorage.getItem(drKey(siteId))) || []; }
+    catch { return []; }
+}
+
+function drSaveFiles(siteId, files) {
+    localStorage.setItem(drKey(siteId), JSON.stringify(files));
+}
+
+function drGenId() {
+    return 'f_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+}
+
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' o';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' Ko';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' Mo';
+}
+
+function getFileExt(name) {
+    const m = name.match(/\.(\w+)$/);
+    return m ? m[1].toLowerCase() : 'other';
+}
+
+function getFileBadgeClass(ext) {
+    if (ext === 'pdf') return 'pdf';
+    if (ext === 'xlsx' || ext === 'xls') return 'xlsx';
+    if (ext === 'csv') return 'csv';
+    if (ext === 'docx' || ext === 'doc') return 'docx';
+    return 'other';
+}
+
+// ─── Text extraction ───
+function extractReadableText(binaryStr) {
+    const matches = binaryStr.match(/[\x20-\x7E\xC0-\xFF]{4,}/g) || [];
+    return matches.join(' ').substring(0, 50000);
+}
+
+// ─── Init Data Room ───
+function initDataRoom(siteId) {
+    _drSiteId = siteId;
+    renderFileList();
+
+    const dz = document.getElementById('dropzone');
+    const fi = document.getElementById('fileInput');
+
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+    dz.addEventListener('drop', e => {
+        e.preventDefault();
+        dz.classList.remove('drag-over');
+        handleFiles(e.dataTransfer.files);
+    });
+    fi.addEventListener('change', e => {
+        handleFiles(e.target.files);
+        fi.value = '';
+    });
+}
+
+// ─── Render file list ───
+function renderFileList() {
+    const files = drGetFiles(_drSiteId);
+    const container = document.getElementById('fileList');
+    if (!files.length) {
+        container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:12px 0;">Aucun document chargé.</p>';
+        return;
+    }
+    container.innerHTML = files.map(f => {
+        const ext = getFileExt(f.name);
+        const badgeClass = getFileBadgeClass(ext);
+        const hasExtraction = f.extracted && f.extracted.matches && f.extracted.matches.length > 0;
+        const appliedAt = f.extracted && f.extracted.appliedAt;
+        const extractBtnClass = hasExtraction ? (appliedAt ? 'btn-analyze analyzed' : 'btn-analyze') : 'btn-analyze';
+        const extractBtnLabel = appliedAt ? '✓ Appliqué' : (hasExtraction ? 'Voir extraction' : 'Analyser');
+        const badge = hasExtraction
+            ? `<span class="extraction-badge ok">${f.extracted.matches.length} champ(s)</span>`
+            : `<span class="extraction-badge none">Non analysé</span>`;
+        return `
+        <div class="file-item" id="fi_${f.id}">
+            <div class="file-type-badge ${badgeClass}">${ext.toUpperCase()}</div>
+            <div class="file-info">
+                <div class="file-name">${escHtml(f.name)}</div>
+                <div class="file-meta">${formatFileSize(f.size)} — ${f.date}</div>
+            </div>
+            <div class="file-actions">
+                ${badge}
+                <button class="${extractBtnClass}" onclick="analyzeFile('${f.id}')">${extractBtnLabel}</button>
+                <button class="btn-delete-file" title="Supprimer" onclick="deleteFile('${f.id}')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── Handle dropped/selected files ───
+function handleFiles(fileList) {
+    const files = drGetFiles(_drSiteId);
+    const pending = Array.from(fileList);
+    let processed = 0;
+
+    if (!pending.length) return;
+
+    pending.forEach(file => {
+        const ext = getFileExt(file.name);
+        const reader = new FileReader();
+        const entry = {
+            id: drGenId(),
+            name: file.name,
+            type: ext,
+            size: file.size,
+            date: new Date().toLocaleDateString('fr-FR'),
+            textContent: '',
+            extracted: null,
+        };
+
+        const onDone = (text) => {
+            entry.textContent = text;
+            files.push(entry);
+            processed++;
+            if (processed === pending.length) {
+                drSaveFiles(_drSiteId, files);
+                renderFileList();
+            }
+        };
+
+        if (ext === 'csv') {
+            reader.onload = e => {
+                const lines = (e.target.result || '').split('\n').slice(0, 50).join('\n');
+                onDone(lines.substring(0, 50000));
+            };
+            reader.readAsText(file, 'UTF-8');
+        } else {
+            reader.onload = e => {
+                onDone(extractReadableText(e.target.result || ''));
+            };
+            reader.readAsBinaryString(file);
+        }
+    });
+}
+
+// ─── Field patterns ───
+const FIELD_PATTERNS = [
+    { key: 'pvCapacity', label: 'Capacité PV', unit: 'kWc',
+      patterns: [/(\d[\d\s.,]*)\s*(?:mwc|kwc|mwp|kwp)(?:\s+(?:pv|photovoltaïque|installée|crête))?/gi,
+                 /(?:puissance|capacité)\s+(?:installée|crête|pv)[^\d]*([\d\s.,]+)\s*(?:mwc|kwc)/gi],
+      isMW: rawStr => /mwc|mwp/i.test(rawStr) },
+    { key: 'pvProdP90', label: 'Productible P90', unit: 'kWh/kWc/an',
+      patterns: [/p\s*90[^\d]*([\d\s.,]+)\s*(?:kwh\/kwc|kwh\/mwc)/gi,
+                 /productible\s+p\s*90[^\d]*([\d\s.,]+)/gi] },
+    { key: 'pvProdP75', label: 'Productible P75', unit: 'kWh/kWc/an',
+      patterns: [/p\s*75[^\d]*([\d\s.,]+)/gi] },
+    { key: 'capexPv', label: 'CAPEX PV', unit: '€',
+      patterns: [/capex\s+pv[^\d]*([\d\s.,]+)\s*(?:m€|k€|€|meur|keur)/gi,
+                 /(?:coût|investissement)\s+(?:total\s+)?(?:pv|installation)[^\d]*([\d\s.,]+)/gi] },
+    { key: 'omPv', label: 'O&M PV', unit: '€/kWc/an',
+      patterns: [/opex\s+pv[^\d]*([\d\s.,]+)/gi,
+                 /(?:maintenance|exploitation)\s+pv[^\d]*([\d\s.,]+)/gi,
+                 /o&m\s+pv[^\d]*([\d\s.,]+)/gi] },
+    { key: 'electricityPrice', label: 'Prix électricité', unit: '€/MWh',
+      patterns: [/(?:prix|tarif)\s+(?:de\s+)?(?:vente\s+)?(?:de\s+l'?électricité|d'?électricité)[^\d]*([\d\s.,]+)\s*(?:€\/mwh|eur\/mwh)/gi,
+                 /([\d]{2,3}(?:[.,]\d+)?)\s*€\/mwh/gi] },
+    { key: 'rentEuros', label: 'Loyer annuel', unit: '€/an',
+      patterns: [/loyer\s+(?:annuel\s+)?foncier[^\d]*([\d\s.,]+)/gi,
+                 /redevance\s+foncière[^\d]*([\d\s.,]+)/gi] },
+    { key: 'bessPower', label: 'Puissance BESS', unit: 'kW',
+      patterns: [/(\d[\d\s.,]*)\s*(?:mw|kw)\s*(?:bess|batterie|stockage)/gi,
+                 /(?:puissance|power)\s+(?:bess|batterie)[^\d]*([\d\s.,]+)\s*(?:mw|kw)/gi] },
+    { key: 'bessCapacity', label: 'Capacité BESS', unit: 'kWh',
+      patterns: [/(\d[\d\s.,]*)\s*(?:mwh|kwh)\s*(?:bess|batterie|stockage)/gi,
+                 /(?:capacité|énergie)\s+(?:bess|batterie)[^\d]*([\d\s.,]+)\s*(?:mwh|kwh)/gi] },
+    { key: 'capexBess', label: 'CAPEX BESS', unit: '€',
+      patterns: [/capex\s+(?:bess|batterie)[^\d]*([\d\s.,]+)/gi] },
+    { key: 'debtPercent', label: 'Part dette', unit: '%',
+      patterns: [/(?:levier|dette)\s+(?:senior\s+)?(?:financier\s+)?[^\d]*([\d]{2,3})\s*%/gi,
+                 /(?:financement|financing)\s+(?:dette|debt)[^\d]*([\d]{2,3})\s*%/gi] },
+    { key: 'seniorRate', label: 'Taux dette senior', unit: '%',
+      patterns: [/(?:taux|rate)\s+(?:de\s+)?(?:la\s+)?dette\s+senior[^\d]*([\d.,]+)\s*%/gi,
+                 /(?:intérêt|interest)\s+(?:senior|dette)[^\d]*([\d.,]+)\s*%/gi] },
+];
+
+function parseNumericValue(rawStr, pattern) {
+    // Extract just the numeric part
+    let num = rawStr.replace(/\s/g, '').replace(',', '.');
+    let val = parseFloat(num);
+    if (isNaN(val)) return null;
+    // MW -> kW/kWc multiplier for pvCapacity
+    if (pattern.isMW && pattern.isMW(rawStr)) val *= 1000;
+    return val;
+}
+
+function assignConfidence(matchText, patternStr) {
+    // If the match contains a specific keyword, high confidence; if medium specificity, medium; else low
+    const specific = /capex|opex|productible|loyer|wacc|dette|tarif.*électricité/i.test(matchText);
+    const medium = /pv|bess|batterie|puissance|capacité|taux/i.test(matchText);
+    if (specific) return 'high';
+    if (medium) return 'medium';
+    return 'low';
+}
+
+// ─── Analyze file ───
+function analyzeFile(fileId) {
+    const files = drGetFiles(_drSiteId);
+    const file = files.find(f => f.id === fileId);
+    if (!file || !file.textContent) {
+        alert('Contenu du fichier non disponible pour l\'analyse.');
+        return;
+    }
+
+    // Mark as analyzing
+    const btn = document.querySelector(`#fi_${fileId} .btn-analyze`);
+    if (btn) { btn.classList.add('analyzing'); btn.textContent = 'Analyse...'; }
+
+    setTimeout(() => {
+        const text = file.textContent;
+        const matches = [];
+
+        FIELD_PATTERNS.forEach(fp => {
+            fp.patterns.forEach(pattern => {
+                pattern.lastIndex = 0;
+                let m;
+                while ((m = pattern.exec(text)) !== null) {
+                    const rawNum = (m[1] || m[0]).replace(/\s/g, '');
+                    const val = parseNumericValue(rawNum, fp);
+                    if (val === null || isNaN(val)) continue;
+                    // Avoid duplicates for same key
+                    if (matches.find(x => x.fieldKey === fp.key && Math.abs(x.value - val) < 0.01)) continue;
+                    const confidence = assignConfidence(m[0], pattern.source);
+                    matches.push({
+                        fieldKey: fp.key,
+                        label: fp.label,
+                        unit: fp.unit,
+                        value: val,
+                        rawText: m[0].trim().substring(0, 80),
+                        confidence,
+                    });
+                    pattern.lastIndex = m.index + 1;
+                }
+            });
+        });
+
+        // Save extraction results
+        const fileIdx = files.findIndex(f => f.id === fileId);
+        if (fileIdx !== -1) {
+            files[fileIdx].extracted = { matches, appliedAt: null };
+            drSaveFiles(_drSiteId, files);
+        }
+
+        renderFileList();
+        if (matches.length > 0) {
+            openExtractionModal(fileId, matches, file.name);
+        } else {
+            showDrToast('Aucune donnée reconnue dans ce document.');
+        }
+    }, 400);
+}
+
+// ─── Extraction modal ───
+function openExtractionModal(fileId, matches, fileName) {
+    _drActiveFileId = fileId;
+    _drActiveMatches = matches;
+    document.getElementById('modalTitle').textContent = 'Données extraites — ' + (fileName || '');
+    const body = document.getElementById('modalBody');
+
+    if (!matches.length) {
+        body.innerHTML = '<p style="color:var(--text-muted);font-size:13px;padding:20px 0;">Aucune donnée reconnue dans ce document.</p>';
+    } else {
+        body.innerHTML = matches.map((m, i) => `
+        <div class="extraction-item">
+            <input type="checkbox" id="exm_${i}" checked data-idx="${i}">
+            <label class="extraction-item-label" for="exm_${i}">${escHtml(m.label)}</label>
+            <span class="extraction-item-value">${m.value.toLocaleString('fr-FR')} <span style="font-size:11px;font-weight:400;color:var(--text-muted);">${m.unit}</span></span>
+            <span class="extraction-item-confidence ${m.confidence}">${m.confidence === 'high' ? 'Élevée' : m.confidence === 'medium' ? 'Moyenne' : 'Faible'}</span>
+        </div>`).join('');
+    }
+
+    document.getElementById('extractionModal').classList.remove('hidden');
+}
+
+function closeExtractionModal() {
+    document.getElementById('extractionModal').classList.add('hidden');
+    _drActiveFileId = null;
+    _drActiveMatches = [];
+}
+
+function applyExtractedData() {
+    if (!_drActiveMatches.length) { closeExtractionModal(); return; }
+
+    const checkboxes = document.querySelectorAll('#modalBody input[type="checkbox"]');
+    const toApply = [];
+    checkboxes.forEach(cb => {
+        if (cb.checked) {
+            const idx = parseInt(cb.dataset.idx);
+            toApply.push(_drActiveMatches[idx]);
+        }
+    });
+
+    if (!toApply.length) { closeExtractionModal(); return; }
+
+    // Get current project/site
+    const { projectId, siteId } = getParams();
+    const projects = getProjects();
+    const pIdx = projects.findIndex(p => p.id === projectId);
+    if (pIdx === -1) { closeExtractionModal(); return; }
+    const sIdx = (projects[pIdx].sites || []).findIndex(s => s.id === siteId);
+    if (sIdx === -1) { closeExtractionModal(); return; }
+
+    // Project-level keys
+    const projectLevelKeys = ['electricityPrice','electricityEscalation','bessSpreadPrice','inflation','tax','wacc','debtPercent','seniorRate','debtDuration','dsraMonths','dscrTarget'];
+
+    toApply.forEach(m => {
+        if (projectLevelKeys.includes(m.fieldKey)) {
+            if (!projects[pIdx].params) projects[pIdx].params = {};
+            projects[pIdx].params[m.fieldKey] = m.value;
+        } else {
+            projects[pIdx].sites[sIdx][m.fieldKey] = m.value;
+        }
+    });
+
+    // Mark as applied
+    const files = drGetFiles(_drSiteId);
+    const fIdx = files.findIndex(f => f.id === _drActiveFileId);
+    if (fIdx !== -1 && files[fIdx].extracted) {
+        files[fIdx].extracted.appliedAt = new Date().toISOString();
+        drSaveFiles(_drSiteId, files);
+    }
+
+    localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(projects));
+    closeExtractionModal();
+    showDrToast(toApply.length + ' donnée(s) appliquée(s) à la fiche du site');
+    renderFileList();
+
+    // Navigate to fiche_site to show updated fields
+    setTimeout(() => {
+        window.location.href = 'fiche_site.html?project=' + projectId + '&site=' + siteId;
+    }, 1200);
+}
+
+// ─── Delete file ───
+function deleteFile(fileId) {
+    const files = drGetFiles(_drSiteId).filter(f => f.id !== fileId);
+    drSaveFiles(_drSiteId, files);
+    renderFileList();
+}
+
+// ─── Data Room toast ───
+function showDrToast(msg) {
+    let t = document.getElementById('drToast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'drToast';
+        t.style.cssText = 'position:fixed;top:90px;left:50%;transform:translateX(-50%) translateY(-10px);background:var(--success);color:#fff;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:600;font-family:Poppins,sans-serif;z-index:500;opacity:0;transition:opacity 0.25s ease,transform 0.25s ease;pointer-events:none;box-shadow:0 4px 20px rgba(46,158,110,0.35);';
+        document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.opacity = '1';
+    t.style.transform = 'translateX(-50%) translateY(0)';
+    clearTimeout(t._timeout);
+    t._timeout = setTimeout(() => {
+        t.style.opacity = '0';
+        t.style.transform = 'translateX(-50%) translateY(-10px)';
+    }, 3000);
+}
+</script>
+</body>
+</html>

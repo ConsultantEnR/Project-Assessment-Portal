@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiche complète du site</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #F7F6F3; --surface: #FFFFFF; --border: #E2E0DB; --border-focus: #1863DC;
+    --text: #1A1A1A; --text-muted: #7A7670; --text-light: #A5A09A;
+    --accent: #1863DC; --accent-hover: #1250B0; --accent-light: rgba(24,99,220,0.08);
+    --accent-lighter: rgba(24,99,220,0.04); --success: #2E9E6E; --danger: #D94F4F;
+    --sidebar-bg: #0E1520; --sidebar-text: #B8C4D8; --sidebar-text-active: #FFFFFF;
+    --sidebar-hover: rgba(255,255,255,0.07); --sidebar-active: rgba(24,99,220,0.22);
+    --sidebar-width: 240px; --header-height: 72px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("Banque d'images/solar-panels-and-wind-energy-plants-e1696032292423.jpg");
+    background-size: cover;
+    background-position: center;
+    opacity: 0.10;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    overflow-y: auto;
+    animation: slideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.sidebar-logo {
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.sidebar-logo-img { height: 44px; width: auto; object-fit: contain; filter: brightness(0) invert(1); opacity: 0.92; }
+.sidebar-user { padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.sidebar-user-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.3); margin-bottom: 6px; font-family: 'Poppins', sans-serif; }
+.sidebar-user-name { font-size: 13px; color: var(--sidebar-text); display: flex; align-items: center; gap: 8px; }
+.user-avatar { width: 28px; height: 28px; background: rgba(24,99,220,0.35); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff; flex-shrink: 0; font-family: 'Poppins', sans-serif; }
+.sidebar-nav { flex: 1; padding: 12px 10px; }
+.nav-section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.25); padding: 12px 10px 6px; font-family: 'Poppins', sans-serif; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; font-size: 13px; color: var(--sidebar-text); text-decoration: none; transition: background var(--transition), color var(--transition); cursor: pointer; margin-bottom: 2px; font-weight: 400; }
+.nav-item:hover { background: var(--sidebar-hover); color: var(--sidebar-text-active); }
+.nav-item.active { background: var(--sidebar-active); color: var(--sidebar-text-active); font-weight: 500; }
+.nav-item svg { width: 18px; height: 18px; opacity: 0.6; flex-shrink: 0; }
+.nav-item.active svg { opacity: 1; }
+.nav-item .nav-badge { margin-left: auto; background: rgba(24,99,220,0.35); color: #B8D4FF; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 12px; font-family: 'Poppins', sans-serif; }
+.sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px; color: rgba(255,255,255,0.2); font-family: 'Poppins', sans-serif; }
+
+/* ═══ MAIN ═══ */
+.main {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+    animation: fadeIn 0.4s ease 0.15s both;
+    padding-bottom: 100px;
+}
+
+/* ═══ HEADER ═══ */
+.page-header {
+    background: rgba(255,255,255,0.96);
+    border-bottom: 1px solid var(--border);
+    padding: 0 36px;
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(4px);
+}
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); }
+.breadcrumb a { font-family: 'Teko', sans-serif; font-size: 20px; font-weight: 400; color: var(--text-muted); text-decoration: none; letter-spacing: 0.3px; transition: color var(--transition); }
+.breadcrumb a:hover { color: var(--accent); }
+.breadcrumb-sep { color: var(--text-light); font-size: 16px; }
+.breadcrumb-current { font-family: 'Teko', sans-serif; font-size: 22px; font-weight: 500; letter-spacing: 0.3px; color: var(--text); }
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); font-family: 'Poppins', sans-serif; text-decoration: none; padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px; transition: all var(--transition); margin-right: 8px; }
+.back-link:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.back-link svg { width: 14px; height: 14px; }
+
+/* ═══ PROGRESS BAR ═══ */
+.progress-section {
+    background: rgba(255,255,255,0.96);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 36px;
+}
+.progress-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.progress-label-text { font-size: 12px; font-weight: 600; font-family: 'Poppins', sans-serif; color: var(--text-muted); }
+.progress-count { font-size: 13px; font-weight: 700; color: var(--text); }
+.progress-bar-track { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.progress-bar-fill { height: 100%; border-radius: 99px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1), background 0.3s; }
+
+/* ═══ CONTENT ═══ */
+.content { padding: 28px 36px; display: flex; flex-direction: column; gap: 24px; }
+
+/* ═══ SECTION CARD ═══ */
+.section-card {
+    background: rgba(255,255,255,0.96);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+}
+.section-title-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+}
+.section-title {
+    font-family: 'Teko', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    color: var(--text);
+}
+.section-badge {
+    font-size: 10px; font-weight: 600; font-family: 'Poppins', sans-serif;
+    padding: 2px 8px; border-radius: 12px;
+    background: rgba(24,99,220,0.10); color: var(--accent);
+}
+.fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.fields-grid.single { grid-template-columns: 1fr; }
+.fields-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+.fields-grid.four { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+/* ═══ FIELD ROW ═══ */
+.field-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(226,224,219,0.5);
+}
+.field-row:last-child { border-bottom: none; }
+
+.field-status-icon {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 22px;
+    font-size: 11px;
+    font-weight: 700;
+}
+.field-status-icon.filled  { background: var(--success); color: #fff; }
+.field-status-icon.default { background: #EF9F27; color: #fff; }
+.field-status-icon.empty-required { background: none; border: 2px solid var(--danger); color: var(--danger); }
+.field-status-icon.empty-optional { background: none; border: 2px dashed var(--text-light); color: transparent; }
+
+.field-body { flex: 1; min-width: 0; }
+.field-label {
+    font-size: 10px; font-weight: 600; font-family: 'Poppins', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+.field-input {
+    width: 100%;
+    padding: 8px 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color var(--transition), background var(--transition);
+    appearance: none;
+}
+.field-input:focus { border-color: var(--border-focus); }
+.field-input.empty-required {
+    background: rgba(217,79,79,0.06);
+    border-color: rgba(217,79,79,0.5);
+}
+.field-input.empty-required:focus { border-color: var(--danger); }
+.field-unit {
+    min-width: 60px;
+    font-size: 11px; font-family: 'Poppins', sans-serif;
+    color: var(--text-muted);
+    margin-top: 26px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+/* Cycle windows grid */
+.cycle-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.cycle-note { font-size: 11px; font-family: 'Poppins', sans-serif; color: var(--text-muted); margin-top: 12px; font-style: italic; }
+
+/* ═══ TOAST ═══ */
+.toast {
+    position: fixed;
+    top: calc(var(--header-height) + 16px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: var(--success);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 13px; font-weight: 600; font-family: 'Poppins', sans-serif;
+    z-index: 200;
+    opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+    box-shadow: 0 4px 20px rgba(46,158,110,0.35);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ═══ SAVE BAR ═══ */
+.save-bar {
+    position: fixed;
+    bottom: 0;
+    left: var(--sidebar-width);
+    right: 0;
+    background: rgba(255,255,255,0.97);
+    border-top: 1px solid var(--border);
+    padding: 16px 36px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    z-index: 60;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.05);
+}
+.btn-save {
+    padding: 10px 28px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px; font-weight: 700;
+    color: #fff;
+    background: var(--accent);
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: background var(--transition);
+    display: flex; align-items: center; gap: 8px;
+}
+.btn-save:hover { background: var(--accent-hover); }
+.btn-recalc {
+    padding: 10px 24px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px; font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-light);
+    border: 1.5px solid rgba(24,99,220,0.25);
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all var(--transition);
+    display: flex; align-items: center; gap: 8px;
+}
+.btn-recalc:hover { background: rgba(24,99,220,0.14); border-color: var(--accent); }
+.save-bar-note { font-size: 11px; font-family: 'Poppins', sans-serif; color: var(--text-muted); margin-right: auto; }
+
+/* Animations */
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+
+@media (max-width: 1100px) {
+    .fields-grid       { grid-template-columns: 1fr; }
+    .fields-grid.three { grid-template-columns: 1fr 1fr; }
+    .fields-grid.four  { grid-template-columns: 1fr 1fr; }
+    .cycle-grid        { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+    :root { --sidebar-width: 56px; }
+    .sidebar-user, .nav-section-label, .nav-item span, .nav-item .nav-badge, .sidebar-footer { display: none; }
+    .sidebar-logo { padding: 16px 12px; }
+    .sidebar-logo-img { height: 32px; }
+    .sidebar-nav { padding: 8px 6px; }
+    .nav-item { justify-content: center; padding: 10px; }
+    .content { padding: 16px; }
+    .progress-section { padding: 12px 16px; }
+    .page-header { padding: 0 16px; }
+    .save-bar { padding: 12px 16px; left: var(--sidebar-width); }
+    .fields-grid, .fields-grid.three, .fields-grid.four { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <img src="Banque d'images/DOL-COG-IV-020-A -Logo final Groupe Dolfines FR transp.png" class="sidebar-logo-img" alt="Dolfines">
+    </div>
+    <div class="sidebar-user">
+        <div class="sidebar-user-label">Utilisateur</div>
+        <div class="sidebar-user-name">
+            <div class="user-avatar">U</div>
+            Utilisateur (à définir)
+        </div>
+    </div>
+    <div class="sidebar-nav">
+        <div class="nav-section-label">Navigation</div>
+        <a class="nav-item" href="portefeuille_projets.html" title="Projets">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span>Projets</span>
+            <span class="nav-badge" id="navProjectCount">0</span>
+        </a>
+        <a class="nav-item" href="creer_projet.html" title="Créer Projet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            <span>Créer Projet</span>
+        </a>
+        <a class="nav-item" href="donnees.html" title="Données">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            <span>Données</span>
+        </a>
+    </div>
+    <div class="sidebar-footer">v1.0</div>
+</nav>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+
+    <header class="page-header">
+        <a class="back-link" id="backLink" href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Retour
+        </a>
+        <div class="breadcrumb">
+            <a href="#" id="projectLink">—</a>
+            <span class="breadcrumb-sep">›</span>
+            <a href="#" id="siteLink">—</a>
+            <span class="breadcrumb-sep">›</span>
+            <span class="breadcrumb-current">Fiche complète</span>
+        </div>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="progress-section">
+        <div class="progress-label-row">
+            <span class="progress-label-text">Complétude de la fiche</span>
+            <span class="progress-count" id="progressCount">— / — champs requis complétés</span>
+        </div>
+        <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="progressFill" style="width:0%;background:var(--danger);"></div>
+        </div>
+    </div>
+
+    <div class="content" id="mainContent">
+        <!-- Sections rendered by JS -->
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">✓ Modifications enregistrées</div>
+
+<!-- Save Bar -->
+<div class="save-bar">
+    <span class="save-bar-note" id="saveBarNote"></span>
+    <button class="btn-recalc" id="btnRecalc" onclick="recalcKPIs()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        Recalculer les KPIs
+    </button>
+    <button class="btn-save" onclick="saveData()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Sauvegarder les modifications
+    </button>
+</div>
+
+<script>
+const STORAGE_PROJECTS = 'pi_projects';
+
+// ─── Defaults ───
+const FIELD_DEFAULTS = {
+    pvDegradation: 0.5,
+    pvLifetime: 25,
+    bessEffACDC: 95,
+    bessEffDCAC: 95,
+    bessMinSoH: 80,
+    bessDegradation: 2.0,
+    bessCyclesPerDay: 2,
+    dodMax: 90,
+    socInit: 5,
+    c1ChargeStart: 7, c1ChargeEnd: 10, c1DischargeStart: 11, c1DischargeEnd: 13,
+    c2ChargeStart: 13, c2ChargeEnd: 16, c2DischargeStart: 18, c2DischargeEnd: 21,
+    electricityPrice: 85,
+    electricityEscalation: 1.5,
+    bessSpreadPrice: 30,
+    inflation: 2.0,
+    tax: 25,
+    wacc: 8.0,
+    debtPercent: 70,
+    seniorRate: 4.5,
+    debtDuration: 18,
+    dsraMonths: 6,
+    dscrTarget: 1.15,
+};
+
+// ─── Params ───
+let _projectId = null, _siteId = null;
+let _project = null, _site = null;
+
+function getParams() {
+    const p = new URLSearchParams(window.location.search);
+    return { projectId: p.get('project'), siteId: p.get('site') };
+}
+
+function getProjects() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_PROJECTS)) || []; }
+    catch { return []; }
+}
+
+function saveProjects(projects) {
+    localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(projects));
+}
+
+// ─── Field status logic ───
+function getFieldStatus(value, defaultVal, required) {
+    if (value !== null && value !== undefined && value !== '') return 'filled';
+    if (defaultVal !== undefined) return 'default';
+    if (required) return 'empty-required';
+    return 'empty-optional';
+}
+
+function statusIconHTML(status) {
+    switch (status) {
+        case 'filled':
+            return `<div class="field-status-icon filled">✓</div>`;
+        case 'default':
+            return `<div class="field-status-icon default">⚠</div>`;
+        case 'empty-required':
+            return `<div class="field-status-icon empty-required"></div>`;
+        default:
+            return `<div class="field-status-icon empty-optional"></div>`;
+    }
+}
+
+// ─── Build a field row HTML ───
+function buildField(cfg, sourceObj) {
+    const rawVal = sourceObj[cfg.key];
+    const defVal = FIELD_DEFAULTS[cfg.key];
+    const displayVal = (rawVal !== null && rawVal !== undefined && rawVal !== '') ? rawVal : (defVal !== undefined ? defVal : '');
+    const status = getFieldStatus(rawVal, defVal, cfg.required);
+    const inputClass = 'field-input' + (status === 'empty-required' ? ' empty-required' : '');
+
+    let inputHTML = '';
+    if (cfg.type === 'select') {
+        const opts = cfg.options.map(o => `<option value="${o}"${displayVal == o ? ' selected' : ''}>${o}</option>`).join('');
+        inputHTML = `<select class="${inputClass}" data-key="${cfg.key}" data-source="${cfg.source || 'site'}">${opts}</select>`;
+    } else {
+        const attrs = [
+            `type="${cfg.type}"`,
+            `value="${displayVal}"`,
+            cfg.step ? `step="${cfg.step}"` : '',
+            cfg.min !== undefined ? `min="${cfg.min}"` : '',
+            cfg.type === 'number' ? 'min="0"' : '',
+        ].filter(Boolean).join(' ');
+        inputHTML = `<input class="${inputClass}" data-key="${cfg.key}" data-source="${cfg.source || 'site'}" ${attrs}>`;
+    }
+
+    return `
+    <div class="field-row">
+        ${statusIconHTML(status)}
+        <div class="field-body">
+            <div class="field-label">${cfg.label}</div>
+            ${inputHTML}
+        </div>
+        ${cfg.unit ? `<div class="field-unit">${cfg.unit}</div>` : '<div style="width:60px;flex-shrink:0;"></div>'}
+    </div>`;
+}
+
+// ─── Section definitions ───
+function buildSections(site, project) {
+    const hasPV   = !!site.hasPV;
+    const hasBESS = !!site.hasBESS;
+    const params  = project.params || {};
+
+    const sections = [];
+
+    // S1 — Informations générales
+    sections.push({
+        id: 's1', title: 'Informations générales', badge: null,
+        fields: [
+            { key: 'name',             label: 'Nom du site',               type: 'text',   required: true,  source: 'site' },
+            { key: 'country',          label: 'Pays',                      type: 'text',   required: true,  source: 'site' },
+            { key: 'location',         label: 'Commune / Localisation',    type: 'text',   required: false, source: 'site' },
+            { key: 'status',           label: 'Statut',                    type: 'select', required: true,  source: 'site',
+              options: ['En développement','Permis déposé','RTB','En construction','En opération'] },
+            { key: 'commissioningDate',label: 'Mise en service estimée',   type: 'month',  required: false, source: 'site' },
+        ]
+    });
+
+    // S2 — Caractéristiques foncières
+    sections.push({
+        id: 's2', title: 'Caractéristiques foncières', badge: null,
+        fields: [
+            { key: 'area',      label: 'Superficie du terrain', type: 'number', unit: 'm²',   required: false, source: 'site' },
+            { key: 'ownership', label: 'Régime foncier',        type: 'select', required: false, source: 'site',
+              options: ['Propriétaire','Locataire'] },
+        ]
+    });
+
+    // S3 — Paramètres PV
+    if (hasPV) {
+        sections.push({
+            id: 's3', title: 'Paramètres PV', badge: null,
+            fields: [
+                { key: 'pvCapacity',    label: 'Capacité installée PV',        type: 'number', unit: 'kWc',          required: true,  source: 'site' },
+                { key: 'pvProdP90',     label: 'Productible annuel P90',       type: 'number', unit: 'kWh/kWc/an',   required: true,  source: 'site' },
+                { key: 'pvProdP75',     label: 'Productible annuel P75',       type: 'number', unit: 'kWh/kWc/an',   required: false, source: 'site' },
+                { key: 'pvDegradation', label: 'Dégradation annuelle modules', type: 'number', unit: '%/an',          required: true,  step: '0.01', source: 'site' },
+                { key: 'pvLifetime',    label: 'Durée de vie modules',         type: 'number', unit: 'ans',           required: true,  source: 'site' },
+                { key: 'pvGridPower',   label: 'Puissance de raccordement',    type: 'number', unit: 'kVA',           required: true,  source: 'site' },
+                { key: 'pvGridType',    label: 'Nature du réseau',             type: 'select', required: false, source: 'site',
+                  options: ['HTA','HTB1','HTB2'] },
+            ]
+        });
+    }
+
+    // S4 — Paramètres BESS
+    if (hasBESS) {
+        sections.push({
+            id: 's4', title: 'Paramètres BESS', badge: null,
+            fields: [
+                { key: 'bessPower',        label: 'Puissance BESS',            type: 'number', unit: 'kW',    required: true,  source: 'site' },
+                { key: 'bessCapacity',     label: 'Capacité BESS',             type: 'number', unit: 'kWh',   required: true,  source: 'site' },
+                { key: 'bessCRate',        label: 'C-rate',                    type: 'number', unit: '—',     required: false, step: '0.01', source: 'site' },
+                { key: 'bessCycleHours',   label: 'Durée cycle stockage',      type: 'number', unit: 'h',     required: false, step: '0.1',  source: 'site' },
+                { key: 'bessCyclesPerDay', label: 'Nb. cycles max / jour',     type: 'number', unit: '/jour', required: true,  step: '0.5',  source: 'site' },
+                { key: 'bessEffACDC',      label: 'Rendement charge AC→DC',    type: 'number', unit: '%',     required: true,  step: '0.1',  source: 'site' },
+                { key: 'bessEffDCAC',      label: 'Rendement décharge DC→AC',  type: 'number', unit: '%',     required: true,  step: '0.1',  source: 'site' },
+                { key: 'bessMinSoH',       label: 'SoH minimum',               type: 'number', unit: '%',     required: true,  source: 'site' },
+                { key: 'bessDegradation',  label: 'Dégradation annuelle BESS', type: 'number', unit: '%/an',  required: true,  step: '0.1',  source: 'site' },
+            ]
+        });
+    }
+
+    // S5 — Coûts & CAPEX PV
+    if (hasPV) {
+        sections.push({
+            id: 's5', title: 'Coûts & CAPEX PV', badge: null,
+            fields: [
+                { key: 'capexPv', label: 'CAPEX PV',              type: 'number', unit: '€',          required: true,  source: 'site' },
+                { key: 'omPv',    label: 'O&M PV',                type: 'number', unit: '€/kWc/an',   required: true,  step: '0.1', source: 'site' },
+                { key: 'insPv',   label: 'Assurance PV',          type: 'number', unit: '€/kWc/an',   required: false, step: '0.1', source: 'site' },
+                { key: 'amPv',    label: 'Asset Management PV',   type: 'number', unit: '€/kWc/an',   required: false, step: '0.1', source: 'site' },
+                { key: 'rmPv',    label: 'Réserve maintenance PV',type: 'number', unit: '€/kWc/an',   required: false, step: '0.1', source: 'site' },
+            ]
+        });
+    }
+
+    // S6 — Coûts & CAPEX BESS
+    if (hasBESS) {
+        sections.push({
+            id: 's6', title: 'Coûts & CAPEX BESS', badge: null,
+            fields: [
+                { key: 'capexBess', label: 'CAPEX BESS',               type: 'number', unit: '€',        required: true,  source: 'site' },
+                { key: 'omBess',    label: 'O&M BESS',                 type: 'number', unit: '€/kW/an',  required: true,  step: '0.1', source: 'site' },
+                { key: 'insBess',   label: 'Assurance BESS',           type: 'number', unit: '€/kW/an',  required: false, step: '0.1', source: 'site' },
+                { key: 'amBess',    label: 'Asset Management BESS',    type: 'number', unit: '€/kW/an',  required: false, step: '0.1', source: 'site' },
+                { key: 'rmBess',    label: 'Réserve maintenance BESS', type: 'number', unit: '€/kW/an',  required: false, step: '0.1', source: 'site' },
+            ]
+        });
+    }
+
+    // S7 — Loyer foncier
+    sections.push({
+        id: 's7', title: 'Loyer foncier', badge: null,
+        fields: [
+            { key: 'rentEuros', label: 'Loyer annuel',   type: 'number', unit: '€/an',    required: false, source: 'site' },
+            { key: 'rentPerM2', label: 'Loyer unitaire', type: 'number', unit: '€/m²/an', required: false, step: '0.01', source: 'site' },
+        ]
+    });
+
+    // S8 — Fenêtres de cycles BESS
+    if (hasBESS) {
+        sections.push({
+            id: 's8', title: 'Simulation énergétique BESS — Fenêtres de cycles', badge: null,
+            isCycleSection: true,
+            fields: [
+                { key: 'c1ChargeStart',    label: 'Cycle 1 — Charge début',   type: 'number', unit: 'h',  required: false, source: 'site' },
+                { key: 'c1ChargeEnd',      label: 'Cycle 1 — Charge fin',     type: 'number', unit: 'h',  required: false, source: 'site' },
+                { key: 'c1DischargeStart', label: 'Cycle 1 — Décharge début', type: 'number', unit: 'h',  required: false, source: 'site' },
+                { key: 'c1DischargeEnd',   label: 'Cycle 1 — Décharge fin',   type: 'number', unit: 'h',  required: false, source: 'site' },
+                { key: 'c2ChargeStart',    label: 'Cycle 2 — Charge début',   type: 'number', unit: 'h',  required: false, source: 'site' },
+                { key: 'c2ChargeEnd',      label: 'Cycle 2 — Charge fin',     type: 'number', unit: 'h',  required: false, source: 'site' },
+                { key: 'c2DischargeStart', label: 'Cycle 2 — Décharge début', type: 'number', unit: 'h',  required: false, source: 'site' },
+                { key: 'c2DischargeEnd',   label: 'Cycle 2 — Décharge fin',   type: 'number', unit: 'h',  required: false, source: 'site' },
+                { key: 'dodMax',           label: 'DoD max',                  type: 'number', unit: '%',  required: false, source: 'site' },
+                { key: 'socInit',          label: 'SoC initial',              type: 'number', unit: '%',  required: false, source: 'site' },
+            ]
+        });
+    }
+
+    // S9 — Hypothèses économiques (project level)
+    sections.push({
+        id: 's9', title: 'Hypothèses économiques', badge: 'Niveau projet',
+        fields: [
+            { key: 'electricityPrice',      label: 'Prix de vente de l\'électricité',  type: 'number', unit: '€/MWh',  required: true,                      source: 'params' },
+            { key: 'electricityEscalation', label: 'Escalation prix électricité',      type: 'number', unit: '%/an',   required: false,  step: '0.1',        source: 'params' },
+            { key: 'bessSpreadPrice',       label: 'Spread BESS (arbitrage)',          type: 'number', unit: '€/MWh',  required: hasBESS,                   source: 'params' },
+            { key: 'inflation',             label: 'Taux d\'inflation ICP',            type: 'number', unit: '%/an',   required: true,   step: '0.01',       source: 'params' },
+            { key: 'tax',                   label: 'Taux d\'imposition (IS)',          type: 'number', unit: '%',      required: true,   step: '0.01',       source: 'params' },
+            { key: 'wacc',                  label: 'WACC',                             type: 'number', unit: '%',      required: true,   step: '0.1',        source: 'params' },
+        ]
+    });
+
+    // S10 — Structure de financement (project level)
+    sections.push({
+        id: 's10', title: 'Structure de financement', badge: 'Niveau projet',
+        fields: [
+            { key: 'debtPercent',  label: 'Part financement dette',  type: 'number', unit: '%',    required: true,  source: 'params' },
+            { key: 'seniorRate',   label: 'Taux dette senior',        type: 'number', unit: '%/an', required: true,  step: '0.01', source: 'params' },
+            { key: 'debtDuration', label: 'Durée d\'emprunt',         type: 'number', unit: 'ans',  required: true,  source: 'params' },
+            { key: 'dsraMonths',   label: 'DSRA',                     type: 'number', unit: 'mois', required: false, source: 'params' },
+            { key: 'dscrTarget',   label: 'DSCR cible minimum',       type: 'number', unit: '—',    required: false, step: '0.01', source: 'params' },
+        ]
+    });
+
+    return sections;
+}
+
+// ─── Render all sections ───
+function renderSections(site, project) {
+    const sections = buildSections(site, project);
+    const params = project.params || {};
+    let html = '';
+
+    sections.forEach(sec => {
+        const badgeHTML = sec.badge ? `<span class="section-badge">${sec.badge}</span>` : '';
+
+        if (sec.isCycleSection) {
+            // Special layout for cycle windows
+            html += `
+            <div class="section-card" id="${sec.id}">
+                <div class="section-title-row">
+                    <div class="section-title">${sec.title}</div>${badgeHTML}
+                </div>
+                <div class="cycle-grid">`;
+            sec.fields.forEach(f => {
+                const sourceObj = f.source === 'params' ? params : site;
+                const rawVal = sourceObj[f.key];
+                const defVal = FIELD_DEFAULTS[f.key];
+                const displayVal = (rawVal !== null && rawVal !== undefined && rawVal !== '') ? rawVal : (defVal !== undefined ? defVal : '');
+                html += `
+                <div>
+                    <div class="field-label" style="font-size:10px;font-weight:600;font-family:'Poppins',sans-serif;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px;">${f.label}</div>
+                    <input class="field-input" type="number" data-key="${f.key}" data-source="site" value="${displayVal}" style="width:100%;">
+                </div>`;
+            });
+            html += `</div>
+                <p class="cycle-note">Ces champs utiliseront les valeurs par défaut si laissés vides.</p>
+            </div>`;
+        } else {
+            const colClass = sec.fields.length <= 2 ? 'fields-grid single' : 'fields-grid';
+            html += `
+            <div class="section-card" id="${sec.id}">
+                <div class="section-title-row">
+                    <div class="section-title">${sec.title}</div>${badgeHTML}
+                </div>
+                <div class="${colClass}">`;
+            sec.fields.forEach(f => {
+                const sourceObj = f.source === 'params' ? params : site;
+                html += buildField(f, sourceObj);
+            });
+            html += `</div>
+            </div>`;
+        }
+    });
+
+    document.getElementById('mainContent').innerHTML = html;
+}
+
+// ─── Progress calculation ───
+function updateProgress() {
+    if (!_site || !_project) return;
+    const sections = buildSections(_site, _project);
+    const params = _project.params || {};
+    let total = 0, filled = 0;
+
+    sections.forEach(sec => {
+        sec.fields.forEach(f => {
+            if (!f.required) return;
+            total++;
+            const sourceObj = f.source === 'params' ? params : _site;
+            const val = sourceObj[f.key];
+            if (val !== null && val !== undefined && val !== '') filled++;
+        });
+    });
+
+    const pct = total > 0 ? Math.round((filled / total) * 100) : 0;
+    document.getElementById('progressCount').textContent = `${filled} / ${total} champs requis complétés`;
+    const fill = document.getElementById('progressFill');
+    fill.style.width = pct + '%';
+    fill.style.background = pct >= 80 ? 'var(--success)' : pct >= 50 ? '#EF9F27' : 'var(--danger)';
+    document.getElementById('saveBarNote').textContent = `${pct}% complété — ${total - filled} champ(s) requis manquant(s)`;
+}
+
+// ─── Load data ───
+function loadData() {
+    const { projectId, siteId } = getParams();
+    _projectId = projectId;
+    _siteId = siteId;
+
+    const projects = getProjects();
+    document.getElementById('navProjectCount').textContent = projects.length;
+
+    const project = projects.find(p => p.id === projectId);
+    const site    = project && siteId ? (project.sites || []).find(s => s.id === siteId) : null;
+
+    if (!project || !site) {
+        document.getElementById('mainContent').innerHTML = `
+            <div class="section-card" style="text-align:center;padding:60px;">
+                <p style="color:var(--text-muted);font-size:15px;">Site ou projet introuvable.</p>
+                <a href="portefeuille_projets.html" style="margin-top:16px;display:inline-block;color:var(--accent);font-weight:600;">← Retour aux projets</a>
+            </div>`;
+        return;
+    }
+
+    _project = project;
+    _site    = site;
+
+    document.title = site.name + ' — Fiche complète';
+
+    // Breadcrumbs
+    document.getElementById('projectLink').textContent = project.name;
+    document.getElementById('projectLink').href = 'projet_dashboard.html?id=' + projectId;
+    document.getElementById('siteLink').textContent = site.name;
+    document.getElementById('siteLink').href = 'site_dashboard.html?project=' + projectId + '&site=' + siteId;
+    document.getElementById('backLink').href = 'site_dashboard.html?project=' + projectId + '&site=' + siteId;
+
+    // Render sections
+    renderSections(site, project);
+
+    // Update progress
+    updateProgress();
+
+    // Live update status icons and progress on input change
+    document.getElementById('mainContent').addEventListener('input', e => {
+        const input = e.target;
+        if (!input.dataset.key) return;
+        updateFieldStyle(input);
+        updateProgress();
+    });
+}
+
+function updateFieldStyle(input) {
+    const val = input.value;
+    const key = input.dataset.key;
+    const defVal = FIELD_DEFAULTS[key];
+    const sections = buildSections(_site, _project);
+    let required = false;
+    sections.forEach(s => s.fields.forEach(f => { if (f.key === key) required = f.required; }));
+    const status = getFieldStatus(val, defVal, required);
+    const isEmptyRequired = status === 'empty-required';
+    input.classList.toggle('empty-required', isEmptyRequired);
+    // Update sibling status icon
+    const row = input.closest('.field-row');
+    if (row) {
+        const icon = row.querySelector('.field-status-icon');
+        if (icon) {
+            icon.className = 'field-status-icon ' + status;
+            icon.textContent = status === 'filled' ? '✓' : status === 'default' ? '⚠' : '';
+        }
+    }
+}
+
+// ─── Save ───
+function saveData() {
+    if (!_project || !_site) return;
+
+    const projects = getProjects();
+    const pIdx = projects.findIndex(p => p.id === _projectId);
+    if (pIdx === -1) return;
+    const sIdx = (projects[pIdx].sites || []).findIndex(s => s.id === _siteId);
+    if (sIdx === -1) return;
+
+    // Collect all inputs
+    document.querySelectorAll('[data-key]').forEach(input => {
+        const key = input.dataset.key;
+        const source = input.dataset.source;
+        let val = input.type === 'number' ? (input.value !== '' ? parseFloat(input.value) : '') : input.value;
+        if (source === 'params') {
+            if (!projects[pIdx].params) projects[pIdx].params = {};
+            projects[pIdx].params[key] = val;
+        } else {
+            projects[pIdx].sites[sIdx][key] = val;
+        }
+    });
+
+    saveProjects(projects);
+    _project = projects[pIdx];
+    _site    = projects[pIdx].sites[sIdx];
+    updateProgress();
+    showToast('✓ Modifications enregistrées');
+}
+
+// ─── Recalculate ───
+function recalcKPIs() {
+    saveData();
+    window.location.href = 'site_dashboard.html?project=' + _projectId + '&site=' + _siteId + '&recalc=1';
+}
+
+// ─── Toast ───
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ─── Init ───
+loadData();
+</script>
+</body>
+</html>

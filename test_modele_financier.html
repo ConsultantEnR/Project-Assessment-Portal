@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modèle financier — Scénario test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="financial_model.js"></script>
+<style>
+/* ═══════════════════ CSS VARIABLES ═══════════════════ */
+:root {
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --border: #E2E0DB;
+    --border-focus: #1863DC;
+    --text: #1A1A1A;
+    --text-muted: #7A7670;
+    --text-light: #A5A09A;
+    --accent: #1863DC;
+    --accent-hover: #1250B0;
+    --accent-light: rgba(24,99,220,0.08);
+    --accent-lighter: rgba(24,99,220,0.04);
+    --success: #2E9E6E;
+    --warning: #E8A020;
+    --danger: #D9534F;
+    --sidebar-bg: #0E1520;
+    --sidebar-text: #B8C4D8;
+    --sidebar-text-active: #FFFFFF;
+    --sidebar-hover: rgba(255,255,255,0.07);
+    --sidebar-active: rgba(24,99,220,0.22);
+    --sidebar-width: 240px;
+    --header-height: 72px;
+    --radius: 10px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ═══════════════════ RESET & BASE ═══════════════════ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    position: relative;
+}
+
+/* Background image at low opacity */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("Banque d'images/solar-panels-and-wind-energy-plants-e1696032292423.jpg");
+    background-size: cover;
+    background-position: center;
+    opacity: 0.10;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ═══════════════════ SIDEBAR ═══════════════════ */
+.sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    overflow-y: auto;
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.sidebar-logo-img {
+    height: 44px;
+    width: auto;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+    opacity: 0.92;
+}
+
+.sidebar-user {
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.sidebar-user-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 6px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.sidebar-user-name {
+    font-size: 13px;
+    color: var(--sidebar-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 400;
+}
+
+.user-avatar {
+    width: 28px; height: 28px;
+    background: rgba(24,99,220,0.35);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    flex-shrink: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 12px 10px;
+}
+
+.nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.25);
+    padding: 12px 10px 6px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    transition: background var(--transition), color var(--transition);
+    cursor: pointer;
+    margin-bottom: 2px;
+    font-weight: 400;
+}
+
+.nav-item:hover {
+    background: var(--sidebar-hover);
+    color: var(--sidebar-text-active);
+}
+
+.nav-item.active {
+    background: var(--sidebar-active);
+    color: var(--sidebar-text-active);
+    font-weight: 500;
+}
+
+.nav-item svg {
+    width: 18px; height: 18px;
+    opacity: 0.6;
+    flex-shrink: 0;
+}
+
+.nav-item.active svg { opacity: 1; }
+
+.sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ═══════════════════ MAIN CONTENT ═══════════════════ */
+.main {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+}
+
+/* ─── Header ─── */
+.page-header {
+    background: rgba(255,255,255,0.96);
+    border-bottom: 1px solid var(--border);
+    padding: 0 36px;
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(4px);
+}
+
+.page-title {
+    font-family: 'Teko', sans-serif;
+    font-size: 26px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--text);
+    line-height: 1;
+}
+
+.header-badge {
+    font-family: 'Poppins', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: var(--accent-light);
+    color: var(--accent);
+    letter-spacing: 0.04em;
+}
+
+/* ─── Content ─── */
+.content {
+    flex: 1;
+    padding: 32px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+/* ─── Section labels ─── */
+.section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ═══════════════════ KPI CARDS ═══════════════════ */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.kpi-card {
+    background: rgba(255,255,255,0.96);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.kpi-card.success::before { background: var(--success); }
+.kpi-card.warning::before { background: var(--warning); }
+.kpi-card.danger::before  { background: var(--danger); }
+
+.kpi-label {
+    font-family: 'Poppins', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.kpi-value {
+    font-family: 'Teko', sans-serif;
+    font-size: 34px;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--text);
+    letter-spacing: 0.5px;
+}
+
+.kpi-value.accent  { color: var(--accent); }
+.kpi-value.success { color: var(--success); }
+.kpi-value.warning { color: var(--warning); }
+.kpi-value.danger  { color: var(--danger); }
+
+.kpi-sub {
+    font-size: 11.5px;
+    color: var(--text-light);
+    margin-top: 4px;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ═══════════════════ CARDS (charts / tables) ═══════════════════ */
+.card {
+    background: rgba(255,255,255,0.96);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 28px 24px;
+    box-shadow: var(--shadow-sm);
+}
+
+.card-title {
+    font-family: 'Teko', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: 0.4px;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+
+.card-subtitle {
+    font-family: 'Poppins', sans-serif;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+.chart-wrap {
+    position: relative;
+    height: 280px;
+}
+
+.chart-wrap.tall {
+    height: 240px;
+}
+
+/* ═══════════════════ TABLE ═══════════════════ */
+.table-wrap {
+    overflow-x: auto;
+}
+
+.pl-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+}
+
+.pl-table thead th {
+    background: #F0EFE9;
+    font-family: 'Poppins', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    padding: 10px 14px;
+    text-align: right;
+    white-space: nowrap;
+    border-bottom: 2px solid var(--border);
+}
+
+.pl-table thead th:first-child {
+    text-align: left;
+}
+
+.pl-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background var(--transition);
+}
+
+.pl-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.pl-table tbody tr:hover {
+    background: var(--accent-lighter);
+}
+
+.pl-table tbody td {
+    padding: 10px 14px;
+    text-align: right;
+    color: var(--text);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.pl-table tbody td:first-child {
+    text-align: left;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    color: var(--text);
+}
+
+.pl-table tbody td.positive { color: var(--success); font-weight: 500; }
+.pl-table tbody td.negative { color: var(--danger);  font-weight: 500; }
+.pl-table tbody td.accent   { color: var(--accent);  font-weight: 600; }
+
+/* DSCR cell coloring */
+.dscr-ok   { color: var(--success); font-weight: 600; }
+.dscr-warn { color: var(--warning); font-weight: 600; }
+.dscr-bad  { color: var(--danger);  font-weight: 600; }
+
+/* ═══════════════════ PARAMS INFO BOX ═══════════════════ */
+.params-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 11.5px;
+}
+
+.param-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--accent-lighter);
+    border-radius: 6px;
+    border: 1px solid rgba(24,99,220,0.08);
+}
+
+.param-label { color: var(--text-muted); }
+.param-value { font-weight: 600; color: var(--text); }
+
+/* ═══════════════════ CAPEX INFO ═══════════════════ */
+.capex-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.capex-pill {
+    background: var(--accent-light);
+    border: 1px solid rgba(24,99,220,0.15);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+}
+
+/* ═══════════════════ CHARTS GRID ═══════════════════ */
+.charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.charts-grid .card.full { grid-column: 1 / -1; }
+
+/* ═══════════════════ RESPONSIVE ═══════════════════ */
+@media (max-width: 1100px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 800px) {
+    :root { --sidebar-width: 56px; }
+    .sidebar-user, .nav-section-label,
+    .nav-item span, .sidebar-footer { display: none; }
+    .sidebar-logo { padding: 16px 12px; }
+    .sidebar-logo-img { height: 32px; }
+    .sidebar-nav { padding: 8px 6px; }
+    .nav-item { justify-content: center; padding: 10px; }
+    .content { padding: 20px 16px; }
+    .page-header { padding: 0 16px; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <img src="Banque d'images/DOL-COG-IV-020-A -Logo final Groupe Dolfines FR transp.png"
+             class="sidebar-logo-img" alt="Dolfines">
+    </div>
+
+    <div class="sidebar-user">
+        <div class="sidebar-user-label">Utilisateur</div>
+        <div class="sidebar-user-name">
+            <div class="user-avatar">U</div>
+            Utilisateur
+        </div>
+    </div>
+
+    <div class="sidebar-nav">
+        <div class="nav-section-label">Navigation</div>
+
+        <a class="nav-item" href="portefeuille_projets.html" title="Projets">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+            <span>Projets</span>
+        </a>
+
+        <a class="nav-item" href="creer_projet.html" title="Créer Projet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            <span>Créer Projet</span>
+        </a>
+
+        <a class="nav-item" href="donnees.html" title="Données">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+            </svg>
+            <span>Données</span>
+        </a>
+
+        <a class="nav-item active" href="test_modele_financier.html" title="Modèle financier">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            <span>Modèle financier</span>
+        </a>
+    </div>
+
+    <div class="sidebar-footer">v1.0 — Test</div>
+</nav>
+
+<!-- ═══════════════════ MAIN ═══════════════════ -->
+<div class="main">
+
+    <!-- ─── Header ─── -->
+    <header class="page-header">
+        <div class="page-title">Modèle financier — Scénario test</div>
+        <span class="header-badge">50 MWc PV + 50 MWh BESS — Portugal</span>
+    </header>
+
+    <!-- ─── Content ─── -->
+    <div class="content">
+
+        <!-- Parameters recap -->
+        <div>
+            <div class="section-label">Hypothèses du scénario</div>
+            <div class="card" style="padding: 20px 22px;">
+                <div class="capex-row" id="capexRow"></div>
+                <div class="params-grid" id="paramsGrid"></div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div>
+            <div class="section-label">Indicateurs de performance</div>
+            <div class="kpi-grid" id="kpiGrid"></div>
+        </div>
+
+        <!-- Charts row 1: P&L + DSCR -->
+        <div class="charts-grid">
+            <div class="card">
+                <div class="card-title">Compte de résultat annuel</div>
+                <div class="card-subtitle">CA, EBITDA, EBT et FCF Equity sur 25 ans</div>
+                <div class="chart-wrap">
+                    <canvas id="chartPL"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">DSCR annuel</div>
+                <div class="card-subtitle">Debt Service Coverage Ratio — objectif 1,15</div>
+                <div class="chart-wrap">
+                    <canvas id="chartDSCR"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart row 2: Monthly cashflows years 1-5 -->
+        <div class="card">
+            <div class="card-title">Flux de trésorerie mensuels — Années 1 à 5</div>
+            <div class="card-subtitle">EBITDA mensuel, service de la dette et FCF Equity (60 premiers mois)</div>
+            <div class="chart-wrap" style="height:300px;">
+                <canvas id="chartMonthly"></canvas>
+            </div>
+        </div>
+
+        <!-- Annual P&L table -->
+        <div class="card">
+            <div class="card-title">Résumé compte de résultat — 10 premières années</div>
+            <div class="card-subtitle">Tous les montants en k€ sauf mention contraire</div>
+            <div class="table-wrap">
+                <table class="pl-table" id="plTable">
+                    <thead>
+                        <tr>
+                            <th>Année</th>
+                            <th>Production (GWh)</th>
+                            <th>CA (k€)</th>
+                            <th>EBITDA (k€)</th>
+                            <th>EBT (k€)</th>
+                            <th>Résultat net (k€)</th>
+                            <th>CFADS (k€)</th>
+                            <th>Service dette (k€)</th>
+                            <th>DSCR</th>
+                            <th>FCF Equity (k€)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="plTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+// ─────────────────────────────────────────────────────────
+//  TEST DATA
+// ─────────────────────────────────────────────────────────
+const testSite = {
+    hasPV:  true,
+    hasBESS: true,
+    pvCapacity:      50000,   // 50 MWc
+    pvProdP90:        1450,   // kWh/kWc/an (Portugal)
+    pvProdP75:        1520,
+    pvDegradation:     0.5,   // %/an
+    pvLifetime:          25,  // years
+    pvGridPower:      60000,  // kVA
+    bessPower:        25000,  // 25 MW
+    bessCapacity:     50000,  // 50 MWh
+    bessCyclesPerDay:    1.5,
+    bessEffACDC:        95,
+    bessEffDCAC:        95,
+    bessDegradation:     2.0, // %/an
+    bessMinSoH:          80,  // %
+    capexPv:       35000000,  // 35 M€
+    capexBess:     18000000,  // 18 M€
+    omPv: 12,   insPv: 4,  amPv: 2,  rmPv: 2,
+    omBess: 8,  insBess: 3, amBess: 2, rmBess: 2,
+    rentEuros: 120000,
+};
+
+const testParams = {
+    electricityPrice:      90,
+    electricityEscalation:  1.5,
+    bessSpreadPrice:        35,
+    inflation:               2.0,
+    tax:                    25.0,
+    wacc:                    8.0,
+    debtPercent:            70,
+    seniorRate:              4.5,
+    debtDuration:           18,
+    dsraMonths:              6,
+    dscrTarget:              1.15,
+};
+
+// ─────────────────────────────────────────────────────────
+//  HELPERS
+// ─────────────────────────────────────────────────────────
+const FM  = window.FinancialModel;
+const fmt = FM.formatEur;
+const pct = FM.formatPct;
+
+function k(v) {
+    // Format as k€ with 0 decimals
+    if (v === null || v === undefined || !isFinite(v)) return '—';
+    return Math.round(v / 1000).toLocaleString('fr-FR');
+}
+
+function fNum(v, dec = 2) {
+    if (v === null || v === undefined || !isFinite(v)) return '—';
+    return v.toLocaleString('fr-FR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+
+// ─────────────────────────────────────────────────────────
+//  COMPUTE
+// ─────────────────────────────────────────────────────────
+const result  = FM.compute(testSite, testParams);
+const annual  = result.annual;
+const monthly = result.monthly;
+const kpis    = result.kpis;
+
+// ─────────────────────────────────────────────────────────
+//  PARAMETERS RECAP
+// ─────────────────────────────────────────────────────────
+(function renderParams() {
+    const capexRow = document.getElementById('capexRow');
+    capexRow.innerHTML = `
+        <span class="capex-pill">CAPEX PV : ${fmt(testSite.capexPv)}</span>
+        <span class="capex-pill">CAPEX BESS : ${fmt(testSite.capexBess)}</span>
+        <span class="capex-pill">CAPEX Total : ${fmt(kpis.totalCapex)}</span>
+        <span class="capex-pill">Dette : ${fmt(kpis.debt)} (${testParams.debtPercent}%)</span>
+        <span class="capex-pill">Fonds propres : ${fmt(kpis.equity)}</span>
+    `;
+
+    const items = [
+        ['Prix électricité Y1', `${testParams.electricityPrice} €/MWh`],
+        ['Escalation prix', `${testParams.electricityEscalation} %/an`],
+        ['Spread BESS', `${testParams.bessSpreadPrice} €/MWh`],
+        ['Inflation OPEX', `${testParams.inflation} %/an`],
+        ['Taux d\'imposition', `${testParams.tax} %`],
+        ['WACC', `${testParams.wacc} %`],
+        ['Taux dette senior', `${testParams.seniorRate} %`],
+        ['Durée endettement', `${testParams.debtDuration} ans`],
+        ['Durée de vie', `${testSite.pvLifetime} ans`],
+        ['DSCR cible', `≥ ${testParams.dscrTarget}`],
+    ];
+
+    const grid = document.getElementById('paramsGrid');
+    grid.innerHTML = items.map(([label, value]) => `
+        <div class="param-item">
+            <span class="param-label">${label}</span>
+            <span class="param-value">${value}</span>
+        </div>
+    `).join('');
+})();
+
+// ─────────────────────────────────────────────────────────
+//  KPI CARDS
+// ─────────────────────────────────────────────────────────
+(function renderKPIs() {
+    const dscrClass = kpis.dscrMin === null ? 'accent'
+        : kpis.dscrMin >= testParams.dscrTarget ? 'success'
+        : kpis.dscrMin >= 1.0 ? 'warning'
+        : 'danger';
+
+    const cards = [
+        {
+            label: 'TRI Projet',
+            value: isFinite(kpis.projectIRR) ? pct(kpis.projectIRR) : '—',
+            sub:   `WACC : ${testParams.wacc} %`,
+            cls:   'accent',
+            cardCls: '',
+        },
+        {
+            label: 'TRI Equity',
+            value: isFinite(kpis.equityIRR) ? pct(kpis.equityIRR) : '—',
+            sub:   `Levier : ${testParams.debtPercent}%`,
+            cls:   'accent',
+            cardCls: '',
+        },
+        {
+            label: 'VAN Projet',
+            value: fmt(kpis.van),
+            sub:   `Actualisation ${testParams.wacc}%`,
+            cls:   kpis.van >= 0 ? 'success' : 'danger',
+            cardCls: kpis.van >= 0 ? 'success' : 'danger',
+        },
+        {
+            label: 'DSCR Min',
+            value: kpis.dscrMin !== null ? fNum(kpis.dscrMin) : '—',
+            sub:   `Moy. période : ${kpis.dscrAvg !== null ? fNum(kpis.dscrAvg) : '—'}`,
+            cls:   dscrClass,
+            cardCls: dscrClass === 'success' ? 'success' : dscrClass === 'warning' ? 'warning' : 'danger',
+        },
+    ];
+
+    document.getElementById('kpiGrid').innerHTML = cards.map(c => `
+        <div class="kpi-card ${c.cardCls}">
+            <div class="kpi-label">${c.label}</div>
+            <div class="kpi-value ${c.cls}">${c.value}</div>
+            <div class="kpi-sub">${c.sub}</div>
+        </div>
+    `).join('');
+})();
+
+// ─────────────────────────────────────────────────────────
+//  CHART: Annual P&L
+// ─────────────────────────────────────────────────────────
+(function renderChartPL() {
+    const labels = annual.map(a => `A${a.year}`);
+    const toM = arr => arr.map(v => +(v / 1e6).toFixed(3));
+
+    new Chart(document.getElementById('chartPL'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'CA (M€)',
+                    data:  toM(annual.map(a => a.totalRevenue)),
+                    borderColor: '#1863DC',
+                    backgroundColor: 'rgba(24,99,220,0.08)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 2,
+                    borderWidth: 2,
+                },
+                {
+                    label: 'EBITDA (M€)',
+                    data:  toM(annual.map(a => a.ebitda)),
+                    borderColor: '#2E9E6E',
+                    backgroundColor: 'rgba(46,158,110,0.07)',
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 2,
+                    borderWidth: 2,
+                },
+                {
+                    label: 'EBT (M€)',
+                    data:  toM(annual.map(a => a.ebt)),
+                    borderColor: '#E8A020',
+                    backgroundColor: 'transparent',
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 2,
+                    borderWidth: 1.5,
+                    borderDash: [4, 3],
+                },
+                {
+                    label: 'FCF Equity (M€)',
+                    data:  toM(annual.map(a => a.fcfEquity)),
+                    borderColor: '#9B59B6',
+                    backgroundColor: 'rgba(155,89,182,0.06)',
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 2,
+                    borderWidth: 1.5,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { font: { family: 'Poppins', size: 10 }, boxWidth: 14, padding: 12 },
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} M€`,
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(0,0,0,0.04)' },
+                    ticks: { font: { family: 'Poppins', size: 9 }, maxRotation: 0 },
+                },
+                y: {
+                    grid: { color: 'rgba(0,0,0,0.04)' },
+                    ticks: {
+                        font: { family: 'Poppins', size: 9 },
+                        callback: v => v.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' M€',
+                    },
+                },
+            },
+        },
+    });
+})();
+
+// ─────────────────────────────────────────────────────────
+//  CHART: DSCR per year
+// ─────────────────────────────────────────────────────────
+(function renderChartDSCR() {
+    const debtYears = annual.filter(a => a.dscr !== null);
+    const labels    = debtYears.map(a => `A${a.year}`);
+    const dscrData  = debtYears.map(a => +a.dscr.toFixed(4));
+    const dscrTarget = testParams.dscrTarget;
+
+    // Color each bar
+    const barColors = dscrData.map(v =>
+        v >= dscrTarget     ? 'rgba(46,158,110,0.75)'
+        : v >= 1.0          ? 'rgba(232,160,32,0.75)'
+        :                     'rgba(217,83,79,0.75)'
+    );
+    const borderColors = dscrData.map(v =>
+        v >= dscrTarget     ? '#2E9E6E'
+        : v >= 1.0          ? '#E8A020'
+        :                     '#D9534F'
+    );
+
+    new Chart(document.getElementById('chartDSCR'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'DSCR',
+                    data:  dscrData,
+                    backgroundColor: barColors,
+                    borderColor:     borderColors,
+                    borderWidth: 1.5,
+                    borderRadius: 4,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                annotation: {/* plugin not loaded, we use a dataset instead */},
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` DSCR : ${ctx.parsed.y.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { family: 'Poppins', size: 9 }, maxRotation: 0 },
+                },
+                y: {
+                    suggestedMin: 0.8,
+                    grid: { color: 'rgba(0,0,0,0.04)' },
+                    ticks: {
+                        font: { family: 'Poppins', size: 9 },
+                        callback: v => v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    },
+                },
+            },
+        },
+        plugins: [{
+            // Draw horizontal dashed line for DSCR target
+            id: 'dscrTargetLine',
+            afterDraw(chart) {
+                const { ctx, chartArea, scales } = chart;
+                if (!chartArea) return;
+                const y = scales.y.getPixelForValue(dscrTarget);
+                ctx.save();
+                ctx.beginPath();
+                ctx.setLineDash([6, 4]);
+                ctx.strokeStyle = '#D9534F';
+                ctx.lineWidth = 1.5;
+                ctx.moveTo(chartArea.left, y);
+                ctx.lineTo(chartArea.right, y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.font = '10px Poppins, sans-serif';
+                ctx.fillStyle = '#D9534F';
+                ctx.textAlign = 'left';
+                ctx.fillText(`cible ${dscrTarget.toLocaleString('fr-FR')}`, chartArea.left + 4, y - 4);
+                ctx.restore();
+            },
+        }],
+    });
+})();
+
+// ─────────────────────────────────────────────────────────
+//  CHART: Monthly cashflows — years 1-5 (60 months)
+// ─────────────────────────────────────────────────────────
+(function renderChartMonthly() {
+    const first60 = monthly.filter(m => m.period <= 60);
+    const labels  = first60.map(m => `M${m.period}`);
+
+    const toK = arr => arr.map(v => +(v / 1000).toFixed(2));
+
+    new Chart(document.getElementById('chartMonthly'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'EBITDA (k€)',
+                    data:  toK(first60.map(m => m.ebitda)),
+                    borderColor: '#1863DC',
+                    backgroundColor: 'rgba(24,99,220,0.07)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    borderWidth: 2,
+                },
+                {
+                    label: 'Service dette (k€)',
+                    data:  toK(first60.map(m => m.debtSvc)),
+                    borderColor: '#D9534F',
+                    backgroundColor: 'transparent',
+                    fill: false,
+                    tension: 0,
+                    pointRadius: 0,
+                    borderWidth: 1.5,
+                    borderDash: [5, 3],
+                },
+                {
+                    label: 'FCF Equity (k€)',
+                    data:  toK(first60.map(m => m.fcf)),
+                    borderColor: '#2E9E6E',
+                    backgroundColor: 'rgba(46,158,110,0.06)',
+                    fill: false,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    borderWidth: 2,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { font: { family: 'Poppins', size: 10 }, boxWidth: 14, padding: 12 },
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} k€`,
+                        title: ctx => {
+                            const m = first60[ctx[0].dataIndex];
+                            return `Mois ${m.period} — Année ${m.year} / Mois ${m.month}`;
+                        },
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(0,0,0,0.04)' },
+                    ticks: {
+                        font: { family: 'Poppins', size: 9 },
+                        maxTicksLimit: 20,
+                        maxRotation: 0,
+                    },
+                },
+                y: {
+                    grid: { color: 'rgba(0,0,0,0.04)' },
+                    ticks: {
+                        font: { family: 'Poppins', size: 9 },
+                        callback: v => v.toLocaleString('fr-FR', { maximumFractionDigits: 0 }) + ' k€',
+                    },
+                },
+            },
+        },
+    });
+})();
+
+// ─────────────────────────────────────────────────────────
+//  TABLE: Annual P&L — first 10 years
+// ─────────────────────────────────────────────────────────
+(function renderTable() {
+    const first10 = annual.slice(0, 10);
+    const tbody   = document.getElementById('plTableBody');
+
+    tbody.innerHTML = first10.map(row => {
+        // DSCR formatting
+        let dscrDisplay = '—';
+        let dscrClass   = '';
+        if (row.dscr !== null) {
+            dscrDisplay = fNum(row.dscr);
+            dscrClass   = row.dscr >= testParams.dscrTarget ? 'dscr-ok'
+                        : row.dscr >= 1.0                   ? 'dscr-warn'
+                        :                                     'dscr-bad';
+        }
+
+        const fcfCls = row.fcfEquity >= 0 ? 'positive' : 'negative';
+        const ebtCls = row.ebt       >= 0 ? 'positive' : 'negative';
+
+        return `
+            <tr>
+                <td>${row.year}</td>
+                <td>${fNum(row.production / 1e6, 2)} GWh</td>
+                <td>${k(row.totalRevenue)}</td>
+                <td>${k(row.ebitda)}</td>
+                <td class="${ebtCls}">${k(row.ebt)}</td>
+                <td>${k(row.netIncome)}</td>
+                <td class="accent">${k(row.cfads)}</td>
+                <td>${k(row.debtService)}</td>
+                <td class="${dscrClass}">${dscrDisplay}</td>
+                <td class="${fcfCls}">${k(row.fcfEquity)}</td>
+            </tr>
+        `;
+    }).join('');
+})();
+
+// ─────────────────────────────────────────────────────────
+//  CONSOLE SUMMARY (developer debug)
+// ─────────────────────────────────────────────────────────
+console.group('FinancialModel — Scénario test');
+console.log('CAPEX total    :', FM.formatEur(kpis.totalCapex));
+console.log('Dette          :', FM.formatEur(kpis.debt));
+console.log('Fonds propres  :', FM.formatEur(kpis.equity));
+console.log('TRI Projet     :', FM.formatPct(kpis.projectIRR));
+console.log('TRI Equity     :', FM.formatPct(kpis.equityIRR));
+console.log('VAN            :', FM.formatEur(kpis.van));
+console.log('DSCR min       :', kpis.dscrMin !== null ? kpis.dscrMin.toFixed(4) : '—');
+console.log('DSCR moy.      :', kpis.dscrAvg !== null ? kpis.dscrAvg.toFixed(4) : '—');
+console.log('CA Y1          :', FM.formatEur(kpis.annualRevY1));
+console.log('EBITDA Y1      :', FM.formatEur(kpis.ebitdaY1));
+console.groupEnd();
+</script>
+</body>
+</html>

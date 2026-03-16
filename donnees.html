@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Données — Portail Investissement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --border: #E2E0DB;
+    --border-focus: #1863DC;
+    --text: #1A1A1A;
+    --text-muted: #7A7670;
+    --text-light: #A5A09A;
+    --accent: #1863DC;
+    --accent-hover: #1250B0;
+    --accent-light: rgba(24,99,220,0.08);
+    --accent-lighter: rgba(24,99,220,0.04);
+    --success: #2E9E6E;
+    --warning: #E8A020;
+    --sidebar-bg: #0E1520;
+    --sidebar-text: #B8C4D8;
+    --sidebar-text-active: #FFFFFF;
+    --sidebar-hover: rgba(255,255,255,0.07);
+    --sidebar-active: rgba(24,99,220,0.22);
+    --sidebar-width: 240px;
+    --header-height: 72px;
+    --radius: 10px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    position: relative;
+}
+
+/* Background image at low opacity */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("Banque d'images/solar-panels-and-wind-energy-plants-e1696032292423.jpg");
+    background-size: cover;
+    background-position: center;
+    opacity: 0.10;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ═══════════════════ SIDEBAR ═══════════════════ */
+.sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    overflow-y: auto;
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.sidebar-logo-img {
+    height: 44px;
+    width: auto;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+    opacity: 0.92;
+}
+
+.sidebar-user {
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.sidebar-user-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 6px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.sidebar-user-name {
+    font-size: 13px;
+    color: var(--sidebar-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 400;
+}
+
+.user-avatar {
+    width: 28px; height: 28px;
+    background: rgba(24,99,220,0.35);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    flex-shrink: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 12px 10px;
+}
+
+.nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.25);
+    padding: 12px 10px 6px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    transition: background var(--transition), color var(--transition);
+    cursor: pointer;
+    margin-bottom: 2px;
+    font-weight: 400;
+}
+
+.nav-item:hover {
+    background: var(--sidebar-hover);
+    color: var(--sidebar-text-active);
+}
+
+.nav-item.active {
+    background: var(--sidebar-active);
+    color: var(--sidebar-text-active);
+    font-weight: 500;
+}
+
+.nav-item svg {
+    width: 18px; height: 18px;
+    opacity: 0.6;
+    flex-shrink: 0;
+}
+
+.nav-item.active svg { opacity: 1; }
+
+.nav-item .nav-badge {
+    margin-left: auto;
+    background: rgba(24,99,220,0.35);
+    color: #B8D4FF;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 12px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ═══════════════════ MAIN CONTENT ═══════════════════ */
+.main {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+}
+
+/* Page header bar */
+.page-header {
+    background: rgba(255,255,255,0.96);
+    border-bottom: 1px solid var(--border);
+    padding: 0 36px;
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(4px);
+}
+
+.page-title {
+    font-family: 'Teko', sans-serif;
+    font-size: 26px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--text);
+    line-height: 1;
+}
+
+.page-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 300;
+}
+
+/* Content area */
+.content {
+    flex: 1;
+    padding: 36px;
+}
+
+.section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ═══════════════════ DATA TILES GRID ═══════════════════ */
+.tiles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.data-tile {
+    background: rgba(255,255,255,0.97);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: box-shadow var(--transition), border-color var(--transition), transform 0.15s;
+    animation: fadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.data-tile:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+
+.data-tile.coming-soon {
+    cursor: default;
+    opacity: 0.72;
+}
+
+.data-tile.coming-soon:hover {
+    transform: none;
+    border-color: var(--border);
+    box-shadow: var(--shadow-sm);
+}
+
+.tile-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.tile-icon svg { width: 22px; height: 22px; }
+
+.tile-icon.blue   { background: rgba(24,99,220,0.10);  color: var(--accent); }
+.tile-icon.green  { background: rgba(46,158,110,0.10); color: var(--success); }
+.tile-icon.amber  { background: rgba(232,160,32,0.12); color: var(--warning); }
+.tile-icon.purple { background: rgba(127,119,221,0.12); color: #7F77DD; }
+.tile-icon.teal   { background: rgba(29,158,117,0.12); color: #1D9E75; }
+.tile-icon.gray   { background: rgba(120,120,120,0.10); color: #666; }
+
+.tile-body { flex: 1; }
+
+.tile-name {
+    font-family: 'Teko', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+    line-height: 1.1;
+}
+
+.tile-desc {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    font-weight: 300;
+}
+
+.tile-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.tile-tag {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.tile-tag.active    { background: rgba(46,158,110,0.12); color: var(--success); }
+.tile-tag.soon      { background: rgba(120,120,120,0.10); color: #888; }
+.tile-tag.beta      { background: rgba(24,99,220,0.10);   color: var(--accent); }
+
+.tile-arrow {
+    color: var(--accent);
+    opacity: 0.6;
+    transition: opacity var(--transition);
+}
+
+.data-tile:hover .tile-arrow { opacity: 1; }
+
+/* Animation delays for tiles */
+.data-tile:nth-child(1) { animation-delay: 0.05s; }
+.data-tile:nth-child(2) { animation-delay: 0.10s; }
+.data-tile:nth-child(3) { animation-delay: 0.14s; }
+.data-tile:nth-child(4) { animation-delay: 0.18s; }
+.data-tile:nth-child(5) { animation-delay: 0.22s; }
+.data-tile:nth-child(6) { animation-delay: 0.26s; }
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-12px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.sidebar { animation: slideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.main { animation: fadeIn 0.4s ease 0.15s both; }
+
+/* ═══════════════════ RESPONSIVE ═══════════════════ */
+@media (max-width: 768px) {
+    :root { --sidebar-width: 56px; }
+
+    .sidebar-logo-text, .sidebar-user, .nav-section-label,
+    .nav-item span, .nav-item .nav-badge, .sidebar-footer { display: none; }
+
+    .sidebar-logo { padding: 16px 12px; }
+    .sidebar-logo-img { height: 32px; }
+    .sidebar-nav { padding: 8px 6px; }
+    .nav-item { justify-content: center; padding: 10px; }
+
+    .page-header { padding: 0 20px; }
+    .content { padding: 20px; }
+    .tiles-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <img src="Banque d'images/DOL-COG-IV-020-A -Logo final Groupe Dolfines FR transp.png" class="sidebar-logo-img" alt="Dolfines">
+    </div>
+
+    <div class="sidebar-user">
+        <div class="sidebar-user-label">Utilisateur</div>
+        <div class="sidebar-user-name">
+            <div class="user-avatar">U</div>
+            Utilisateur (à définir)
+        </div>
+    </div>
+
+    <div class="sidebar-nav">
+        <div class="nav-section-label">Navigation</div>
+
+        <a class="nav-item" href="portefeuille_projets.html" id="navProjets" title="Projets">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span>Projets</span>
+            <span class="nav-badge" id="navProjectCount">0</span>
+        </a>
+
+        <a class="nav-item" href="creer_projet.html" title="Créer Projet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            <span>Créer Projet</span>
+        </a>
+
+        <a class="nav-item active" href="donnees.html" title="Données">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            <span>Données</span>
+        </a>
+    </div>
+
+    <div class="sidebar-footer">v1.0</div>
+</nav>
+
+<!-- ═══════════════════ MAIN ═══════════════════ -->
+<div class="main">
+
+    <!-- Page header bar -->
+    <header class="page-header">
+        <div class="page-title">Données & Ressources</div>
+        <div class="page-subtitle">Outils d'analyse et bases de données transverses</div>
+    </header>
+
+    <!-- Content -->
+    <div class="content">
+        <div class="section-title">Thématiques disponibles</div>
+
+        <div class="tiles-grid">
+
+            <!-- Tile 1 : Simulation des flux énergétiques (active) -->
+            <a class="data-tile" href="simulation_flux_energetiques.html">
+                <div class="tile-icon blue">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <div class="tile-body">
+                    <div class="tile-name">Simulation des flux énergétiques</div>
+                    <div class="tile-desc">Visualisation horaire des flux PV, BESS et injections réseau. Analyse des cycles de charge/décharge et indicateurs de performance (RTE, SoC, écrêtement).</div>
+                </div>
+                <div class="tile-footer">
+                    <span class="tile-tag active">Disponible</span>
+                    <span class="tile-arrow">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </span>
+                </div>
+            </a>
+
+            <!-- Tile 2 : Analyse de marché (coming soon) -->
+            <div class="data-tile coming-soon">
+                <div class="tile-icon amber">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                </div>
+                <div class="tile-body">
+                    <div class="tile-name">Analyse de marché</div>
+                    <div class="tile-desc">Prix spot, courbes forward et données de marché électrique par pays et par technologie.</div>
+                </div>
+                <div class="tile-footer">
+                    <span class="tile-tag soon">À venir</span>
+                </div>
+            </div>
+
+            <!-- Tile 3 : Modèle financier (coming soon) -->
+            <div class="data-tile coming-soon">
+                <div class="tile-icon green">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                </div>
+                <div class="tile-body">
+                    <div class="tile-name">Modèle financier</div>
+                    <div class="tile-desc">Calcul du TRI, NPV, DSCR et analyse de sensibilité sur les paramètres clés des projets d'investissement.</div>
+                </div>
+                <div class="tile-footer">
+                    <span class="tile-tag soon">À venir</span>
+                </div>
+            </div>
+
+            <!-- Tile 4 : Ressource solaire (coming soon) -->
+            <div class="data-tile coming-soon">
+                <div class="tile-icon amber">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                </div>
+                <div class="tile-body">
+                    <div class="tile-name">Ressource solaire</div>
+                    <div class="tile-desc">Données d'irradiance, P50/P75/P90 et productible estimé par géolocalisation pour les centrales PV.</div>
+                </div>
+                <div class="tile-footer">
+                    <span class="tile-tag soon">À venir</span>
+                </div>
+            </div>
+
+            <!-- Tile 5 : Données réglementaires (coming soon) -->
+            <div class="data-tile coming-soon">
+                <div class="tile-icon purple">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                </div>
+                <div class="tile-body">
+                    <div class="tile-name">Données réglementaires</div>
+                    <div class="tile-desc">Cadres réglementaires, appels d'offres et mécanismes de soutien par pays (CRE, AO, feed-in tariff…).</div>
+                </div>
+                <div class="tile-footer">
+                    <span class="tile-tag soon">À venir</span>
+                </div>
+            </div>
+
+            <!-- Tile 6 : Benchmarks technologiques (coming soon) -->
+            <div class="data-tile coming-soon">
+                <div class="tile-icon teal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                </div>
+                <div class="tile-body">
+                    <div class="tile-name">Benchmarks technologiques</div>
+                    <div class="tile-desc">Coûts CAPEX/OPEX de référence, courbes de dégradation et données de performance pour PV et BESS.</div>
+                </div>
+                <div class="tile-footer">
+                    <span class="tile-tag soon">À venir</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+const STORAGE_PROJECTS = 'pi_projects';
+
+function getProjects() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_PROJECTS)) || []; }
+    catch { return []; }
+}
+
+(function() {
+    const projects = getProjects();
+    document.getElementById('navProjectCount').textContent = projects.length;
+})();
+</script>
+</body>
+</html>
