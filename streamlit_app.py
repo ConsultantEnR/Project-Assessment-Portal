@@ -9,6 +9,7 @@ Hébergement     : Streamlit Community Cloud (share.streamlit.io)
 """
 
 import streamlit as st
+import streamlit.components.v1 as components
 import json
 import os
 import math
@@ -16,6 +17,7 @@ from datetime import datetime, date
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
+import github_sync
 
 # ─── Config page ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -104,6 +106,14 @@ def save_projects(projects: list):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
     st.cache_data.clear()
+
+
+def get_github_token() -> str | None:
+    """Récupère le token GitHub depuis les secrets Streamlit."""
+    try:
+        return st.secrets.get("GITHUB_TOKEN")
+    except Exception:
+        return None
 
 
 def import_from_localstorage_json(raw_json: str) -> list:
@@ -347,7 +357,8 @@ with st.sidebar:
 
     page = st.radio(
         "Navigation",
-        ["🏠 Portefeuille", "📊 Analyse site", "💾 Import / Export", "⚙️ Paramètres"],
+        ["🏠 Portefeuille", "📊 Analyse site", "🔧 Outils HTML",
+         "📁 Gestion projets", "💾 Import / Export", "⚙️ Paramètres"],
         label_visibility="collapsed",
     )
 
@@ -572,6 +583,209 @@ elif page == "📊 Analyse site":
             mime="text/csv",
         )
 
+        # Sauvegarde sur GitHub
+        token = get_github_token()
+        if token:
+            if st.button("📁 Sauvegarder les résultats sur GitHub"):
+                with st.spinner("Sauvegarde en cours..."):
+                    ok = github_sync.save_financial_results(
+                        token, REPO_NAME, sel_proj_name, sel_site_name, result
+                    )
+                if ok:
+                    slug = github_sync.sanitize(sel_proj_name)
+                    st.success(
+                        f"✓ Résultats sauvegardés dans "
+                        f"`projects/{slug}/financial_results/`"
+                    )
+                else:
+                    st.error(
+                        "Échec de la sauvegarde. "
+                        "Vérifiez le token GitHub dans les secrets Streamlit."
+                    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE : OUTILS HTML
+# ═══════════════════════════════════════════════════════════════════════════════
+elif page == "🔧 Outils HTML":
+    st.markdown("# Outils HTML — Application complète")
+    st.markdown("---")
+
+    HTML_TOOLS = [
+        ("🏠 Portefeuille projets",       "portefeuille_projets.html"),
+        ("➕ Créer un projet",             "creer_projet.html"),
+        ("➕ Créer un site",               "creation_site.html"),
+        ("📊 Dashboard projet",            "projet_dashboard.html"),
+        ("📊 Dashboard site",              "site_dashboard.html"),
+        ("⚡ Simulation flux énergétiques", "simulation_flux_energetiques.html"),
+        ("🔬 Modèle financier",            "test_modele_financier.html"),
+        ("📋 Données & Ressources",        "donnees.html"),
+    ]
+
+    tool_labels = [t[0] for t in HTML_TOOLS]
+    sel_tool = st.selectbox("Sélectionner un outil", tool_labels)
+    sel_file = next(t[1] for t in HTML_TOOLS if t[0] == sel_tool)
+    sel_url  = f"{GITHUB_PAGES_URL}/{sel_file}"
+
+    st.markdown(f"""
+    <div style="background:white;border:1px solid #E2E0DB;border-radius:12px;
+                padding:16px 20px;margin-bottom:16px;">
+        <p style="font-size:13px;color:#7A7670;margin:0 0 10px;">
+            ⚠️ <strong>Note :</strong> Les outils HTML stockent les données dans le
+            navigateur (<em>localStorage</em>). Chaque utilisateur voit ses propres
+            données. Pour partager entre utilisateurs, utilisez
+            <strong>💾 Import / Export</strong>.
+        </p>
+        <a href="{sel_url}" target="_blank"
+           style="display:inline-block;padding:8px 16px;background:#1863DC;
+                  color:white;border-radius:8px;text-decoration:none;
+                  font-weight:600;font-size:13px;">
+            Ouvrir dans un nouvel onglet ↗
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown(f"**URL :** `{sel_url}`")
+    components.iframe(sel_url, height=720, scrolling=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE : GESTION PROJETS (GitHub)
+# ═══════════════════════════════════════════════════════════════════════════════
+elif page == "📁 Gestion projets":
+    st.markdown("# Gestion des projets — GitHub")
+    st.markdown("---")
+
+    token = get_github_token()
+    if not token:
+        st.error("""
+**Token GitHub non configuré.**
+
+Pour activer la synchronisation GitHub :
+1. Allez sur [share.streamlit.io](https://share.streamlit.io) → votre app → **Settings → Secrets**
+2. Ajoutez la ligne :
+   ```
+   GITHUB_TOKEN = "ghp_votreTokenPersonnel"
+   ```
+3. Le token doit avoir la permission **repo** (lecture + écriture).
+
+En développement local, créez `.streamlit/secrets.toml` avec le même contenu.
+        """)
+        st.stop()
+
+    projects = load_projects()
+    if not projects:
+        st.info("Aucun projet disponible. Importez d'abord vos données via **💾 Import / Export**.")
+        st.stop()
+
+    proj_names = [p.get("name", f"Projet {i+1}") for i, p in enumerate(projects)]
+    sel_proj_name = st.selectbox("Projet", proj_names)
+    sel_proj = next((p for p in projects if p.get("name") == sel_proj_name), projects[0])
+
+    slug = github_sync.sanitize(sel_proj_name)
+    folder_url = f"https://github.com/{REPO_NAME}/tree/main/projects/{slug}"
+
+    tab_folder, tab_upload, tab_rename = st.tabs(
+        ["📁 Dossier GitHub", "📤 Upload documents", "✏️ Renommer projet"]
+    )
+
+    # ── Tab : Dossier GitHub ───────────────────────────────────────────────────
+    with tab_folder:
+        st.markdown(f"**Chemin GitHub :** `projects/{slug}/`")
+        st.markdown(f"[Voir le dossier sur GitHub ↗]({folder_url})")
+
+        if st.button("🔄 Créer / Vérifier le dossier sur GitHub"):
+            with st.spinner("En cours..."):
+                ok = github_sync.create_project_folder(
+                    token, REPO_NAME, sel_proj_name, sel_proj.get("id", "")
+                )
+            if ok:
+                st.success(f"✓ Dossier `projects/{slug}/` créé/vérifié.")
+            else:
+                st.error("Échec. Vérifiez le token GitHub.")
+
+        st.markdown("### Documents existants")
+        with st.spinner("Chargement..."):
+            docs = github_sync.list_documents(token, REPO_NAME, sel_proj_name)
+
+        if docs:
+            for doc in docs:
+                c1, c2 = st.columns([4, 1])
+                with c1:
+                    size_kb = doc["size"] / 1024
+                    st.markdown(f"📄 **{doc['name']}** — {size_kb:.1f} ko")
+                with c2:
+                    st.markdown(f"[⬇ Télécharger]({doc['download_url']})")
+        else:
+            st.info("Aucun document dans ce projet.")
+
+    # ── Tab : Upload documents ─────────────────────────────────────────────────
+    with tab_upload:
+        st.markdown("""
+        Uploadez ici les documents associés au projet (études, permis, contrats…).
+        Ils seront stockés dans `projects/{slug}/documents/` sur GitHub.
+        """.replace("{slug}", slug))
+
+        uploaded_files = st.file_uploader(
+            "Sélectionner des fichiers",
+            accept_multiple_files=True,
+            type=["pdf", "xlsx", "xls", "csv", "docx", "doc",
+                  "png", "jpg", "jpeg", "zip"],
+        )
+
+        if uploaded_files:
+            if st.button("📤 Uploader sur GitHub", type="primary"):
+                # Créer le dossier s'il n'existe pas encore
+                github_sync.create_project_folder(
+                    token, REPO_NAME, sel_proj_name, sel_proj.get("id", "")
+                )
+                success_count = 0
+                for uf in uploaded_files:
+                    with st.spinner(f"Upload : {uf.name}…"):
+                        ok, url = github_sync.upload_document(
+                            token, REPO_NAME, sel_proj_name,
+                            uf.name, uf.getvalue()
+                        )
+                    if ok:
+                        success_count += 1
+                        st.success(f"✓ {uf.name} → [voir sur GitHub]({url})")
+                    else:
+                        st.error(f"✗ Échec pour {uf.name}")
+                if success_count:
+                    st.balloons()
+
+    # ── Tab : Renommer projet ──────────────────────────────────────────────────
+    with tab_rename:
+        st.markdown("""
+        Renommer le projet met à jour :
+        - Le nom dans `data/projects.json`
+        - Le dossier GitHub (`projects/{ancien}` → `projects/{nouveau}`)
+        """)
+        new_name = st.text_input("Nouveau nom du projet", value=sel_proj_name)
+
+        if st.button("✏️ Renommer", type="primary"):
+            if not new_name or new_name == sel_proj_name:
+                st.warning("Le nouveau nom est identique ou vide.")
+            else:
+                with st.spinner("Renommage du dossier GitHub…"):
+                    ok_gh = github_sync.rename_project_folder(
+                        token, REPO_NAME, sel_proj_name, new_name
+                    )
+
+                if ok_gh:
+                    # Mettre à jour le nom dans projects.json
+                    for p in projects:
+                        if p.get("name") == sel_proj_name:
+                            p["name"] = new_name
+                            break
+                    save_projects(projects)
+                    st.success(
+                        f"✓ Projet renommé : **{sel_proj_name}** → **{new_name}**"
+                    )
+                    st.rerun()
+                else:
+                    st.error("Échec du renommage sur GitHub. Vérifiez le token.")
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PAGE : IMPORT / EXPORT
@@ -608,6 +822,18 @@ elif page == "💾 Import / Export":
                 save_projects(updated)
                 st.success(f"✓ {len(new_projects)} nouveau(x) projet(s) importé(s). {len(imported) - len(new_projects)} déjà présent(s).")
                 st.balloons()
+                # Auto-créer les dossiers GitHub pour les nouveaux projets
+                token = get_github_token()
+                if token and new_projects:
+                    github_ok = sum(
+                        1 for p in new_projects
+                        if github_sync.create_project_folder(
+                            token, REPO_NAME,
+                            p.get("name", ""), p.get("id", "")
+                        )
+                    )
+                    if github_ok:
+                        st.info(f"📁 {github_ok} dossier(s) créé(s) sur GitHub.")
             else:
                 st.error("Format JSON invalide. Vérifiez le contenu copié.")
 
