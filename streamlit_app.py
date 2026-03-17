@@ -612,14 +612,17 @@ elif page == "🔧 Outils HTML":
     st.markdown("---")
 
     HTML_TOOLS = [
-        ("🏠 Portefeuille projets",       "portefeuille_projets.html"),
-        ("➕ Créer un projet",             "creer_projet.html"),
-        ("➕ Créer un site",               "creation_site.html"),
-        ("📊 Dashboard projet",            "projet_dashboard.html"),
-        ("📊 Dashboard site",              "site_dashboard.html"),
-        ("⚡ Simulation flux énergétiques", "simulation_flux_energetiques.html"),
-        ("🔬 Modèle financier",            "test_modele_financier.html"),
-        ("📋 Données & Ressources",        "donnees.html"),
+        ("🔐 Connexion",                   "index.html"),
+        ("🏠 Portefeuille projets",         "portefeuille_projets.html"),
+        ("➕ Créer un projet",               "creer_projet.html"),
+        ("➕ Créer un site",                 "creation_site.html"),
+        ("📊 Dashboard projet",              "projet_dashboard.html"),
+        ("📊 Dashboard site",                "site_dashboard.html"),
+        ("📋 Fiche site",                    "fiche_site.html"),
+        ("⚡ Simulation flux énergétiques",  "simulation_flux_energetiques.html"),
+        ("🔬 Modèle financier",              "test_modele_financier.html"),
+        ("📋 Données & Ressources",          "donnees.html"),
+        ("📈 Analyse de marché",             "analyse_marche.html"),
     ]
 
     tool_labels = [t[0] for t in HTML_TOOLS]
@@ -886,14 +889,19 @@ elif page == "⚙️ Paramètres":
     st.markdown("### Liens rapides")
     col1, col2, col3 = st.columns(3)
     with col1:
+        st.markdown(f"[🔐 Connexion]({GITHUB_PAGES_URL}/index.html)")
         st.markdown(f"[🏠 Portefeuille projets]({GITHUB_PAGES_URL}/portefeuille_projets.html)")
         st.markdown(f"[➕ Créer un projet]({GITHUB_PAGES_URL}/creer_projet.html)")
+        st.markdown(f"[➕ Créer un site]({GITHUB_PAGES_URL}/creation_site.html)")
     with col2:
-        st.markdown(f"[📈 Tableau de bord projet]({GITHUB_PAGES_URL}/projet_dashboard.html)")
+        st.markdown(f"[📊 Dashboard projet]({GITHUB_PAGES_URL}/projet_dashboard.html)")
+        st.markdown(f"[📊 Dashboard site]({GITHUB_PAGES_URL}/site_dashboard.html)")
+        st.markdown(f"[📋 Fiche site]({GITHUB_PAGES_URL}/fiche_site.html)")
         st.markdown(f"[📊 Données & Ressources]({GITHUB_PAGES_URL}/donnees.html)")
     with col3:
         st.markdown(f"[⚡ Simulation flux énergétiques]({GITHUB_PAGES_URL}/simulation_flux_energetiques.html)")
-        st.markdown(f"[🔬 Modèle financier test]({GITHUB_PAGES_URL}/test_modele_financier.html)")
+        st.markdown(f"[🔬 Modèle financier]({GITHUB_PAGES_URL}/test_modele_financier.html)")
+        st.markdown(f"[📈 Analyse de marché]({GITHUB_PAGES_URL}/analyse_marche.html)")
 
     st.markdown("---")
     st.caption(f"Repository : [{REPO_NAME}](https://github.com/{REPO_NAME})")

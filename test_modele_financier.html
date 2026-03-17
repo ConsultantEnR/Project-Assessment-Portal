@@ -669,7 +669,7 @@ body::before {
                     <div class="inp-group"><label>DSRA (mois)</label><input type="number" id="i_dsra" value="6" min="0" max="24" step="1"></div>
                     <div class="inp-group"><label>DSCR cible</label><input type="number" id="i_dscrTarget" value="1.15" min="1" step="0.01"></div>
 
-                    <button class="recalc-btn" onclick="recalcAll()">
+                    <button class="recalc-btn" onclick="saveAndRecalcFin()">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
                         Recalculer le modèle
                     </button>
@@ -1174,6 +1174,91 @@ function renderTable(annual, params) {
 }
 
 // ─────────────────────────────────────────────────────────
+//  CONTEXTE SITE (URL params)
+// ─────────────────────────────────────────────────────────
+(function() {
+    const p = new URLSearchParams(window.location.search);
+    const projectId = p.get('project'), siteId = p.get('site');
+    if (!projectId || !siteId) return;
+    try {
+        const projects = JSON.parse(localStorage.getItem('pi_projects')) || [];
+        const project  = projects.find(pr => pr.id === projectId);
+        const site     = project && (project.sites || []).find(s => s.id === siteId);
+        if (!site) return;
+        window._finSiteId = siteId;
+        // Show context banner
+        const header = document.querySelector('.page-header');
+        if (header) {
+            const banner = document.createElement('div');
+            banner.style.cssText = 'font-size:12px;font-family:Poppins,sans-serif;color:var(--accent);font-weight:500;margin-left:12px;background:var(--accent-light);padding:4px 12px;border-radius:20px;white-space:nowrap;';
+            banner.textContent = 'Site : ' + (site.name || siteId);
+            header.appendChild(banner);
+        }
+        // If no saved params for this site, pre-populate from site data
+        const key = 'pi_fin_params_' + siteId;
+        if (!localStorage.getItem(key)) {
+            const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined && val !== null) el.value = val; };
+            if (site.pvCapacity)    set('i_pvCapacity',  site.pvCapacity);
+            if (site.pvProdP90)     set('i_pvProdP90',   site.pvProdP90);
+            if (site.pvDegradation) set('i_pvDeg',       site.pvDegradation);
+            if (site.pvLifetime)    set('i_lifetime',    site.pvLifetime);
+            if (site.capexPv)       set('i_capexPv',     site.capexPv);     // already €/kWc
+            if (site.omPv)          set('i_omPv',        site.omPv);
+            if (site.bessPower)     set('i_bessPower',   site.bessPower);
+            if (site.bessCapacity)  set('i_bessCapacity',site.bessCapacity);
+            if (site.bessCyclesPerDay) set('i_bessCycles', site.bessCyclesPerDay);
+            if (site.bessDegradation)  set('i_bessDeg',    site.bessDegradation);
+            if (site.capexBess)     set('i_capexBess',   site.capexBess);
+            if (site.omBess)        set('i_omBess',      site.omBess);
+            // Project-level params
+            if (project.params) {
+                const pm = project.params;
+                if (pm.electricityPrice)      set('i_elecPrice',   pm.electricityPrice);
+                if (pm.electricityEscalation) set('i_elecEsc',     pm.electricityEscalation);
+                if (pm.bessSpreadPrice)       set('i_bessSpread',  pm.bessSpreadPrice);
+                if (pm.inflation)             set('i_inflation',   pm.inflation);
+                if (pm.tax)                   set('i_tax',         pm.tax);
+                if (pm.wacc)                  set('i_wacc',        pm.wacc);
+                if (pm.debtPercent)           set('i_debtPct',     pm.debtPercent);
+                if (pm.seniorRate)            set('i_seniorRate',  pm.seniorRate);
+                if (pm.debtDuration)          set('i_debtDur',     pm.debtDuration);
+                if (pm.dsraMonths)            set('i_dsra',        pm.dsraMonths);
+                if (pm.dscrTarget)            set('i_dscrTarget',  pm.dscrTarget);
+            }
+        }
+    } catch(e) {}
+})();
+
+// ─────────────────────────────────────────────────────────
+//  PERSISTENCE DES PARAMÈTRES
+// ─────────────────────────────────────────────────────────
+const FIN_PARAM_IDS = ['i_pvCapacity','i_pvProdP90','i_pvDeg','i_lifetime','i_capexPv','i_omPv','i_bessPower','i_bessCapacity','i_bessCycles','i_bessDeg','i_capexBess','i_omBess','i_elecPrice','i_elecEsc','i_bessSpread','i_inflation','i_tax','i_wacc','i_debtPct','i_seniorRate','i_debtDur','i_dsra','i_dscrTarget'];
+
+function _finStorageKey() {
+    return window._finSiteId ? 'pi_fin_params_' + window._finSiteId : 'pi_fin_params';
+}
+
+function saveFinParams() {
+    const saved = {};
+    FIN_PARAM_IDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) saved[id] = el.value;
+    });
+    localStorage.setItem(_finStorageKey(), JSON.stringify(saved));
+}
+
+function loadFinParams() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(_finStorageKey()));
+        if (!saved) return;
+        FIN_PARAM_IDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && saved[id] !== undefined) el.value = saved[id];
+        });
+    } catch(e) {}
+}
+
+// ─────────────────────────────────────────────────────────
 //  MASTER RECALC — called on load + on button click
 // ─────────────────────────────────────────────────────────
 function recalcAll() {
@@ -1190,11 +1275,14 @@ function recalcAll() {
     renderTable(annual, params);
 }
 
-// Initial render
+function saveAndRecalcFin() {
+    saveFinParams();
+    recalcAll();
+}
+
+// Initial render — load saved params first
+loadFinParams();
 recalcAll();
-console.log('CA Y1          :', FM.formatEur(kpis.annualRevY1));
-console.log('EBITDA Y1      :', FM.formatEur(kpis.ebitdaY1));
-console.groupEnd();
 </script>
 </body>
 </html>

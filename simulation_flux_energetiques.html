@@ -362,7 +362,7 @@ td.kv { text-align: right; font-weight: 600; padding: 5px 0; white-space: nowrap
                     <input type="number" id="c2de" value="22" min="0" max="23" step="0.5">
                 </div>
 
-                <button class="recalc-btn" onclick="runAndRender()">
+                <button class="recalc-btn" onclick="saveAndRecalcSim()">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
                     Recalculer la simulation
                 </button>
@@ -636,11 +636,75 @@ function renderCharts(res) {
     });
 }
 
+// ─── Contexte site (URL params) ───
+(function() {
+    const p = new URLSearchParams(window.location.search);
+    const projectId = p.get('project'), siteId = p.get('site');
+    if (!projectId || !siteId) return;
+    try {
+        const projects = JSON.parse(localStorage.getItem('pi_projects')) || [];
+        const project  = projects.find(pr => pr.id === projectId);
+        const site     = project && (project.sites || []).find(s => s.id === siteId);
+        if (!site) return;
+        // Show context banner
+        const header = document.querySelector('.page-header');
+        if (header) {
+            const banner = document.createElement('div');
+            banner.style.cssText = 'font-size:12px;font-family:Poppins,sans-serif;color:var(--accent);font-weight:500;margin-left:12px;background:var(--accent-light);padding:4px 12px;border-radius:20px;';
+            banner.textContent = 'Site : ' + (site.name || siteId);
+            header.appendChild(banner);
+        }
+        // Store site context for save/load keys
+        window._simSiteId = siteId;
+        // If no saved params for this site, pre-populate from site data
+        const key = 'pi_sim_params_' + siteId;
+        if (!localStorage.getItem(key)) {
+            const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined && val !== null) el.value = val; };
+            if (site.pvCapacity)   set('pvCapacity',   (site.pvCapacity  / 1000).toFixed(2));   // kWc → MWc
+            if (site.bessCapacity) set('bessCapacity', (site.bessCapacity/ 1000).toFixed(2));   // kWh → MWh
+            if (site.bessPower)    set('bessPower',    (site.bessPower   / 1000).toFixed(2));   // kW  → MW
+            if (site.pvGridPower)  set('gridCap',      (site.pvGridPower / 1000).toFixed(2));   // kW  → MW
+        }
+    } catch(e) {}
+})();
+
+// ─── Persistence des paramètres ───
+const SIM_PARAM_IDS = ['pvCapacity','irradiance','pr','gridCap','bessCapacity','bessPower','dodMax','socInit','effChg','effDch','c1cs','c1ce','c1ds','c1de','c2cs','c2ce','c2ds','c2de'];
+
+function _simStorageKey() {
+    return window._simSiteId ? 'pi_sim_params_' + window._simSiteId : 'pi_sim_params';
+}
+
+function saveSimParams() {
+    const saved = {};
+    SIM_PARAM_IDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) saved[id] = el.value;
+    });
+    localStorage.setItem(_simStorageKey(), JSON.stringify(saved));
+}
+
+function loadSimParams() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(_simStorageKey()));
+        if (!saved) return;
+        SIM_PARAM_IDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && saved[id] !== undefined) el.value = saved[id];
+        });
+    } catch(e) {}
+}
+
 function runAndRender() {
     const p   = getParams();
     const res = runSimulation(p);
     renderKPIs(res.kpis, p);
     renderCharts(res);
+}
+
+function saveAndRecalcSim() {
+    saveSimParams();
+    runAndRender();
 }
 
 // Auto-run on any input change (debounced)
@@ -652,7 +716,8 @@ document.querySelectorAll('.params-body input').forEach(el => {
     });
 });
 
-// Initial render
+// Initial render — load saved params first
+loadSimParams();
 runAndRender();
 </script>
 </body>

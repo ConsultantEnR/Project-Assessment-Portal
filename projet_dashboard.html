@@ -674,6 +674,115 @@ body::before {
 .sidebar { animation: slideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 .main { animation: fadeIn 0.4s ease 0.15s both; }
 
+/* ─── Edit project ─── */
+.btn-edit-project {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: 8px; font-family: 'Montserrat', sans-serif;
+    font-size: 12px; font-weight: 600; color: var(--text-muted);
+    cursor: pointer; transition: all var(--transition);
+    margin-left: auto; flex-shrink: 0;
+}
+.btn-edit-project svg { width: 14px; height: 14px; }
+.btn-edit-project:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+.edit-proj-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(14,21,32,0.55); z-index: 400;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(2px);
+}
+.edit-proj-overlay.open { display: flex; }
+.edit-proj-modal {
+    background: #fff; border-radius: 16px; padding: 32px 36px 28px;
+    width: 100%; max-width: 480px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.20);
+    animation: projModalIn 0.25s cubic-bezier(0.22,1,0.36,1) both;
+}
+@keyframes projModalIn { from { opacity:0; transform: scale(0.96) translateY(12px); } to { opacity:1; transform: none; } }
+.edit-proj-title {
+    font-family: 'Teko', sans-serif; font-size: 24px; font-weight: 500;
+    color: var(--text); margin-bottom: 24px;
+}
+.edit-proj-grid { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+.edit-proj-field label {
+    display: block; font-size: 11px; font-weight: 600;
+    font-family: 'Poppins', sans-serif; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px;
+}
+.edit-proj-field input {
+    width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 9px 12px; font-family: 'Montserrat', sans-serif;
+    font-size: 13.5px; color: var(--text); background: #FAFAF8;
+    outline: none; transition: border-color var(--transition);
+}
+.edit-proj-field input:focus { border-color: var(--accent); background: #fff; }
+.edit-proj-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px; }
+.edit-proj-btn-cancel { padding: 9px 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-muted); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all var(--transition); }
+.edit-proj-btn-cancel:hover { border-color: var(--text-muted); color: var(--text); }
+.edit-proj-btn-save { padding: 9px 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; color: #fff; background: var(--accent); border: none; border-radius: 8px; cursor: pointer; transition: background var(--transition); }
+.edit-proj-btn-save:hover { background: var(--accent-hover); }
+
+/* ─── Document upload zone ─── */
+.upload-section { margin-bottom: 0; }
+.drop-zone {
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 32px 24px; text-align: center; cursor: pointer;
+    background: var(--accent-lighter); transition: all var(--transition);
+    position: relative;
+}
+.drop-zone.drag-over { border-color: var(--accent); background: var(--accent-light); }
+.drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.drop-zone-icon { margin-bottom: 12px; color: var(--accent); opacity: 0.6; }
+.drop-zone-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.drop-zone-sub { font-size: 12px; color: var(--text-muted); font-family: 'Poppins', sans-serif; }
+.proj-doc-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.proj-doc-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px; background: #fff; border: 1px solid var(--border);
+    border-radius: 8px;
+}
+.proj-doc-icon { width: 32px; height: 32px; border-radius: 6px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.proj-doc-icon svg { width: 16px; height: 16px; color: var(--accent); }
+.proj-doc-name { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.proj-doc-size { font-size: 11px; color: var(--text-light); font-family: 'Poppins', sans-serif; flex-shrink: 0; }
+.proj-doc-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.proj-doc-btn { padding: 4px 10px; font-size: 11px; font-weight: 600; font-family: 'Poppins', sans-serif; border-radius: 6px; border: none; cursor: pointer; transition: all var(--transition); }
+.proj-doc-btn.extract { background: var(--accent); color: #fff; }
+.proj-doc-btn.extract:hover { background: var(--accent-hover); }
+.proj-doc-btn.delete { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+.proj-doc-btn.delete:hover { border-color: #D94F4F; color: #D94F4F; }
+.proj-doc-btn.open { background: var(--bg); color: var(--accent); border: 1px solid var(--border); }
+
+/* ─── Extraction modal (project level) ─── */
+.proj-extract-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(14,21,32,0.55); z-index: 450;
+    align-items: flex-start; justify-content: center;
+    padding: 60px 20px; overflow-y: auto;
+    backdrop-filter: blur(2px);
+}
+.proj-extract-overlay.open { display: flex; }
+.proj-extract-modal {
+    background: #fff; border-radius: 16px; padding: 32px 36px 28px;
+    width: 100%; max-width: 640px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.20);
+}
+.proj-extract-title { font-family: 'Teko', sans-serif; font-size: 22px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+.proj-extract-sub { font-size: 12px; color: var(--text-muted); font-family: 'Poppins', sans-serif; margin-bottom: 20px; }
+.proj-extract-list { display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto; margin-bottom: 20px; }
+.proj-extract-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; transition: border-color var(--transition); }
+.proj-extract-item:hover { border-color: var(--accent); }
+.proj-extract-item input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; flex-shrink: 0; }
+.proj-extract-label { font-size: 11px; font-weight: 600; color: var(--text-muted); font-family: 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; width: 160px; flex-shrink: 0; }
+.proj-extract-value { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+.proj-extract-conf { font-size: 10px; font-family: 'Poppins', sans-serif; padding: 1px 6px; border-radius: 10px; }
+.proj-extract-conf.high { background: rgba(46,158,110,0.12); color: #2E9E6E; }
+.proj-extract-conf.medium { background: rgba(239,159,39,0.12); color: #B07000; }
+.proj-extract-empty { text-align: center; padding: 32px; color: var(--text-muted); font-family: 'Poppins', sans-serif; font-size: 13px; }
+.proj-extract-footer { display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 20px; }
+
 /* ═══════════════════ RESPONSIVE ═══════════════════ */
 @media (max-width: 768px) {
     :root { --sidebar-width: 56px; }
@@ -772,6 +881,10 @@ body::before {
                 </div>
             </div>
         </div>
+        <button class="btn-edit-project" onclick="openEditProjectModal()" title="Modifier les informations du projet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Modifier
+        </button>
     </header>
 
     <!-- Content -->
@@ -924,6 +1037,62 @@ body::before {
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- ═══ DOCUMENT UPLOAD ═══ -->
+        <div class="upload-section">
+            <div class="section-title">Documents du projet</div>
+            <div class="drop-zone" id="projDropZone">
+                <input type="file" id="projFileInput" accept=".pdf,.txt,.doc,.docx,.csv" multiple onchange="handleProjFiles(this.files)">
+                <div class="drop-zone-icon">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <div class="drop-zone-title">Glissez vos documents ici</div>
+                <div class="drop-zone-sub">ou cliquez pour sélectionner · PDF, Word, TXT, CSV</div>
+            </div>
+            <div class="proj-doc-list" id="projDocList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ EDIT PROJECT MODAL ═══ -->
+<div class="edit-proj-overlay" id="editProjOverlay">
+    <div class="edit-proj-modal">
+        <div class="edit-proj-title">Modifier le projet</div>
+        <div class="edit-proj-grid">
+            <div class="edit-proj-field">
+                <label>Nom du projet</label>
+                <input type="text" id="editProjName" placeholder="Nom du projet">
+            </div>
+            <div class="edit-proj-field">
+                <label>Courtier / Broker</label>
+                <input type="text" id="editProjCourtier" placeholder="Nom du courtier">
+            </div>
+            <div class="edit-proj-field">
+                <label>Email de contact</label>
+                <input type="email" id="editProjEmail" placeholder="email@exemple.com">
+            </div>
+            <div class="edit-proj-field">
+                <label>Vendeur / Propriétaire</label>
+                <input type="text" id="editProjVendeur" placeholder="Nom du vendeur">
+            </div>
+        </div>
+        <div class="edit-proj-footer">
+            <button class="edit-proj-btn-cancel" onclick="closeEditProjectModal()">Annuler</button>
+            <button class="edit-proj-btn-save" onclick="saveEditProject()">Enregistrer</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ PROJECT EXTRACTION MODAL ═══ -->
+<div class="proj-extract-overlay" id="projExtractOverlay">
+    <div class="proj-extract-modal">
+        <div class="proj-extract-title">Données extraites</div>
+        <div class="proj-extract-sub" id="projExtractSub">Sélectionnez les données à appliquer au projet</div>
+        <div class="proj-extract-list" id="projExtractList"></div>
+        <div class="proj-extract-footer">
+            <button class="edit-proj-btn-cancel" onclick="closeProjExtractModal()">Annuler</button>
+            <button class="edit-proj-btn-save" onclick="applyProjExtract()">Appliquer les données</button>
         </div>
     </div>
 </div>
@@ -1092,10 +1261,259 @@ function saveParams() {
     setTimeout(() => { msg.style.opacity = '0'; }, 2500);
 }
 
+// ─── Edit project modal ───
+function openEditProjectModal() {
+    const project = getProject();
+    if (!project) return;
+    document.getElementById('editProjName').value    = project.name          || '';
+    document.getElementById('editProjCourtier').value= project.courtier      || '';
+    document.getElementById('editProjEmail').value   = project.courtierEmail || '';
+    document.getElementById('editProjVendeur').value = project.vendeur       || '';
+    document.getElementById('editProjOverlay').classList.add('open');
+}
+function closeEditProjectModal() {
+    document.getElementById('editProjOverlay').classList.remove('open');
+}
+function saveEditProject() {
+    const projects = getProjects();
+    const id = getProjectId();
+    const idx = projects.findIndex(p => p.id === id);
+    if (idx === -1) return;
+    projects[idx].name          = document.getElementById('editProjName').value.trim()     || projects[idx].name;
+    projects[idx].courtier      = document.getElementById('editProjCourtier').value.trim() || projects[idx].courtier;
+    projects[idx].courtierEmail = document.getElementById('editProjEmail').value.trim();
+    projects[idx].vendeur       = document.getElementById('editProjVendeur').value.trim()  || projects[idx].vendeur;
+    localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(projects));
+    closeEditProjectModal();
+    loadProject();
+}
+document.getElementById('editProjOverlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeEditProjectModal();
+});
+
+// ─── Document upload (project level) ───
+const PROJ_DR_KEY = () => 'pi_proj_docs_' + getProjectId();
+
+function getProjDocs() {
+    try { return JSON.parse(localStorage.getItem(PROJ_DR_KEY())) || []; } catch { return []; }
+}
+function saveProjDocs(docs) {
+    localStorage.setItem(PROJ_DR_KEY(), JSON.stringify(docs));
+}
+
+function handleProjFiles(files) {
+    Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const entry = {
+                id: 'pdoc_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                date: new Date().toISOString(),
+                textContent: typeof e.target.result === 'string' ? e.target.result.slice(0, 50000) : null,
+                dataUrl: null
+            };
+            // Also read as dataUrl for download
+            const dr = new FileReader();
+            dr.onload = de => { entry.dataUrl = de.target.result; const docs = getProjDocs(); docs.push(entry); saveProjDocs(docs); renderProjDocList(); };
+            dr.readAsDataURL(file);
+        };
+        if (file.type.startsWith('text') || file.name.endsWith('.csv') || file.name.endsWith('.txt')) {
+            reader.readAsText(file);
+        } else {
+            reader.onload = e => {
+                const entry = {
+                    id: 'pdoc_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+                    name: file.name, size: file.size, type: file.type,
+                    date: new Date().toISOString(), textContent: null, dataUrl: null
+                };
+                const dr = new FileReader();
+                dr.onload = de => { entry.dataUrl = de.target.result; const docs = getProjDocs(); docs.push(entry); saveProjDocs(docs); renderProjDocList(); };
+                dr.readAsDataURL(file);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    });
+    document.getElementById('projFileInput').value = '';
+}
+
+function fmtBytes(n) {
+    if (n < 1024) return n + ' B';
+    if (n < 1048576) return (n/1024).toFixed(0) + ' KB';
+    return (n/1048576).toFixed(1) + ' MB';
+}
+
+function renderProjDocList() {
+    const docs = getProjDocs();
+    const list = document.getElementById('projDocList');
+    if (!list) return;
+    if (!docs.length) { list.innerHTML = ''; return; }
+    list.innerHTML = docs.map(d => `
+        <div class="proj-doc-item">
+            <div class="proj-doc-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <span class="proj-doc-name" title="${d.name}">${d.name}</span>
+            <span class="proj-doc-size">${fmtBytes(d.size)}</span>
+            <div class="proj-doc-actions">
+                ${d.dataUrl ? `<a class="proj-doc-btn open" href="${d.dataUrl}" download="${d.name}" onclick="event.stopPropagation()">Ouvrir</a>` : ''}
+                <button class="proj-doc-btn extract" onclick="extractProjDoc('${d.id}')">Extraire</button>
+                <button class="proj-doc-btn delete" onclick="deleteProjDoc('${d.id}')">Supprimer</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function deleteProjDoc(id) {
+    saveProjDocs(getProjDocs().filter(d => d.id !== id));
+    renderProjDocList();
+}
+
+// ─── Extraction ───
+let _projExtractItems = [];
+
+function extractProjDoc(id) {
+    const doc = getProjDocs().find(d => d.id === id);
+    if (!doc) return;
+    const text = doc.textContent || '';
+    _projExtractItems = parseProjText(text, doc.name);
+
+    const sub = document.getElementById('projExtractSub');
+    sub.textContent = `Fichier : ${doc.name} — ${_projExtractItems.length} donnée(s) détectée(s)`;
+
+    const list = document.getElementById('projExtractList');
+    if (!_projExtractItems.length) {
+        list.innerHTML = '<div class="proj-extract-empty">Aucune donnée exploitable détectée dans ce fichier.<br>Les fichiers texte (TXT, CSV) donnent les meilleurs résultats.</div>';
+    } else {
+        list.innerHTML = _projExtractItems.map((item, i) => `
+            <div class="proj-extract-item">
+                <input type="checkbox" id="pex_${i}" checked>
+                <span class="proj-extract-label">${item.label}</span>
+                <span class="proj-extract-value">${item.display}</span>
+                <span class="proj-extract-conf ${item.conf}">${item.conf === 'high' ? 'Fiable' : 'Probable'}</span>
+            </div>
+        `).join('');
+    }
+    document.getElementById('projExtractOverlay').classList.add('open');
+}
+
+function parseProjText(text, filename) {
+    const items = [];
+    const add = (label, key, value, display, conf, target) => items.push({ label, key, value, display, conf, target });
+
+    // Project name from filename
+    const cleanName = filename.replace(/\.(pdf|docx?|txt|csv)$/i, '').replace(/[-_]/g, ' ').trim();
+    if (cleanName.length > 2 && cleanName.length < 80) {
+        add('Nom projet', 'name', cleanName, cleanName, 'medium', 'project');
+    }
+
+    // Try to extract capacity: numbers followed by MWc, MW, kWc, kW
+    const capMatches = [...text.matchAll(/(\d[\d\s,.]*)\s*(MWc|MW|kWc|kW)(?:\s+(?:PV|solaire|photovoltaïque))?/gi)];
+    capMatches.slice(0, 2).forEach(m => {
+        const num = parseFloat(m[1].replace(/[\s,]/g, '.'));
+        if (!isNaN(num) && num > 0) {
+            const unit = m[2].toLowerCase();
+            const kWc = unit.startsWith('m') ? num * 1000 : num;
+            if (kWc >= 10 && kWc <= 5000000) {
+                add('Capacité PV', 'pvCapacity', kWc, `${kWc.toLocaleString('fr-FR')} kWc`, 'medium', 'site');
+            }
+        }
+    });
+
+    // Country / location
+    const countries = ['France','Espagne','Italie','Grèce','Portugal','Allemagne','Royaume-Uni','Belgique','Pays-Bas','Pologne','Sénégal','Maroc','Tunisie','Côte d\'Ivoire'];
+    countries.forEach(c => {
+        if (text.toLowerCase().includes(c.toLowerCase())) {
+            add('Pays', 'country', c, c, 'high', 'site');
+        }
+    });
+
+    // Site name patterns: "site de X", "projet X"
+    const siteMatch = text.match(/(?:site|projet|parc)\s+(?:de\s+)?([A-ZÀ-Ü][a-zà-ü\-\s]{2,30})/i);
+    if (siteMatch) {
+        add('Nom du site', 'siteName', siteMatch[1].trim(), siteMatch[1].trim(), 'medium', 'site');
+    }
+
+    // Price: €/MWh
+    const priceMatch = text.match(/(\d{2,3}(?:[.,]\d+)?)\s*(?:€|EUR)\s*\/\s*MWh/i);
+    if (priceMatch) {
+        const price = parseFloat(priceMatch[1].replace(',', '.'));
+        if (price > 0 && price < 500) add('Prix électricité', 'electricityPrice', price, `${price} €/MWh`, 'high', 'project');
+    }
+
+    return items;
+}
+
+function closeProjExtractModal() {
+    document.getElementById('projExtractOverlay').classList.remove('open');
+}
+
+function applyProjExtract() {
+    const projects = getProjects();
+    const id = getProjectId();
+    const idx = projects.findIndex(p => p.id === id);
+    if (idx === -1) { closeProjExtractModal(); return; }
+
+    let siteData = {}, projData = {}, hasSiteData = false;
+
+    _projExtractItems.forEach((item, i) => {
+        const cb = document.getElementById('pex_' + i);
+        if (!cb || !cb.checked) return;
+        if (item.target === 'project') {
+            projData[item.key] = item.value;
+        } else {
+            siteData[item.key] = item.value;
+            hasSiteData = true;
+        }
+    });
+
+    // Apply project-level data
+    Object.assign(projects[idx], projData);
+
+    // Create a new site if site data extracted
+    if (hasSiteData && (siteData.pvCapacity || siteData.country || siteData.siteName)) {
+        const newSite = {
+            id: 'site_' + Date.now(),
+            name: siteData.siteName || 'Site extrait',
+            country: siteData.country || '',
+            status: 'En développement',
+            hasPV: true, hasBESS: false,
+            pvCapacity: siteData.pvCapacity || null,
+        };
+        if (!projects[idx].sites) projects[idx].sites = [];
+        projects[idx].sites.push(newSite);
+    }
+
+    // Apply price to project params
+    if (projData.electricityPrice !== undefined) {
+        if (!projects[idx].params) projects[idx].params = {};
+        projects[idx].params.electricityPrice = projData.electricityPrice;
+    }
+
+    localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(projects));
+    closeProjExtractModal();
+    loadProject();
+}
+
+// ─── Drag & drop ───
+(function() {
+    const zone = document.getElementById('projDropZone');
+    if (!zone) return;
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        handleProjFiles(e.dataTransfer.files);
+    });
+})();
+
 // ─── Init ───
 const _proj = getProject();
 loadProject();
 if (_proj) renderParams(_proj);
+renderProjDocList();
 </script>
 </body>
 </html>

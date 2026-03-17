@@ -714,6 +714,56 @@ body::before {
 .btn-primary-sm:hover { background: var(--accent-hover); }
 .btn-cancel { padding: 9px 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-muted); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all var(--transition); }
 .btn-cancel:hover { border-color: var(--text-muted); color: var(--text); }
+
+/* ─── Edit Site ─── */
+.btn-edit-site {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: 8px; font-family: 'Montserrat', sans-serif;
+    font-size: 12px; font-weight: 600; color: var(--text-muted);
+    cursor: pointer; transition: all var(--transition);
+    margin-left: auto; flex-shrink: 0;
+}
+.btn-edit-site svg { width: 14px; height: 14px; }
+.btn-edit-site:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+.edit-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(14,21,32,0.55); z-index: 400;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(2px);
+}
+.edit-modal-overlay.open { display: flex; }
+.edit-modal {
+    background: #fff; border-radius: 16px; padding: 32px 36px 28px;
+    width: 100%; max-width: 520px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.20);
+    animation: modalIn 0.25s cubic-bezier(0.22,1,0.36,1) both;
+}
+@keyframes modalIn { from { opacity:0; transform: scale(0.96) translateY(12px); } to { opacity:1; transform: none; } }
+.edit-modal-title {
+    font-family: 'Teko', sans-serif; font-size: 24px; font-weight: 500;
+    color: var(--text); margin-bottom: 24px;
+}
+.edit-modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.edit-modal-grid .full { grid-column: 1 / -1; }
+.edit-field label {
+    display: block; font-size: 11px; font-weight: 600;
+    font-family: 'Poppins', sans-serif; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px;
+}
+.edit-field input, .edit-field select {
+    width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 9px 12px; font-family: 'Montserrat', sans-serif;
+    font-size: 13.5px; color: var(--text); background: #FAFAF8;
+    outline: none; transition: border-color var(--transition);
+}
+.edit-field input:focus, .edit-field select:focus { border-color: var(--accent); background: #fff; }
+.edit-modal-tech { display: flex; gap: 16px; flex-wrap: wrap; }
+.tech-checkbox { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13.5px; font-weight: 500; color: var(--text); }
+.tech-checkbox input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+.edit-modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px; }
 </style>
 <script src="auth.js"></script>
 </head>
@@ -792,6 +842,10 @@ body::before {
                 </div>
             </div>
         </div>
+        <button class="btn-edit-site" id="btnEditSite" onclick="openEditSiteModal()" title="Modifier les informations du site">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Modifier
+        </button>
     </header>
 
     <div class="content">
@@ -843,10 +897,13 @@ body::before {
             <div class="charts-row">
 
                 <!-- Résultats financiers -->
-                <div class="chart-card">
+                <div class="chart-card clickable" id="financialCard" title="Ouvrir le modèle financier du site">
                     <div class="chart-card-header">
                         <div class="chart-card-title">Résultats financiers</div>
-                        <span style="font-size:10px;color:var(--text-light);font-family:'Poppins',sans-serif;font-style:italic;" id="finNote">Projection indicative</span>
+                        <span class="chart-card-link">
+                            Voir le modèle
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                        </span>
                     </div>
                     <div class="chart-placeholder">
                         <canvas id="chartFinancier"></canvas>
@@ -954,6 +1011,53 @@ body::before {
     </div>
 </div>
 
+<!-- ═══════════════════ EDIT SITE MODAL ═══════════════════ -->
+<div class="edit-modal-overlay" id="editSiteOverlay">
+    <div class="edit-modal">
+        <div class="edit-modal-title">Modifier le site</div>
+        <div class="edit-modal-grid">
+            <div class="edit-field full">
+                <label>Nom du site</label>
+                <input type="text" id="editSiteName" placeholder="Nom du site">
+            </div>
+            <div class="edit-field">
+                <label>Pays</label>
+                <input type="text" id="editSiteCountry" placeholder="France">
+            </div>
+            <div class="edit-field">
+                <label>Statut</label>
+                <select id="editSiteStatus">
+                    <option value="dev">Développement</option>
+                    <option value="permis">Permis</option>
+                    <option value="rtb">RTB</option>
+                    <option value="constr">Construction</option>
+                    <option value="oper">En opération</option>
+                </select>
+            </div>
+            <div class="edit-field full">
+                <label>Technologies</label>
+                <div class="edit-modal-tech">
+                    <label class="tech-checkbox"><input type="checkbox" id="editHasPV"> Solaire PV</label>
+                    <label class="tech-checkbox"><input type="checkbox" id="editHasBESS"> Stockage BESS</label>
+                    <label class="tech-checkbox"><input type="checkbox" id="editHasWind"> Éolien</label>
+                </div>
+            </div>
+            <div class="edit-field">
+                <label>Capacité PV (kWc)</label>
+                <input type="number" id="editPvCapacity" min="0" step="100" placeholder="0">
+            </div>
+            <div class="edit-field">
+                <label>Capacité BESS (kWh)</label>
+                <input type="number" id="editBessCapacity" min="0" step="500" placeholder="0">
+            </div>
+        </div>
+        <div class="edit-modal-footer">
+            <button class="btn-cancel" onclick="closeEditSiteModal()">Annuler</button>
+            <button class="btn-primary-sm" onclick="saveEditSite()">Enregistrer</button>
+        </div>
+    </div>
+</div>
+
 <script>
 Auth.checkAuth();
 
@@ -1037,9 +1141,14 @@ function loadData() {
         } catch(e) { console.warn('FinancialModel error:', e); }
     }
 
-    // Energy card link
+    // Energy card link → site-specific simulation
     document.getElementById('energyCard').addEventListener('click', () => {
         window.location.href = 'simulation_flux_energetiques.html?project=' + projectId + '&site=' + siteId;
+    });
+
+    // Financial card link → site-specific financial model
+    document.getElementById('financialCard').addEventListener('click', () => {
+        window.location.href = 'test_modele_financier.html?project=' + projectId + '&site=' + siteId;
     });
 
     // Data grid
@@ -1361,6 +1470,61 @@ function renderEnergyChart(site) {
         }
     });
 }
+
+// ─── Edit site modal ───
+function openEditSiteModal() {
+    const { projectId, siteId } = getParams();
+    const project = getProjects().find(p => p.id === projectId);
+    const site    = project && siteId ? (project.sites || []).find(s => s.id === siteId) : null;
+    if (!site) return;
+
+    document.getElementById('editSiteName').value    = site.name    || '';
+    document.getElementById('editSiteCountry').value = site.country || '';
+    const statusMap = { 'En développement':'dev','Permis déposé':'permis','RTB':'rtb','En construction':'constr','En opération':'oper' };
+    document.getElementById('editSiteStatus').value  = statusMap[site.status] || 'dev';
+    document.getElementById('editHasPV').checked     = !!site.hasPV;
+    document.getElementById('editHasBESS').checked   = !!site.hasBESS;
+    document.getElementById('editHasWind').checked   = !!site.hasWind;
+    document.getElementById('editPvCapacity').value  = site.pvCapacity  || '';
+    document.getElementById('editBessCapacity').value= site.bessCapacity|| '';
+
+    document.getElementById('editSiteOverlay').classList.add('open');
+}
+
+function closeEditSiteModal() {
+    document.getElementById('editSiteOverlay').classList.remove('open');
+}
+
+function saveEditSite() {
+    const { projectId, siteId } = getParams();
+    const projects = getProjects();
+    const pIdx = projects.findIndex(p => p.id === projectId);
+    if (pIdx === -1) return;
+    const sIdx = (projects[pIdx].sites || []).findIndex(s => s.id === siteId);
+    if (sIdx === -1) return;
+
+    const statusLabelMap = { dev:'En développement', permis:'Permis déposé', rtb:'RTB', constr:'En construction', oper:'En opération' };
+    const s = projects[pIdx].sites[sIdx];
+    s.name         = document.getElementById('editSiteName').value.trim()    || s.name;
+    s.country      = document.getElementById('editSiteCountry').value.trim() || s.country;
+    s.status       = statusLabelMap[document.getElementById('editSiteStatus').value] || s.status;
+    s.hasPV        = document.getElementById('editHasPV').checked;
+    s.hasBESS      = document.getElementById('editHasBESS').checked;
+    s.hasWind      = document.getElementById('editHasWind').checked;
+    const pvCap    = parseFloat(document.getElementById('editPvCapacity').value);
+    const bessCap  = parseFloat(document.getElementById('editBessCapacity').value);
+    if (!isNaN(pvCap))   s.pvCapacity   = pvCap;
+    if (!isNaN(bessCap)) s.bessCapacity = bessCap;
+
+    localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(projects));
+    closeEditSiteModal();
+    loadData(); // refresh
+}
+
+// Close on overlay click
+document.getElementById('editSiteOverlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeEditSiteModal();
+});
 
 // ─── Init ───
 loadData();
