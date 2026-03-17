@@ -492,6 +492,170 @@ body::before {
     width: 18px; height: 18px;
 }
 
+/* ═══ PARAMS PANEL ═══ */
+.params-section {
+    margin-top: 36px;
+}
+
+.params-panel {
+    background: rgba(255,255,255,0.96);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.params-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    transition: background var(--transition);
+}
+
+.params-panel-header:hover {
+    background: var(--accent-lighter);
+}
+
+.params-panel-title {
+    font-family: 'Teko', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    color: var(--text);
+}
+
+.params-panel-badge {
+    font-size: 10px;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: rgba(24,99,220,0.10);
+    color: var(--accent);
+    margin-left: 10px;
+}
+
+.params-toggle-icon {
+    width: 18px; height: 18px;
+    color: var(--text-muted);
+    transition: transform var(--transition);
+}
+
+.params-panel-body {
+    padding: 24px;
+}
+
+.params-group-title {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-family: 'Poppins', sans-serif;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.params-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px 24px;
+    margin-bottom: 24px;
+}
+
+.param-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.param-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-family: 'Poppins', sans-serif;
+}
+
+.param-input-wrap {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color var(--transition);
+    background: #fff;
+}
+
+.param-input-wrap:focus-within {
+    border-color: var(--border-focus);
+}
+
+.param-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 8px 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    background: transparent;
+    min-width: 0;
+}
+
+.param-unit {
+    padding: 8px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-light);
+    font-family: 'Poppins', sans-serif;
+    border-left: 1px solid var(--border);
+    white-space: nowrap;
+    background: rgba(247,246,243,0.8);
+}
+
+.params-save-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+}
+
+.params-saved-msg {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--success);
+    font-family: 'Poppins', sans-serif;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.btn-save-params {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 20px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.btn-save-params:hover { background: var(--accent-hover); }
+
 /* Animations */
 @keyframes fadeIn {
     from { opacity: 0; }
@@ -639,6 +803,117 @@ body::before {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Ajouter un site
         </button>
+
+        <!-- ═══ MACRO / FINANCE PARAMS ═══ -->
+        <div class="params-section">
+            <div class="section-title">Paramètres macroéconomiques &amp; financement</div>
+            <div class="params-panel">
+                <div class="params-panel-header" onclick="toggleParams()">
+                    <div style="display:flex;align-items:center;">
+                        <span class="params-panel-title">Hypothèses économiques &amp; structure de financement</span>
+                        <span class="params-panel-badge">Niveau projet</span>
+                    </div>
+                    <svg class="params-toggle-icon" id="paramsToggleIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="params-panel-body" id="paramsPanelBody">
+
+                    <!-- Hypothèses économiques -->
+                    <div class="params-group-title">Hypothèses économiques</div>
+                    <div class="params-grid">
+                        <div class="param-field">
+                            <label class="param-label">Prix de vente de l'électricité</label>
+                            <div class="param-input-wrap">
+                                <input class="param-input" type="number" id="p_electricityPrice" placeholder="ex: 65" step="0.5">
+                                <span class="param-unit">€/MWh</span>
+                            </div>
+                        </div>
+                        <div class="param-field">
+                            <label class="param-label">Escalation prix électricité</label>
+                            <div class="param-input-wrap">
+                                <input class="param-input" type="number" id="p_electricityEscalation" placeholder="ex: 1.5" step="0.1">
+                                <span class="param-unit">%/an</span>
+                            </div>
+                        </div>
+                        <div class="param-field">
+                            <label class="param-label">Spread BESS (arbitrage)</label>
+                            <div class="param-input-wrap">
+                                <input class="param-input" type="number" id="p_bessSpreadPrice" placeholder="ex: 30" step="0.5">
+                                <span class="param-unit">€/MWh</span>
+                            </div>
+                        </div>
+                        <div class="param-field">
+                            <label class="param-label">Taux d'inflation ICP</label>
+                            <div class="param-input-wrap">
+                                <input class="param-input" type="number" id="p_inflation" placeholder="ex: 2" step="0.01">
+                                <span class="param-unit">%/an</span>
+                            </div>
+                        </div>
+                        <div class="param-field">
+                            <label class="param-label">Taux d'imposition (IS)</label>
+                            <div class="param-input-wrap">
+                                <input class="param-input" type="number" id="p_tax" placeholder="ex: 25" step="0.01">
+                                <span class="param-unit">%</span>
+                            </div>
+                        </div>
+                        <div class="param-field">
+                            <label class="param-label">WACC</label>
+                            <div class="param-input-wrap">
+                                <input class="param-input" type="number" id="p_wacc" placeholder="ex: 7" step="0.1">
+                                <span class="param-unit">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Structure de financement -->
+                    <div class="params-group-title">Structure de financement</div>
+                    <div class="params-grid">
+                        <div class="param-field">
+                            <label class="param-label">Part financement dette</label>
+                            <div class="param-input-wrap">
+                                <input class="param-input" type="number" id="p_debtPercent" placeholder="ex: 70" step="1">
+                                <span class="param-unit">%</span>
+                            </div>
+                        </div>
+                        <div class="param-field">
+                            <label class="param-label">Taux dette senior</label>
+                            <div class="param-input-wrap">
+                                <input class="param-input" type="number" id="p_seniorRate" placeholder="ex: 4.5" step="0.01">
+                                <span class="param-unit">%/an</span>
+                            </div>
+                        </div>
+                        <div class="param-field">
+                            <label class="param-label">Durée d'emprunt</label>
+                            <div class="param-input-wrap">
+                                <input class="param-input" type="number" id="p_debtDuration" placeholder="ex: 15" step="1">
+                                <span class="param-unit">ans</span>
+                            </div>
+                        </div>
+                        <div class="param-field">
+                            <label class="param-label">DSRA</label>
+                            <div class="param-input-wrap">
+                                <input class="param-input" type="number" id="p_dsraMonths" placeholder="ex: 6" step="1">
+                                <span class="param-unit">mois</span>
+                            </div>
+                        </div>
+                        <div class="param-field">
+                            <label class="param-label">DSCR cible minimum</label>
+                            <div class="param-input-wrap">
+                                <input class="param-input" type="number" id="p_dscrTarget" placeholder="ex: 1.20" step="0.01">
+                                <span class="param-unit">—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="params-save-bar">
+                        <span class="params-saved-msg" id="paramsSavedMsg">✓ Paramètres enregistrés</span>
+                        <button class="btn-save-params" onclick="saveParams()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                            Enregistrer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -767,8 +1042,47 @@ function addSite() {
     window.location.href = 'creation_site.html?project=' + projectId;
 }
 
+// ─── Params panel ───
+const PARAM_KEYS = [
+    'electricityPrice','electricityEscalation','bessSpreadPrice',
+    'inflation','tax','wacc',
+    'debtPercent','seniorRate','debtDuration','dsraMonths','dscrTarget'
+];
+
+let _paramsOpen = true;
+
+function toggleParams() {
+    _paramsOpen = !_paramsOpen;
+    document.getElementById('paramsPanelBody').style.display = _paramsOpen ? 'block' : 'none';
+    document.getElementById('paramsToggleIcon').style.transform = _paramsOpen ? '' : 'rotate(-90deg)';
+}
+
+function renderParams(project) {
+    const params = project.params || {};
+    PARAM_KEYS.forEach(k => {
+        const el = document.getElementById('p_' + k);
+        if (el && params[k] != null) el.value = params[k];
+    });
+}
+
+function saveParams() {
+    const project = getProject();
+    if (!project) return;
+    if (!project.params) project.params = {};
+    PARAM_KEYS.forEach(k => {
+        const el = document.getElementById('p_' + k);
+        if (el && el.value !== '') project.params[k] = parseFloat(el.value);
+    });
+    saveProject(project);
+    const msg = document.getElementById('paramsSavedMsg');
+    msg.style.opacity = '1';
+    setTimeout(() => { msg.style.opacity = '0'; }, 2500);
+}
+
 // ─── Init ───
+const _proj = getProject();
 loadProject();
+if (_proj) renderParams(_proj);
 </script>
 </body>
 </html>

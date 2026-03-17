@@ -154,7 +154,7 @@ body::before {
     padding: 2px 8px; border-radius: 12px;
     background: rgba(24,99,220,0.10); color: var(--accent);
 }
-.fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; column-gap: 32px; }
 .fields-grid.single { grid-template-columns: 1fr; }
 .fields-grid.three { grid-template-columns: 1fr 1fr 1fr; }
 .fields-grid.four { grid-template-columns: 1fr 1fr 1fr 1fr; }
@@ -567,7 +567,7 @@ function buildSections(site, project) {
         sections.push({
             id: 's5', title: 'Coûts & CAPEX PV', badge: null,
             fields: [
-                { key: 'capexPv', label: 'CAPEX PV',              type: 'number', unit: '€',          required: true,  source: 'site' },
+                { key: 'capexPv', label: 'CAPEX PV',              type: 'number', unit: '€/kWc',      required: true,  source: 'site' },
                 { key: 'omPv',    label: 'O&M PV',                type: 'number', unit: '€/kWc/an',   required: true,  step: '0.1', source: 'site' },
                 { key: 'insPv',   label: 'Assurance PV',          type: 'number', unit: '€/kWc/an',   required: false, step: '0.1', source: 'site' },
                 { key: 'amPv',    label: 'Asset Management PV',   type: 'number', unit: '€/kWc/an',   required: false, step: '0.1', source: 'site' },
@@ -618,31 +618,6 @@ function buildSections(site, project) {
             ]
         });
     }
-
-    // S9 — Hypothèses économiques (project level)
-    sections.push({
-        id: 's9', title: 'Hypothèses économiques', badge: 'Niveau projet',
-        fields: [
-            { key: 'electricityPrice',      label: 'Prix de vente de l\'électricité',  type: 'number', unit: '€/MWh',  required: true,                      source: 'params' },
-            { key: 'electricityEscalation', label: 'Escalation prix électricité',      type: 'number', unit: '%/an',   required: false,  step: '0.1',        source: 'params' },
-            { key: 'bessSpreadPrice',       label: 'Spread BESS (arbitrage)',          type: 'number', unit: '€/MWh',  required: hasBESS,                   source: 'params' },
-            { key: 'inflation',             label: 'Taux d\'inflation ICP',            type: 'number', unit: '%/an',   required: true,   step: '0.01',       source: 'params' },
-            { key: 'tax',                   label: 'Taux d\'imposition (IS)',          type: 'number', unit: '%',      required: true,   step: '0.01',       source: 'params' },
-            { key: 'wacc',                  label: 'WACC',                             type: 'number', unit: '%',      required: true,   step: '0.1',        source: 'params' },
-        ]
-    });
-
-    // S10 — Structure de financement (project level)
-    sections.push({
-        id: 's10', title: 'Structure de financement', badge: 'Niveau projet',
-        fields: [
-            { key: 'debtPercent',  label: 'Part financement dette',  type: 'number', unit: '%',    required: true,  source: 'params' },
-            { key: 'seniorRate',   label: 'Taux dette senior',        type: 'number', unit: '%/an', required: true,  step: '0.01', source: 'params' },
-            { key: 'debtDuration', label: 'Durée d\'emprunt',         type: 'number', unit: 'ans',  required: true,  source: 'params' },
-            { key: 'dsraMonths',   label: 'DSRA',                     type: 'number', unit: 'mois', required: false, source: 'params' },
-            { key: 'dscrTarget',   label: 'DSCR cible minimum',       type: 'number', unit: '—',    required: false, step: '0.01', source: 'params' },
-        ]
-    });
 
     return sections;
 }

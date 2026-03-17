@@ -632,7 +632,7 @@ body::before {
                     <div class="inp-group"><label>P90 (kWh/kWc/an)</label><input type="number" id="i_pvProdP90" value="1450" min="100" step="10"></div>
                     <div class="inp-group"><label>Dégradation (%/an)</label><input type="number" id="i_pvDeg" value="0.5" min="0" max="5" step="0.1"></div>
                     <div class="inp-group"><label>Durée de vie (ans)</label><input type="number" id="i_lifetime" value="25" min="5" max="40" step="1"></div>
-                    <div class="inp-group"><label>CAPEX PV (€)</label><input type="number" id="i_capexPv" value="35000000" min="0" step="100000"></div>
+                    <div class="inp-group"><label>CAPEX PV (€/kWc)</label><input type="number" id="i_capexPv" value="700" min="0" step="10"></div>
                     <div class="inp-group"><label>OPEX PV (€/kWc/an)</label><input type="number" id="i_omPv" value="12" min="0" step="0.5"></div>
 
                     <div class="inp-divider">Stockage BESS</div>
@@ -640,7 +640,7 @@ body::before {
                     <div class="inp-group"><label>Capacité BESS (kWh)</label><input type="number" id="i_bessCapacity" value="50000" min="0" step="500"></div>
                     <div class="inp-group"><label>Cycles/jour</label><input type="number" id="i_bessCycles" value="1.5" min="0" max="4" step="0.1"></div>
                     <div class="inp-group"><label>Dégradation BESS (%/an)</label><input type="number" id="i_bessDeg" value="2.0" min="0" max="10" step="0.1"></div>
-                    <div class="inp-group"><label>CAPEX BESS (€)</label><input type="number" id="i_capexBess" value="18000000" min="0" step="100000"></div>
+                    <div class="inp-group"><label>CAPEX BESS (€/kWc)</label><input type="number" id="i_capexBess" value="360" min="0" step="10"></div>
                     <div class="inp-group"><label>OPEX BESS (€/kWc/an)</label><input type="number" id="i_omBess" value="8" min="0" step="0.5"></div>
 
                     <div class="inp-divider">Hypothèses économiques</div>
@@ -772,8 +772,8 @@ function getTestSite() {
         bessEffACDC: 95, bessEffDCAC: 95,
         bessDegradation: nv('i_bessDeg'),
         bessMinSoH: 80,
-        capexPv:    nv('i_capexPv'),
-        capexBess:  nv('i_capexBess'),
+        capexPv:    nv('i_capexPv')   * nv('i_pvCapacity'),
+        capexBess:  nv('i_capexBess') * nv('i_pvCapacity'),
         omPv: nv('i_omPv'), insPv: 4, amPv: 2, rmPv: 2,
         omBess: nv('i_omBess'), insBess: 3, amBess: 2, rmBess: 2,
         rentEuros: 120000,
@@ -817,8 +817,8 @@ let _chartPL = null, _chartDSCR = null, _chartMonthly = null;
 // ─────────────────────────────────────────────────────────
 function renderParams(site, params, kpis) {
     document.getElementById('capexRow').innerHTML = `
-        <span class="capex-pill">CAPEX PV : ${fmt(site.capexPv)}</span>
-        <span class="capex-pill">CAPEX BESS : ${fmt(site.capexBess)}</span>
+        <span class="capex-pill">CAPEX PV : ${fmt(site.capexPv)} (${nv('i_capexPv')} €/kWc)</span>
+        <span class="capex-pill">CAPEX BESS : ${fmt(site.capexBess)} (${nv('i_capexBess')} €/kWc)</span>
         <span class="capex-pill">CAPEX Total : ${fmt(kpis.totalCapex)}</span>
         <span class="capex-pill">Dette : ${fmt(kpis.debt)} (${params.debtPercent}%)</span>
         <span class="capex-pill">Fonds propres : ${fmt(kpis.equity)}</span>

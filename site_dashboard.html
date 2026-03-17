@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="financial_model.js"></script>
 <style>
 :root {
     --bg: #F7F6F3;
@@ -496,6 +497,23 @@ body::before {
 
 .data-item {}
 
+/* ═══ ASSET GANTT ═══ */
+.gantt-wrap { overflow-x: auto; padding-bottom: 4px; }
+.gantt-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.gantt-table td, .gantt-table th { padding: 0; }
+.gantt-label-col { width: 160px; min-width: 140px; padding: 8px 12px 8px 4px; font-size: 12px; font-weight: 600; font-family: 'Poppins', sans-serif; color: var(--text-muted); white-space: nowrap; vertical-align: middle; }
+.gantt-year-header { text-align: center; font-size: 9px; font-weight: 600; font-family: 'Poppins', sans-serif; color: var(--text-light); padding: 4px 0; border-left: 1px solid rgba(226,224,219,0.4); }
+.gantt-row td { height: 36px; border-left: 1px solid rgba(226,224,219,0.4); position: relative; }
+.gantt-bar { position: absolute; top: 6px; bottom: 6px; left: 0; right: 0; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; font-family: 'Poppins', sans-serif; color: rgba(255,255,255,0.9); white-space: nowrap; overflow: hidden; }
+.gantt-bar.pv { background: linear-gradient(90deg, #F59E0B, #FBBF24); color: #7A4F00; }
+.gantt-bar.bess { background: linear-gradient(90deg, #1863DC, #3B82F6); }
+.gantt-bar.bess-repl { background: linear-gradient(90deg, #2563EB, #60A5FA); opacity: 0.7; }
+.gantt-bar.debt { background: linear-gradient(90deg, #6B7280, #9CA3AF); }
+.gantt-row-sep td { height: 1px; background: rgba(226,224,219,0.4); padding: 0; }
+.gantt-legend { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+.gantt-legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; font-family: 'Poppins', sans-serif; color: var(--text-muted); }
+.gantt-legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
 .data-item-label {
     font-size: 10px;
     font-weight: 600;
@@ -633,6 +651,9 @@ body::before {
 
 .btn-delete-file { background: none; border: none; cursor: pointer; padding: 4px; color: var(--text-light); border-radius: 6px; transition: color var(--transition); }
 .btn-delete-file:hover { color: var(--danger); }
+
+.btn-open-file { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; font-size: 11px; font-weight: 600; font-family: 'Poppins', sans-serif; color: var(--accent); background: var(--accent-light); border-radius: 6px; text-decoration: none; transition: background var(--transition); }
+.btn-open-file:hover { background: rgba(24,99,220,0.14); }
 
 .extraction-badge { font-size: 10px; font-weight: 600; font-family: 'Poppins', sans-serif; padding: 2px 8px; border-radius: 12px; }
 .extraction-badge.ok { background: rgba(46,158,110,0.12); color: #2E9E6E; }
@@ -782,7 +803,7 @@ body::before {
 
                 <div class="kpi-card">
                     <div class="kpi-icon" style="background:rgba(24,99,220,0.08);color:#1863DC;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6C16.5 4.3 14.4 3 12 3C7.6 3 4 7 4 12s3.6 9 8 9c2.4 0 4.5-1.3 6-3"/><line x1="3" y1="10" x2="14" y2="10"/><line x1="3" y1="14" x2="14" y2="14"/></svg>
                     </div>
                     <div class="kpi-body">
                         <div class="kpi-label">TRI site</div>
@@ -854,6 +875,21 @@ body::before {
                 <div class="data-grid" id="dataGrid">
                     <!-- filled by JS -->
                 </div>
+            </div>
+        </div>
+
+        <!-- ═══ DURÉE DE VIE DES ACTIFS ═══ -->
+        <div>
+            <div class="section-label">Durée de vie des actifs</div>
+            <div class="data-card" id="assetLifecycleCard" style="display:none;">
+                <div class="data-card-header">
+                    <div class="data-card-title">Retroplanning des actifs</div>
+                    <span style="font-size:11px;color:var(--text-muted);font-family:'Poppins',sans-serif;font-style:italic;" id="assetLifecycleNote">Durée de vie sur toute la période du projet</span>
+                </div>
+                <div id="assetGanttWrap" style="padding: 0 4px 4px;"></div>
+            </div>
+            <div id="assetLifecyclePlaceholder" style="background:rgba(255,255,255,0.96);border:1px solid var(--border);border-radius:14px;padding:28px 24px;box-shadow:var(--shadow-sm);text-align:center;color:var(--text-muted);font-size:13px;font-family:'Poppins',sans-serif;">
+                Renseignez la durée de vie PV et/ou BESS dans la fiche du site pour afficher le retroplanning.
             </div>
         </div>
 
@@ -961,6 +997,33 @@ function loadData() {
         document.getElementById('kpiRevenu').style.fontSize = '28px';
     }
 
+    // VAN / TRI via financial model
+    if (typeof FinancialModel !== 'undefined') {
+        try {
+            // capexPv is stored in €/kWc — convert to absolute €
+            const siteForModel = Object.assign({}, site);
+            if (site.hasPV && site.capexPv && site.pvCapacity) {
+                siteForModel.capexPv = site.capexPv * site.pvCapacity;
+            }
+            const result = FinancialModel.compute(siteForModel, project.params || {});
+            const kpis = result.kpis;
+
+            if (isFinite(kpis.van)) {
+                const vanEl = document.getElementById('kpiVAN');
+                vanEl.textContent = formatKEur(kpis.van / 1000);
+                vanEl.className = 'kpi-value ' + (kpis.van >= 0 ? 'positive' : 'negative');
+                vanEl.style.fontSize = '28px';
+            }
+
+            if (isFinite(kpis.projectIRR)) {
+                const triEl = document.getElementById('kpiTRI');
+                triEl.textContent = kpis.projectIRR.toFixed(1) + ' %';
+                triEl.className = 'kpi-value ' + (kpis.projectIRR >= 5 ? 'positive' : 'negative');
+                triEl.style.fontSize = '28px';
+            }
+        } catch(e) { console.warn('FinancialModel error:', e); }
+    }
+
     // Energy card link
     document.getElementById('energyCard').addEventListener('click', () => {
         window.location.href = 'simulation_flux_energetiques.html?project=' + projectId + '&site=' + siteId;
@@ -976,6 +1039,9 @@ function loadData() {
     // Fiche complète link
     document.getElementById('dataDetailLink').href = 'fiche_site.html?project=' + projectId + '&site=' + siteId;
     document.getElementById('dataDetailLink').title = 'Fiche complète du site';
+
+    // Asset lifecycle
+    renderAssetLifecycle(site, project);
 
     // Data Room
     initDataRoom(siteId);
@@ -997,6 +1063,86 @@ function formatKEur(keur) {
         return (keur / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' M€';
     }
     return keur.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' k€';
+}
+
+// ─── Asset Lifecycle Gantt ───
+function renderAssetLifecycle(site, project) {
+    const pvLifetime   = site.pvLifetime   ? parseInt(site.pvLifetime)   : null;
+    const bessMinSoH   = site.bessMinSoH   ? parseFloat(site.bessMinSoH) : 70;
+    const bessDeg      = site.bessDegradation ? parseFloat(site.bessDegradation) : null;
+    const debtDuration = project && project.params ? (project.params.debtDuration || null) : null;
+
+    const hasPV   = site.hasPV   && pvLifetime;
+    const hasBESS = site.hasBESS && bessDeg && bessDeg > 0;
+
+    if (!hasPV && !hasBESS) return;
+
+    document.getElementById('assetLifecycleCard').style.display = 'block';
+    document.getElementById('assetLifecyclePlaceholder').style.display = 'none';
+
+    const totalYears = pvLifetime || 25;
+
+    // BESS replacement year: when SoH hits bessMinSoH %
+    let bessReplYear = null;
+    if (hasBESS) {
+        // SoH(y) = (1 - bessDeg/100)^y → solve for SoH = bessMinSoH/100
+        bessReplYear = Math.ceil(Math.log(bessMinSoH / 100) / Math.log(1 - bessDeg / 100));
+        if (bessReplYear >= totalYears) bessReplYear = null; // no replacement needed within lifetime
+    }
+
+    // Build year columns (show every 5 years label, total = totalYears cols)
+    let headerCols = '';
+    for (let y = 1; y <= totalYears; y++) {
+        const label = (y === 1 || y % 5 === 0) ? 'A' + y : '';
+        headerCols += `<th class="gantt-year-header">${label}</th>`;
+    }
+
+    function barRow(label, barClass, start, end, rowLabel) {
+        let cells = `<td class="gantt-label-col">${label}</td>`;
+        for (let y = 1; y <= totalYears; y++) {
+            if (y >= start && y <= end) {
+                const isFirst = y === start;
+                const isLast  = y === end;
+                const radius  = isFirst && isLast ? '6px' : isFirst ? '6px 0 0 6px' : isLast ? '0 6px 6px 0' : '0';
+                cells += `<td style="padding:0;"><div class="${'gantt-bar ' + barClass}" style="border-radius:${radius};left:${isFirst?'2px':'0'};right:${isLast?'2px':'0'};">${isFirst ? rowLabel : ''}</div></td>`;
+            } else {
+                cells += '<td></td>';
+            }
+        }
+        return `<tr class="gantt-row">${cells}</tr>`;
+    }
+
+    let rows = '';
+    if (hasPV) {
+        rows += barRow('Installation PV', 'pv', 1, totalYears, '☀️ PV — ' + totalYears + ' ans');
+    }
+    if (hasBESS) {
+        rows += barRow('BESS (1ère vie)', 'bess', 1, bessReplYear || totalYears,
+            '🔋 BESS' + (bessReplYear ? ' → remplacement A' + bessReplYear : ''));
+        if (bessReplYear) {
+            rows += barRow('BESS (2ème vie)', 'bess-repl', bessReplYear + 1, totalYears, '🔋 BESS (remplacement)');
+        }
+    }
+    if (debtDuration && debtDuration > 0) {
+        const dEnd = Math.min(debtDuration, totalYears);
+        rows += barRow('Dette senior', 'debt', 1, dEnd, '🏦 Dette — ' + debtDuration + ' ans');
+    }
+
+    const legendItems = [
+        hasPV   ? `<div class="gantt-legend-item"><div class="gantt-legend-dot" style="background:#F59E0B;"></div>Installation PV</div>` : '',
+        hasBESS ? `<div class="gantt-legend-item"><div class="gantt-legend-dot" style="background:#1863DC;"></div>BESS</div>` : '',
+        bessReplYear ? `<div class="gantt-legend-item"><div class="gantt-legend-dot" style="background:#60A5FA;"></div>BESS (remplacement A${bessReplYear})</div>` : '',
+        debtDuration ? `<div class="gantt-legend-item"><div class="gantt-legend-dot" style="background:#9CA3AF;"></div>Dette senior</div>` : '',
+    ].filter(Boolean).join('');
+
+    document.getElementById('assetGanttWrap').innerHTML = `
+        <div class="gantt-wrap">
+            <table class="gantt-table">
+                <thead><tr><th class="gantt-label-col"></th>${headerCols}</tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+            <div class="gantt-legend">${legendItems}</div>
+        </div>`;
 }
 
 // ─── Data grid ───
@@ -1293,6 +1439,12 @@ function renderFileList() {
         const badge = hasExtraction
             ? `<span class="extraction-badge ok">${f.extracted.matches.length} champ(s)</span>`
             : `<span class="extraction-badge none">Non analysé</span>`;
+        const openLink = f.dataUrl
+            ? `<a href="${f.dataUrl}" download="${escHtml(f.name)}" class="btn-open-file" title="Télécharger ${escHtml(f.name)}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Ouvrir
+               </a>`
+            : '';
         return `
         <div class="file-item" id="fi_${f.id}">
             <div class="file-type-badge ${badgeClass}">${ext.toUpperCase()}</div>
@@ -1301,6 +1453,7 @@ function renderFileList() {
                 <div class="file-meta">${formatFileSize(f.size)} — ${f.date}</div>
             </div>
             <div class="file-actions">
+                ${openLink}
                 ${badge}
                 <button class="${extractBtnClass}" onclick="analyzeFile('${f.id}')">${extractBtnLabel}</button>
                 <button class="btn-delete-file" title="Supprimer" onclick="deleteFile('${f.id}')">
@@ -1333,17 +1486,24 @@ function handleFiles(fileList) {
             size: file.size,
             date: new Date().toLocaleDateString('fr-FR'),
             textContent: '',
+            dataUrl: null,
             extracted: null,
         };
 
         const onDone = (text) => {
             entry.textContent = text;
-            files.push(entry);
-            processed++;
-            if (processed === pending.length) {
-                drSaveFiles(_drSiteId, files);
-                renderFileList();
-            }
+            // Read as dataURL for download link
+            const urlReader = new FileReader();
+            urlReader.onload = ev => {
+                entry.dataUrl = ev.target.result;
+                files.push(entry);
+                processed++;
+                if (processed === pending.length) {
+                    drSaveFiles(_drSiteId, files);
+                    renderFileList();
+                }
+            };
+            urlReader.readAsDataURL(file);
         };
 
         if (ext === 'csv') {
