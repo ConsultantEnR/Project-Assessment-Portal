@@ -325,6 +325,7 @@ body::before {
     .card { padding: 24px 20px 20px; }
 }
 </style>
+<script src="auth.js"></script>
 </head>
 <body>
 
@@ -669,6 +670,7 @@ body::before {
 </div>
 
 <script>
+Auth.checkAuth();
 // ─── URL helpers ───
 function getProjectId() {
     return new URLSearchParams(window.location.search).get('project');

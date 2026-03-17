@@ -450,6 +450,11 @@ body::before {
 .sidebar { animation: slideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 .main { animation: fadeIn 0.4s ease 0.15s both; }
 
+/* Logout button */
+.btn-logout { display: flex; align-items: center; gap: 7px; width: 100%; padding: 8px 12px; border-radius: 8px; font-size: 12px; color: rgba(255,255,255,0.4); background: none; border: none; cursor: pointer; font-family: 'Poppins', sans-serif; transition: background var(--transition), color var(--transition); margin-top: 4px; }
+.btn-logout:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.75); }
+.btn-logout svg { width: 15px; height: 15px; opacity: 0.6; }
+
 @media (max-width: 768px) {
     :root { --sidebar-width: 56px; }
     .sidebar-logo-text, .sidebar-user, .nav-section-label,
@@ -463,6 +468,7 @@ body::before {
     .content { padding: 20px; }
 }
 </style>
+<script src="auth.js"></script>
 </head>
 <body>
 
@@ -475,8 +481,8 @@ body::before {
     <div class="sidebar-user">
         <div class="sidebar-user-label">Utilisateur</div>
         <div class="sidebar-user-name">
-            <div class="user-avatar">U</div>
-            Utilisateur (à définir)
+            <div class="user-avatar" id="userAvatar">?</div>
+            <span id="userName">—</span>
         </div>
     </div>
 
@@ -500,7 +506,13 @@ body::before {
         </a>
     </div>
 
-    <div class="sidebar-footer">v1.0</div>
+    <div class="sidebar-footer">
+        <button class="btn-logout" onclick="Auth.logout()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Déconnexion
+        </button>
+        v1.0
+    </div>
 </nav>
 
 <!-- ═══════════════════ MAIN ═══════════════════ -->
@@ -563,6 +575,8 @@ body::before {
 </div>
 
 <script>
+Auth.checkAuth();
+
 const STORAGE_PROJECTS = 'pi_projects';
 
 function getProjects() {

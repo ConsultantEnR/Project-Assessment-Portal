@@ -330,6 +330,7 @@ body::before {
     animation: fadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
 }
 </style>
+<script src="auth.js"></script>
 </head>
 <body>
 
@@ -421,6 +422,7 @@ body::before {
 </div>
 
 <script>
+Auth.checkAuth();
 // ─── Persistence : courtiers et vendeurs personnalisés ───
 const STORAGE_PROJECTS = 'pi_projects';
 const STORAGE_CUSTOM_COURTIERS = 'pi_custom_courtiers';
