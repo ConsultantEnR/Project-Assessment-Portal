@@ -293,6 +293,16 @@ body::before {
     font-family: 'Poppins', sans-serif;
 }
 
+.section-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-family: 'Poppins', sans-serif;
+}
+
 .sites-panel {
     background: rgba(255,255,255,0.96);
     border: 1px solid var(--border);
@@ -671,8 +681,106 @@ body::before {
     to { opacity: 1; transform: translateX(0); }
 }
 
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
 .sidebar { animation: slideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 .main { animation: fadeIn 0.4s ease 0.15s both; }
+
+/* ─── Teaser button ─── */
+.btn-teaser {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    background: var(--accent); border: 1.5px solid var(--accent);
+    border-radius: 8px; font-family: 'Montserrat', sans-serif;
+    font-size: 12px; font-weight: 600; color: #fff;
+    cursor: pointer; transition: all var(--transition);
+    flex-shrink: 0;
+}
+.btn-teaser svg { width: 14px; height: 14px; }
+.btn-teaser:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+/* Teaser modal */
+.teaser-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(14,21,32,0.55); z-index: 450;
+    align-items: flex-start; justify-content: center;
+    padding: 60px 20px; overflow-y: auto;
+    backdrop-filter: blur(2px);
+}
+.teaser-overlay.open { display: flex; }
+.teaser-modal {
+    background: #fff; border-radius: 16px; padding: 32px 36px 28px;
+    width: 100%; max-width: 680px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.20);
+    animation: modalIn 0.2s cubic-bezier(0.4,0,0.2,1) both;
+}
+.teaser-modal-title { font-family: 'Teko', sans-serif; font-size: 24px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.teaser-modal-sub { font-size: 12px; color: var(--text-muted); font-family: 'Poppins', sans-serif; margin-bottom: 24px; }
+.teaser-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+    max-height: 360px;
+    overflow-y: auto;
+    padding: 2px;
+}
+.teaser-tmpl-card {
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    background: var(--bg);
+    display: flex; flex-direction: column;
+}
+.teaser-tmpl-card:hover { border-color: rgba(24,99,220,0.4); }
+.teaser-tmpl-card.selected { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(24,99,220,0.12); }
+.teaser-tmpl-preview {
+    aspect-ratio: 4/3;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--accent-lighter);
+    overflow: hidden; position: relative;
+}
+.teaser-tmpl-preview canvas { width: 100%; height: 100%; object-fit: cover; display: block; }
+.teaser-type-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Teko', sans-serif; font-size: 14px; font-weight: 600;
+    letter-spacing: 0.5px; color: #fff;
+}
+.teaser-type-icon.pptx { background: linear-gradient(135deg, #D04B24, #E8622B); }
+.teaser-type-icon.pdf  { background: linear-gradient(135deg, #D94F4F, #E8786B); }
+.teaser-type-icon.docx { background: linear-gradient(135deg, #1863DC, #3B82F6); }
+.teaser-type-icon.xlsx { background: linear-gradient(135deg, #1A7B47, #2E9E6E); }
+.teaser-type-icon.default { background: linear-gradient(135deg, #7A7670, #A5A09A); }
+.teaser-tmpl-info { padding: 10px 12px 12px; }
+.teaser-tmpl-name { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+.teaser-tmpl-meta { font-size: 10px; color: var(--text-muted); font-family: 'Poppins', sans-serif; }
+.teaser-empty-state {
+    grid-column: 1 / -1; text-align: center; padding: 48px 24px;
+    color: var(--text-muted); font-family: 'Poppins', sans-serif; font-size: 13px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.teaser-empty-link { color: var(--accent); text-decoration: underline; cursor: pointer; }
+.teaser-gen-note {
+    background: var(--accent-lighter); border: 1px solid rgba(24,99,220,0.15);
+    border-radius: 10px; padding: 12px 16px; margin-bottom: 20px;
+    font-size: 12px; color: var(--text-muted); font-family: 'Poppins', sans-serif;
+    display: flex; align-items: flex-start; gap: 10px;
+}
+.teaser-gen-note svg { width: 16px; height: 16px; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+.teaser-modal-footer { display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 20px; }
+.btn-teaser-cancel { padding: 9px 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-muted); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all var(--transition); }
+.btn-teaser-cancel:hover { border-color: var(--text-muted); color: var(--text); }
+.btn-teaser-generate { padding: 9px 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; color: #fff; background: var(--accent); border: none; border-radius: 8px; cursor: pointer; transition: background var(--transition); display: flex; align-items: center; gap: 7px; }
+.btn-teaser-generate:hover { background: var(--accent-hover); }
+.btn-teaser-generate:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-teaser-generate svg { width: 15px; height: 15px; }
 
 /* ─── Edit project ─── */
 .btn-edit-project {
@@ -682,7 +790,7 @@ body::before {
     border-radius: 8px; font-family: 'Montserrat', sans-serif;
     font-size: 12px; font-weight: 600; color: var(--text-muted);
     cursor: pointer; transition: all var(--transition);
-    margin-left: auto; flex-shrink: 0;
+    flex-shrink: 0;
 }
 .btn-edit-project svg { width: 14px; height: 14px; }
 .btn-edit-project:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
@@ -724,20 +832,34 @@ body::before {
 .edit-proj-btn-save { padding: 9px 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; color: #fff; background: var(--accent); border: none; border-radius: 8px; cursor: pointer; transition: background var(--transition); }
 .edit-proj-btn-save:hover { background: var(--accent-hover); }
 
-/* ─── Document upload zone ─── */
-.upload-section { margin-bottom: 0; }
-.drop-zone {
-    border: 2px dashed var(--border); border-radius: var(--radius);
-    padding: 32px 24px; text-align: center; cursor: pointer;
-    background: var(--accent-lighter); transition: all var(--transition);
+/* ─── Document upload zone (dataroom format) ─── */
+.proj-dataroom-card {
+    background: rgba(255,255,255,0.96);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+}
+.proj-dataroom-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.proj-dataroom-title { font-family: 'Teko', sans-serif; font-size: 18px; font-weight: 500; letter-spacing: 0.3px; color: var(--text); }
+.proj-dropzone {
+    border: 2px dashed rgba(24,99,220,0.3);
+    border-radius: 12px;
+    padding: 32px 20px;
+    text-align: center;
+    background: var(--accent-lighter);
+    cursor: pointer;
+    transition: all var(--transition);
+    margin-bottom: 20px;
     position: relative;
 }
-.drop-zone.drag-over { border-color: var(--accent); background: var(--accent-light); }
-.drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-.drop-zone-icon { margin-bottom: 12px; color: var(--accent); opacity: 0.6; }
-.drop-zone-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-.drop-zone-sub { font-size: 12px; color: var(--text-muted); font-family: 'Poppins', sans-serif; }
-.proj-doc-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.proj-dropzone:hover, .proj-dropzone.drag-over { border-color: var(--accent); background: var(--accent-light); }
+.proj-dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.proj-dropzone-icon { color: var(--accent); margin-bottom: 12px; }
+.proj-dropzone-text { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.proj-dropzone-hint { font-size: 11px; color: var(--text-muted); font-family: 'Poppins', sans-serif; }
+.proj-file-list { display: flex; flex-direction: column; gap: 8px; }
+.proj-doc-list { margin-top: 0; display: flex; flex-direction: column; gap: 8px; }
 .proj-doc-item {
     display: flex; align-items: center; gap: 12px;
     padding: 10px 16px; background: #fff; border: 1px solid var(--border);
@@ -783,6 +905,102 @@ body::before {
 .proj-extract-empty { text-align: center; padding: 32px; color: var(--text-muted); font-family: 'Poppins', sans-serif; font-size: 13px; }
 .proj-extract-footer { display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 20px; }
 
+/* ═══════════════════ BTN RÉSULTATS FINANCIERS ═══════════════════ */
+.btn-fin-results {
+    display: flex; align-items: center; gap: 7px;
+    background: var(--success); color: #fff;
+    border: none; border-radius: 8px; padding: 9px 16px;
+    font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: background var(--transition); flex-shrink: 0;
+    margin-left: auto;
+}
+.btn-fin-results svg { width: 15px; height: 15px; }
+.btn-fin-results:hover { background: #268a5e; }
+
+/* ═══════════════════ FINANCIAL RESULTS MODAL ═══════════════════ */
+.fin-modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    display: flex; pointer-events: none;
+    opacity: 0; transition: opacity 0.25s;
+}
+.fin-modal-overlay.open { pointer-events: all; opacity: 1; }
+.fin-modal-sidebar-spacer { width: var(--sidebar-width); flex-shrink: 0; }
+.fin-modal-panel {
+    flex: 1; background: var(--bg); overflow-y: auto;
+    transform: translateX(40px);
+    transition: transform 0.3s cubic-bezier(0.22,1,0.36,1);
+    box-shadow: -8px 0 40px rgba(0,0,0,0.15);
+}
+.fin-modal-overlay.open .fin-modal-panel { transform: translateX(0); }
+.fin-modal-header {
+    background: rgba(255,255,255,0.97); border-bottom: 1px solid var(--border);
+    padding: 0 36px; height: var(--header-height);
+    display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 10; backdrop-filter: blur(4px);
+}
+.fin-modal-title { font-family: 'Teko', sans-serif; font-size: 22px; font-weight: 500; letter-spacing: 0.4px; }
+.fin-modal-badge { font-size: 12px; font-family: 'Poppins', sans-serif; color: var(--accent); font-weight: 500; background: var(--accent-light); padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
+.fin-close-btn { margin-left: auto; display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-muted); background: none; border: 1px solid var(--border); border-radius: 8px; padding: 7px 14px; cursor: pointer; transition: all var(--transition); }
+.fin-close-btn:hover { border-color: var(--text-muted); color: var(--text); }
+.fin-modal-body { padding: 28px 36px 60px; display: flex; flex-direction: column; gap: 24px; }
+.fin-section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-family: 'Poppins', sans-serif; margin-bottom: 10px; }
+.fin-card { background: rgba(255,255,255,0.97); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; box-shadow: var(--shadow-sm); }
+.fin-card-title { font-family: 'Teko', sans-serif; font-size: 18px; font-weight: 500; letter-spacing: 0.3px; margin-bottom: 2px; }
+.fin-card-subtitle { font-size: 11px; font-family: 'Poppins', sans-serif; color: var(--text-muted); margin-bottom: 16px; }
+.fin-kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+@media (max-width:1100px) { .fin-kpi-grid { grid-template-columns: repeat(2,1fr); } }
+.fin-kpi-card { background: rgba(255,255,255,0.97); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; box-shadow: var(--shadow-sm); }
+.fin-kpi-card.success { border-color: rgba(46,158,110,0.3); background: rgba(46,158,110,0.03); }
+.fin-kpi-card.danger  { border-color: rgba(217,83,79,0.3);  background: rgba(217,83,79,0.03); }
+.fin-kpi-card.warning { border-color: rgba(232,160,32,0.3); background: rgba(232,160,32,0.03); }
+.fin-kpi-label { font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 8px; }
+.fin-kpi-value { font-family: 'Teko', sans-serif; font-size: 34px; font-weight: 600; line-height: 1; letter-spacing: 0.3px; }
+.fin-kpi-value.accent  { color: var(--accent); }
+.fin-kpi-value.success { color: var(--success); }
+.fin-kpi-value.danger  { color: #D9534F; }
+.fin-kpi-value.warning { color: #E8A020; }
+.fin-kpi-sub { font-size: 11px; color: var(--text-muted); font-family: 'Poppins', sans-serif; margin-top: 4px; }
+.fin-charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width:1100px) { .fin-charts-grid { grid-template-columns: 1fr; } }
+.fin-chart-wrap { height: 260px; position: relative; }
+.fin-chart-wrap-tall { height: 300px; position: relative; }
+.fin-params-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 10px; font-family: 'Poppins', sans-serif; font-size: 11.5px; }
+.fin-param-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--accent-lighter); border-radius: 6px; border: 1px solid rgba(24,99,220,0.08); }
+.fin-param-label { color: var(--text-muted); }
+.fin-param-value { font-weight: 600; color: var(--text); }
+.fin-capex-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.fin-capex-pill { background: var(--accent-light); border: 1px solid rgba(24,99,220,0.15); border-radius: 20px; padding: 5px 14px; font-family: 'Poppins', sans-serif; font-size: 12px; color: var(--accent); font-weight: 500; }
+.fin-table-wrap { overflow-x: auto; }
+.fin-pl-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Poppins', sans-serif; }
+.fin-pl-table th { text-align: right; padding: 8px 10px; border-bottom: 2px solid var(--border); font-weight: 600; font-size: 10.5px; color: var(--text-muted); white-space: nowrap; background: var(--accent-lighter); }
+.fin-pl-table th:first-child { text-align: left; }
+.fin-pl-table td { text-align: right; padding: 7px 10px; border-bottom: 1px solid rgba(226,224,219,0.5); font-variant-numeric: tabular-nums; }
+.fin-pl-table tbody td:first-child { text-align: left; font-weight: 600; color: var(--text); }
+.fin-pl-table tbody td.positive { color: var(--success); font-weight: 500; }
+.fin-pl-table tbody td.negative { color: #D9534F; font-weight: 500; }
+.fin-pl-table tbody td.accent   { color: var(--accent); font-weight: 600; }
+.fin-dscr-ok   { color: var(--success); font-weight: 600; }
+.fin-dscr-warn { color: #E8A020; font-weight: 600; }
+.fin-dscr-bad  { color: #D9534F; font-weight: 600; }
+.fin-inputs-panel { background: rgba(255,255,255,0.97); border: 1px solid var(--border); border-radius: 14px; padding: 16px 22px; box-shadow: var(--shadow-sm); }
+.fin-inputs-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+.fin-inputs-title { font-family: 'Teko', sans-serif; font-size: 18px; font-weight: 500; letter-spacing: 0.4px; }
+.fin-toggle-btn { display: inline-flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 600; color: var(--accent); background: var(--accent-light); border: none; border-radius: 6px; padding: 5px 12px; cursor: pointer; }
+.fin-toggle-btn svg { transition: transform 0.25s; }
+.fin-toggle-btn.open svg { transform: rotate(180deg); }
+.fin-inputs-body { display: grid; grid-template-columns: repeat(auto-fill,minmax(190px,1fr)); gap: 14px 20px; max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s; margin-top: 0; }
+.fin-inputs-body.open { max-height: 800px; opacity: 1; margin-top: 18px; }
+.fin-inp-group { display: flex; flex-direction: column; gap: 4px; }
+.fin-inp-group label { font-family: 'Poppins', sans-serif; font-size: 10.5px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.fin-inp-group input[type="number"] { width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-family: 'Montserrat', sans-serif; font-size: 13px; color: var(--text); background: var(--bg); transition: border-color var(--transition); }
+.fin-inp-group input[type="number"]:focus { outline: none; border-color: var(--accent); background: #fff; }
+.fin-inp-divider { grid-column: 1/-1; font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); border-top: 1px solid var(--accent-light); padding-top: 10px; margin-top: 4px; }
+.fin-recalc-btn { grid-column: 1/-1; display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: background var(--transition); justify-self: start; }
+.fin-recalc-btn:hover { background: var(--accent-hover); }
+.fin-sites-info { background: var(--accent-lighter); border: 1px solid rgba(24,99,220,0.12); border-radius: 10px; padding: 14px 18px; font-family: 'Poppins', sans-serif; font-size: 12px; color: var(--text-muted); display: flex; align-items: flex-start; gap: 10px; }
+.fin-sites-info svg { width: 16px; height: 16px; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+.fin-sites-info strong { color: var(--text); }
+
 /* ═══════════════════ RESPONSIVE ═══════════════════ */
 @media (max-width: 768px) {
     :root { --sidebar-width: 56px; }
@@ -804,7 +1022,11 @@ body::before {
     .content { padding: 20px; }
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="financial_model.js"></script>
 <script src="auth.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 
@@ -881,7 +1103,15 @@ body::before {
                 </div>
             </div>
         </div>
-        <button class="btn-edit-project" onclick="openEditProjectModal()" title="Modifier les informations du projet">
+        <button class="btn-fin-results" onclick="openProjFinModal()" title="Résultats financiers consolidés du projet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            Résultats financiers
+        </button>
+        <button class="btn-teaser" onclick="openTeaserModal()" title="Générer un teaser investisseur" style="margin-left:8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 8h10"/><path d="M7 12h5"/></svg>
+            Générer teaser
+        </button>
+        <button class="btn-edit-project" onclick="openEditProjectModal()" title="Modifier les informations du projet" style="margin-left:8px;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             Modifier
         </button>
@@ -940,6 +1170,17 @@ body::before {
                     <svg class="params-toggle-icon" id="paramsToggleIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                 </div>
                 <div class="params-panel-body" id="paramsPanelBody">
+
+                    <!-- Début du projet -->
+                    <div class="params-group-title">Calendrier du projet</div>
+                    <div class="params-grid">
+                        <div class="param-field">
+                            <label class="param-label">Début du projet (mois et année)</label>
+                            <div class="param-input-wrap">
+                                <input class="param-input" type="month" id="p_startDate" placeholder="AAAA-MM">
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Hypothèses économiques -->
                     <div class="params-group-title">Hypothèses économiques</div>
@@ -1040,17 +1281,87 @@ body::before {
         </div>
 
         <!-- ═══ DOCUMENT UPLOAD ═══ -->
-        <div class="upload-section">
-            <div class="section-title">Documents du projet</div>
-            <div class="drop-zone" id="projDropZone">
-                <input type="file" id="projFileInput" accept=".pdf,.txt,.doc,.docx,.csv" multiple onchange="handleProjFiles(this.files)">
-                <div class="drop-zone-icon">
-                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div>
+            <div class="section-label">Data Room</div>
+            <div class="proj-dataroom-card">
+                <div class="proj-dataroom-header">
+                    <div class="proj-dataroom-title">Documents du projet</div>
+                    <span style="font-size:11px;color:var(--text-muted);font-family:'Poppins',sans-serif;">
+                        Glissez des documents pour remplir automatiquement le projet
+                    </span>
                 </div>
-                <div class="drop-zone-title">Glissez vos documents ici</div>
-                <div class="drop-zone-sub">ou cliquez pour sélectionner · PDF, Word, TXT, CSV</div>
+                <div class="proj-dropzone" id="projDropZone">
+                    <input type="file" id="projFileInput" accept=".pdf,.txt,.doc,.docx,.csv" multiple onchange="handleProjFiles(this.files)">
+                    <div class="proj-dropzone-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <div class="proj-dropzone-text">Glissez vos documents ici ou cliquez pour sélectionner</div>
+                    <div class="proj-dropzone-hint">PDF, Word, TXT, CSV — Teasers, études techniques, modèles financiers</div>
+                </div>
+                <div class="proj-file-list" id="projDocList"></div>
             </div>
-            <div class="proj-doc-list" id="projDocList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ GENERATE TEASER MODAL ═══ -->
+<div class="teaser-overlay" id="teaserOverlay">
+    <div class="teaser-modal">
+        <div class="teaser-modal-title">Générer un teaser investisseur</div>
+        <div class="teaser-modal-sub">Sélectionnez un modèle de la bibliothèque pour générer la présentation du projet</div>
+
+        <div class="teaser-grid" id="teaserGrid">
+            <!-- populated by JS -->
+        </div>
+
+        <!-- Placeholder guide (collapsible) -->
+        <details style="margin-bottom:16px;">
+            <summary style="font-size:11px;font-weight:600;color:var(--accent);font-family:'Poppins',sans-serif;cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Marqueurs disponibles dans votre modèle PPTX / DOCX
+            </summary>
+            <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 20px;">
+                <div style="font-size:10px;font-family:'Poppins',sans-serif;color:var(--text-muted);padding:3px 0;border-bottom:1px solid var(--border);grid-column:1/-1;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Projet</div>
+                <code style="font-size:10px;color:var(--accent);">{{NOM_PROJET}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Nom du projet</span>
+                <code style="font-size:10px;color:var(--accent);">{{COURTIER}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Courtier / broker</span>
+                <code style="font-size:10px;color:var(--accent);">{{VENDEUR}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Vendeur</span>
+                <code style="font-size:10px;color:var(--accent);">{{EMAIL_CONTACT}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Email de contact</span>
+                <code style="font-size:10px;color:var(--accent);">{{DATE_DEBUT}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Début du projet</span>
+                <code style="font-size:10px;color:var(--accent);">{{DATE_GENERATION}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Date du jour</span>
+                <div style="font-size:10px;font-family:'Poppins',sans-serif;color:var(--text-muted);padding:3px 0;border-bottom:1px solid var(--border);grid-column:1/-1;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin:6px 0 2px;">Sites</div>
+                <code style="font-size:10px;color:var(--accent);">{{NB_SITES}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Nombre de sites</span>
+                <code style="font-size:10px;color:var(--accent);">{{PAYS}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Pays</span>
+                <code style="font-size:10px;color:var(--accent);">{{LISTE_SITES}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Liste des sites</span>
+                <code style="font-size:10px;color:var(--accent);">{{CAPACITE_PV_MWC}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Capacité PV totale</span>
+                <code style="font-size:10px;color:var(--accent);">{{CAPACITE_BESS_MWH}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Capacité BESS totale</span>
+                <code style="font-size:10px;color:var(--accent);">{{PUISSANCE_BESS_MW}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Puissance BESS totale</span>
+                <code style="font-size:10px;color:var(--accent);">{{CAPEX_TOTAL}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">CAPEX total estimé</span>
+                <div style="font-size:10px;font-family:'Poppins',sans-serif;color:var(--text-muted);padding:3px 0;border-bottom:1px solid var(--border);grid-column:1/-1;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin:6px 0 2px;">Hypothèses financières</div>
+                <code style="font-size:10px;color:var(--accent);">{{PRIX_ELECTRICITE}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Prix électricité</span>
+                <code style="font-size:10px;color:var(--accent);">{{WACC}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">WACC</span>
+                <code style="font-size:10px;color:var(--accent);">{{DETTE_PERCENT}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Part dette</span>
+                <code style="font-size:10px;color:var(--accent);">{{TAUX_DETTE}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Taux dette senior</span>
+                <code style="font-size:10px;color:var(--accent);">{{DUREE_DETTE}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Durée d'emprunt</span>
+                <code style="font-size:10px;color:var(--accent);">{{DUREE_VIE}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Durée de vie des actifs</span>
+                <div style="font-size:10px;font-family:'Poppins',sans-serif;color:var(--text-muted);padding:3px 0;border-bottom:1px solid var(--border);grid-column:1/-1;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin:6px 0 2px;">KPIs — Résultats du modèle</div>
+                <code style="font-size:10px;color:var(--accent);">{{TRI_PROJET}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">TRI Projet (%)</span>
+                <code style="font-size:10px;color:var(--accent);">{{TRI_EQUITY}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">TRI Equity (%)</span>
+                <code style="font-size:10px;color:var(--accent);">{{VAN}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">VAN Projet (M€)</span>
+                <code style="font-size:10px;color:var(--accent);">{{DSCR_MIN}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">DSCR minimum</span>
+                <code style="font-size:10px;color:var(--accent);">{{DSCR_MOY}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">DSCR moyen</span>
+                <code style="font-size:10px;color:var(--accent);">{{DETTE}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Dette senior totale</span>
+                <code style="font-size:10px;color:var(--accent);">{{FONDS_PROPRES}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Fonds propres (equity)</span>
+                <code style="font-size:10px;color:var(--accent);">{{REVENU_AN1}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">Revenus année 1</span>
+                <code style="font-size:10px;color:var(--accent);">{{EBITDA_AN1}}</code><span style="font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;">EBITDA année 1</span>
+            </div>
+        </details>
+
+        <div class="teaser-modal-footer">
+            <button class="btn-teaser-cancel" onclick="closeTeaserModal()">Annuler</button>
+            <button class="btn-teaser-generate" id="btnGenerate" onclick="generateTeaser()" disabled>
+                <svg id="btnGenerateIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Générer le teaser
+            </button>
         </div>
     </div>
 </div>
@@ -1245,6 +1556,9 @@ function renderParams(project) {
         const el = document.getElementById('p_' + k);
         if (el && params[k] != null) el.value = params[k];
     });
+    // Start date (stored at project root level)
+    const sdEl = document.getElementById('p_startDate');
+    if (sdEl && project.startDate) sdEl.value = project.startDate;
 }
 
 function saveParams() {
@@ -1255,11 +1569,399 @@ function saveParams() {
         const el = document.getElementById('p_' + k);
         if (el && el.value !== '') project.params[k] = parseFloat(el.value);
     });
+    // Start date saved at project root level (string, not float)
+    const sdVal = document.getElementById('p_startDate').value;
+    if (sdVal) project.startDate = sdVal;
     saveProject(project);
     const msg = document.getElementById('paramsSavedMsg');
     msg.style.opacity = '1';
     setTimeout(() => { msg.style.opacity = '0'; }, 2500);
 }
+
+// ─── Teaser modal ───
+// ─── IndexedDB (partagé avec modeles_teaser.html) ───
+const _IDB_NAME  = 'pi_teaser_db';
+const _IDB_STORE = 'templates';
+
+function _teaserOpenDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(_IDB_NAME, 1);
+        req.onupgradeneeded = e => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(_IDB_STORE))
+                db.createObjectStore(_IDB_STORE, { keyPath: 'id' });
+        };
+        req.onsuccess = e => resolve(e.target.result);
+        req.onerror   = e => reject(e.target.error);
+    });
+}
+async function _teaserGetAll() {
+    const db = await _teaserOpenDB();
+    return new Promise((resolve, reject) => {
+        const req = db.transaction(_IDB_STORE, 'readonly').objectStore(_IDB_STORE).getAll();
+        req.onsuccess = () => resolve(req.result);
+        req.onerror   = () => reject(req.error);
+    });
+}
+async function _teaserGetOne(id) {
+    const db = await _teaserOpenDB();
+    return new Promise((resolve, reject) => {
+        const req = db.transaction(_IDB_STORE, 'readonly').objectStore(_IDB_STORE).get(id);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror   = () => reject(req.error);
+    });
+}
+
+function extOfTeaser(name) {
+    const m = name.toLowerCase().match(/\.([a-z0-9]+)$/);
+    return m ? m[1] : 'file';
+}
+function teaserTypeClass(ext) {
+    if (['pptx','ppt'].includes(ext)) return 'pptx';
+    if (ext === 'pdf')                return 'pdf';
+    if (['docx','doc'].includes(ext)) return 'docx';
+    if (['xlsx','xls'].includes(ext)) return 'xlsx';
+    return 'default';
+}
+function teaserTypeLabel(ext) {
+    if (['pptx','ppt'].includes(ext)) return 'PPTX';
+    if (ext === 'pdf')                return 'PDF';
+    if (['docx','doc'].includes(ext)) return 'DOCX';
+    if (['xlsx','xls'].includes(ext)) return 'XLSX';
+    return ext.toUpperCase();
+}
+function teaserMimeOf(name) {
+    const ext = extOfTeaser(name);
+    const map = {
+        pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        ppt:  'application/vnd.ms-powerpoint',
+        pdf:  'application/pdf',
+        docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        doc:  'application/msword',
+        xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        xls:  'application/vnd.ms-excel',
+    };
+    return map[ext] || 'application/octet-stream';
+}
+
+let _selectedTeaserId = null;
+
+async function openTeaserModal() {
+    _selectedTeaserId = null;
+    document.getElementById('btnGenerate').disabled = true;
+    const grid = document.getElementById('teaserGrid');
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-muted);font-family:\'Poppins\',sans-serif;font-size:13px;">Chargement…</div>';
+    document.getElementById('teaserOverlay').classList.add('open');
+
+    const templates = await _teaserGetAll();
+    templates.sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
+
+    if (templates.length === 0) {
+        grid.innerHTML = `
+        <div class="teaser-empty-state">
+            <div>Aucun modèle dans la bibliothèque.</div>
+            <div style="font-size:12px;opacity:0.7;">
+                <a class="teaser-empty-link" href="modeles_teaser.html">Accéder à la bibliothèque de modèles</a> pour en ajouter.
+            </div>
+        </div>`;
+        return;
+    }
+
+    grid.innerHTML = templates.map(t => {
+        const ext   = extOfTeaser(t.name);
+        const tc    = teaserTypeClass(ext);
+        const tl    = teaserTypeLabel(ext);
+        const isPdf = ext === 'pdf';
+        const previewInner = isPdf
+            ? `<canvas id="tCanvas_${t.id}" style="width:100%;display:block;"></canvas>
+               <div class="teaser-type-icon ${tc}" id="tFallback_${t.id}" style="display:none;">${tl}</div>`
+            : `<div class="teaser-type-icon ${tc}">${tl}</div>`;
+        return `
+        <div class="teaser-tmpl-card" id="tCard_${t.id}" onclick="selectTeaserTemplate('${t.id}')">
+            <div class="teaser-tmpl-preview">${previewInner}</div>
+            <div class="teaser-tmpl-info">
+                <div class="teaser-tmpl-name" title="${t.name}">${t.name}</div>
+                <div class="teaser-tmpl-meta">${tl}</div>
+            </div>
+        </div>`;
+    }).join('');
+
+    // PDF thumbnails from ArrayBuffer
+    if (typeof pdfjsLib !== 'undefined') {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        templates.forEach(t => {
+            if (extOfTeaser(t.name) === 'pdf' && t.data) {
+                const canvas = document.getElementById('tCanvas_' + t.id);
+                if (!canvas) return;
+                pdfjsLib.getDocument({ data: new Uint8Array(t.data) }).promise
+                    .then(pdf => pdf.getPage(1))
+                    .then(page => {
+                        const scale = (canvas.parentElement.offsetWidth || 160) / page.getViewport({ scale: 1 }).width;
+                        const vp = page.getViewport({ scale });
+                        canvas.width = vp.width; canvas.height = vp.height;
+                        return page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+                    })
+                    .catch(() => {
+                        canvas.style.display = 'none';
+                        const fb = document.getElementById('tFallback_' + t.id);
+                        if (fb) fb.style.display = 'flex';
+                    });
+            }
+        });
+    }
+}
+
+function closeTeaserModal() {
+    document.getElementById('teaserOverlay').classList.remove('open');
+    _selectedTeaserId = null;
+}
+
+function selectTeaserTemplate(id) {
+    _selectedTeaserId = id;
+    document.querySelectorAll('.teaser-tmpl-card').forEach(c => c.classList.remove('selected'));
+    const card = document.getElementById('tCard_' + id);
+    if (card) card.classList.add('selected');
+    document.getElementById('btnGenerate').disabled = false;
+}
+
+// ─── Build placeholder map from project data + financial model ───
+function buildTeaserPlaceholders(project) {
+    const sites     = project.sites  || [];
+    const params    = project.params || {};
+    const pvSites   = sites.filter(s => s.hasPV);
+    const bessSites = sites.filter(s => s.hasBESS);
+
+    const totalPvMWc   = pvSites.reduce((s, x) => s + (parseFloat(x.pvCapacity)  || 0), 0) / 1000;
+    const totalBessMWh = bessSites.reduce((s, x) => s + (parseFloat(x.bessCapacity) || 0), 0) / 1000;
+    const totalBessMW  = bessSites.reduce((s, x) => s + (parseFloat(x.bessPower)   || 0), 0) / 1000;
+
+    let capexTotal = 0;
+    pvSites.forEach(s => capexTotal += (parseFloat(s.capexPv) || 0) * (parseFloat(s.pvCapacity) || 0));
+    bessSites.forEach(s => capexTotal += parseFloat(s.capexBess) || 0);
+
+    const countries = [...new Set(sites.map(s => s.country).filter(Boolean))];
+    const fmt    = v  => (v != null && v !== '') ? String(v) : '—';
+    const fmtNum = (v, unit) => v ? v.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' ' + unit : '—';
+
+    const startDate = project.startDate
+        ? new Date(project.startDate + '-01').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+        : '—';
+    const today = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    // ─── Financial KPIs via FinancialModel ───────────────────────────────────
+    let kpis = null;
+    let finParams = null;
+    const FM = window.FinancialModel;
+    if (FM && pvSites.length > 0) {
+        const finP = {
+            electricityPrice:      params.electricityPrice      || 85,
+            electricityEscalation: params.electricityEscalation || 1.5,
+            bessSpreadPrice:       params.bessSpreadPrice        || 30,
+            inflation:             params.inflation              || 2.0,
+            tax:                   params.tax                    || 25,
+            wacc:                  params.wacc                   || 8.0,
+            debtPercent:           params.debtPercent            || 70,
+            seniorRate:            params.seniorRate             || 4.5,
+            debtDuration:          params.debtDuration           || 18,
+            dsraMonths:            params.dsraMonths             || 6,
+            dscrTarget:            params.dscrTarget             || 1.15,
+        };
+        finParams = finP;
+        try {
+            const siteResults = pvSites.map(site => {
+                const s = Object.assign({}, site);
+                if (s.capexPv && s.pvCapacity) s.capexPv = s.capexPv * s.pvCapacity;
+                s.insPv = s.insPv || 4; s.amPv = s.amPv || 2; s.rmPv = s.rmPv || 2;
+                s.insBess = s.insBess || 3; s.amBess = s.amBess || 2; s.rmBess = s.rmBess || 2;
+                s.bessEffACDC = s.bessEffACDC || 95; s.bessEffDCAC = s.bessEffDCAC || 95;
+                s.bessMinSoH  = s.bessMinSoH  || 80; s.rentEuros   = s.rentEuros   || 120000;
+                return FM.compute(s, finP);
+            });
+            const result = pvSites.length === 1 ? siteResults[0] : FM.aggregateSites(siteResults);
+            kpis = result.kpis;
+        } catch(e) { console.warn('Teaser FM error:', e); }
+    }
+
+    const fmtPct = v => isFinite(v) ? v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' %' : '—';
+    const fmtEur = v => {
+        if (!isFinite(v)) return '—';
+        const abs = Math.abs(v), sign = v < 0 ? '−' : '';
+        if (abs >= 1e9) return sign + (abs / 1e9).toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' Md€';
+        if (abs >= 1e6) return sign + (abs / 1e6).toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' M€';
+        if (abs >= 1e3) return sign + (abs / 1e3).toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' k€';
+        return sign + abs.toLocaleString('fr-FR', { maximumFractionDigits: 0 }) + ' €';
+    };
+    const fmtDscr = v => isFinite(v) ? v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
+
+    const longestLifetime = pvSites.reduce((max, s) => Math.max(max, parseInt(s.pvLifetime) || 25), 25);
+
+    return {
+        // ── Projet ──────────────────────────────────────────────────────────
+        NOM_PROJET:         fmt(project.name),
+        COURTIER:           fmt(project.courtier),
+        VENDEUR:            fmt(project.vendeur),
+        EMAIL_CONTACT:      fmt(project.courtierEmail),
+        DATE_DEBUT:         startDate,
+        DATE_GENERATION:    today,
+        // ── Sites ────────────────────────────────────────────────────────────
+        NB_SITES:           String(sites.length),
+        PAYS:               countries.join(', ') || '—',
+        LISTE_SITES:        sites.map(s => s.name).filter(Boolean).join(', ') || '—',
+        CAPACITE_PV_MWC:    fmtNum(totalPvMWc   > 0 ? totalPvMWc   : null, 'MWc'),
+        CAPACITE_BESS_MWH:  fmtNum(totalBessMWh > 0 ? totalBessMWh : null, 'MWh'),
+        PUISSANCE_BESS_MW:  fmtNum(totalBessMW  > 0 ? totalBessMW  : null, 'MW'),
+        CAPEX_TOTAL:        kpis ? fmtEur(kpis.totalCapex) : (capexTotal > 0 ? fmtNum(capexTotal / 1e6, 'M€') : '—'),
+        // ── Hypothèses financières ───────────────────────────────────────────
+        PRIX_ELECTRICITE:   finParams ? fmt(finParams.electricityPrice) + ' €/MWh' : (params.electricityPrice ? fmt(params.electricityPrice) + ' €/MWh' : '—'),
+        WACC:               finParams ? fmt(finParams.wacc)          + ' %'    : (params.wacc          ? fmt(params.wacc)          + ' %'    : '—'),
+        DETTE_PERCENT:      finParams ? fmt(finParams.debtPercent)   + ' %'    : (params.debtPercent   ? fmt(params.debtPercent)   + ' %'    : '—'),
+        TAUX_DETTE:         finParams ? fmt(finParams.seniorRate)    + ' %/an' : (params.seniorRate    ? fmt(params.seniorRate)    + ' %/an' : '—'),
+        DUREE_DETTE:        finParams ? fmt(finParams.debtDuration)  + ' ans'  : (params.debtDuration  ? fmt(params.debtDuration)  + ' ans'  : '—'),
+        DUREE_VIE:          longestLifetime + ' ans',
+        // ── KPIs du modèle financier ─────────────────────────────────────────
+        TRI_PROJET:         kpis ? fmtPct(kpis.projectIRR) : '—',
+        TRI_EQUITY:         kpis ? fmtPct(kpis.equityIRR)  : '—',
+        VAN:                kpis ? fmtEur(kpis.van)        : '—',
+        DSCR_MIN:           kpis && kpis.dscrMin !== null ? fmtDscr(kpis.dscrMin) : '—',
+        DSCR_MOY:           kpis && kpis.dscrAvg !== null ? fmtDscr(kpis.dscrAvg) : '—',
+        DETTE:              kpis ? fmtEur(kpis.debt)       : '—',
+        FONDS_PROPRES:      kpis ? fmtEur(kpis.equity)     : '—',
+        REVENU_AN1:         kpis ? fmtEur(kpis.annualRevY1 || 0) : '—',
+        EBITDA_AN1:         kpis ? fmtEur(kpis.ebitdaY1   || 0) : '—',
+    };
+}
+
+// ─── Replace placeholders in one XML string ───
+// Two passes: direct + paragraph-level run merging (handles PowerPoint's split runs)
+function replacePlaceholdersInXml(xml, placeholders) {
+    const xmlEsc = s => String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    // Pass 1 — direct (placeholder typed as a single unit in the XML text)
+    let out = xml;
+    for (const [k, v] of Object.entries(placeholders)) {
+        out = out.split('{{' + k + '}}').join(xmlEsc(v));
+    }
+
+    // Pass 2 — PPTX: merge adjacent <a:r> runs within <a:p> paragraphs
+    out = out.replace(/<a:p(?:\s[^>]*)?>[\s\S]*?<\/a:p>/g, para => {
+        const texts = [...para.matchAll(/<a:t(?:\s[^>]*)?>([^<]*)<\/a:t>/g)].map(m => m[1]);
+        const combined = texts.join('');
+        let newText = combined;
+        let changed = false;
+        for (const [k, v] of Object.entries(placeholders)) {
+            if (newText.includes('{{' + k + '}}')) {
+                newText = newText.split('{{' + k + '}}').join(String(v));
+                changed = true;
+            }
+        }
+        if (!changed) return para;
+        const rProp = (para.match(/<a:rPr[\s\S]*?(?:\/>|<\/a:rPr>)/) || [''])[0];
+        const safe  = xmlEsc(newText);
+        // Remove all existing runs, inject a single rebuilt run
+        let newPara = para.replace(/<a:r(?:\s[^>]*)?>[\s\S]*?<\/a:r>/g, '');
+        return newPara.replace(/<\/a:p>$/, `<a:r>${rProp}<a:t>${safe}</a:t></a:r></a:p>`);
+    });
+
+    // Pass 3 — DOCX: same but for <w:p>/<w:r>/<w:t>
+    out = out.replace(/<w:p(?:\s[^>]*)?>[\s\S]*?<\/w:p>/g, para => {
+        const texts = [...para.matchAll(/<w:t(?:\s[^>]*)?>([^<]*)<\/w:t>/g)].map(m => m[1]);
+        const combined = texts.join('');
+        let newText = combined;
+        let changed = false;
+        for (const [k, v] of Object.entries(placeholders)) {
+            if (newText.includes('{{' + k + '}}')) {
+                newText = newText.split('{{' + k + '}}').join(String(v));
+                changed = true;
+            }
+        }
+        if (!changed) return para;
+        const rProp = (para.match(/<w:rPr[\s\S]*?(?:\/>|<\/w:rPr>)/) || [''])[0];
+        const safe  = xmlEsc(newText);
+        let newPara = para.replace(/<w:r(?:\s[^>]*)?>[\s\S]*?<\/w:r>/g, '');
+        return newPara.replace(/<\/w:p>$/, `<w:r>${rProp}<w:t>${safe}</w:t></w:r></w:p>`);
+    });
+
+    return out;
+}
+
+// ─── Fill a ZIP-based template (PPTX, DOCX, XLSX) with placeholders ───
+async function fillZipTemplate(arrayBuffer, placeholders) {
+    const zip      = await JSZip.loadAsync(arrayBuffer);
+    const xmlPaths = [];
+    zip.forEach(path => { if (/\.xml$/i.test(path)) xmlPaths.push(path); });
+
+    for (const path of xmlPaths) {
+        const orig    = await zip.file(path).async('string');
+        const updated = replacePlaceholdersInXml(orig, placeholders);
+        if (updated !== orig) zip.file(path, updated);
+    }
+
+    return zip.generateAsync({ type: 'arraybuffer', compression: 'DEFLATE' });
+}
+
+// ─── Generate & download teaser ───
+async function generateTeaser() {
+    if (!_selectedTeaserId) return;
+
+    const btn  = document.getElementById('btnGenerate');
+    const icon = document.getElementById('btnGenerateIcon');
+    btn.disabled = true;
+    icon.style.cssText = 'width:15px;height:15px;animation:spin 0.8s linear infinite;';
+
+    try {
+        const [tmpl, project] = await Promise.all([
+            _teaserGetOne(_selectedTeaserId),
+            Promise.resolve(getProject())
+        ]);
+        if (!tmpl || !tmpl.data) return;
+
+        const ext        = extOfTeaser(tmpl.name);
+        const isZipBased = ['pptx','ppt','docx','doc','xlsx','xls'].includes(ext);
+        const placeholders = buildTeaserPlaceholders(project);
+
+        let outputBuffer, outputName;
+
+        if (isZipBased && typeof JSZip !== 'undefined') {
+            outputBuffer = await fillZipTemplate(tmpl.data, placeholders);
+            // Build filename: original name + project name suffix
+            const dotIdx  = tmpl.name.lastIndexOf('.');
+            const base    = dotIdx > -1 ? tmpl.name.slice(0, dotIdx) : tmpl.name;
+            const extStr  = dotIdx > -1 ? tmpl.name.slice(dotIdx)    : '';
+            const suffix  = (project.name || '').replace(/[^a-zA-Z0-9_\- ]/g, '_').trim();
+            outputName = base + (suffix ? '_' + suffix : '') + extStr;
+        } else {
+            // PDF: download as-is (no server-side filling possible in browser)
+            outputBuffer = tmpl.data;
+            outputName   = tmpl.name;
+        }
+
+        const blob = new Blob([outputBuffer], { type: tmpl.mimeType || teaserMimeOf(tmpl.name) });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url; a.download = outputName; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+        closeTeaserModal();
+        const msg = document.getElementById('paramsSavedMsg');
+        if (msg) {
+            msg.textContent = '✓ Teaser généré et téléchargé';
+            msg.style.opacity = '1';
+            setTimeout(() => { msg.style.opacity = '0'; setTimeout(() => { msg.textContent = '✓ Paramètres enregistrés'; }, 300); }, 3500);
+        }
+    } catch (err) {
+        console.error('Teaser generation error:', err);
+        alert('Erreur lors de la génération : ' + err.message);
+    } finally {
+        btn.disabled = false;
+        icon.style.cssText = 'width:15px;height:15px;';
+    }
+}
+
+document.getElementById('teaserOverlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeTeaserModal();
+});
 
 // ─── Edit project modal ───
 function openEditProjectModal() {
@@ -1514,6 +2216,347 @@ const _proj = getProject();
 loadProject();
 if (_proj) renderParams(_proj);
 renderProjDocList();
+
+// ════════════════════════════════════════════════════
+// PROJECT FINANCIAL RESULTS MODAL
+// ════════════════════════════════════════════════════
+
+let _pfChartPL = null, _pfChartDSCR = null, _pfChartMonthly = null;
+const _PFM = window.FinancialModel;
+const _pfmtEur = _PFM ? _PFM.formatEur : v => v.toLocaleString('fr-FR') + ' €';
+const _pfmtPct = _PFM ? _PFM.formatPct : v => v.toFixed(1) + ' %';
+function _pfK(v) { if (!isFinite(v)) return '—'; return Math.round(v / 1000).toLocaleString('fr-FR'); }
+function _pfNum(v, d=2) { if (!isFinite(v)) return '—'; return v.toLocaleString('fr-FR', {minimumFractionDigits:d,maximumFractionDigits:d}); }
+function _pfNv(id) { return parseFloat(document.getElementById(id)?.value) || 0; }
+
+function openProjFinModal() {
+    if (!_PFM) { alert('Modèle financier non disponible.'); return; }
+    const project = getProject();
+    if (!project) return;
+    const sites = (project.sites || []).filter(s => s.hasPV && s.pvCapacity);
+    if (!sites.length) { alert('Aucun site PV configuré dans ce projet.'); return; }
+
+    const p = project.params || {};
+    const set = (id, val) => { const el = document.getElementById(id); if (el && val != null && val !== '' && val !== 0) el.value = val; };
+    set('pf_elecPrice',  p.electricityPrice      || 85);
+    set('pf_elecEsc',    p.electricityEscalation || 1.5);
+    set('pf_bessSpread', p.bessSpreadPrice        || 30);
+    set('pf_inflation',  p.inflation              || 2.0);
+    set('pf_tax',        p.tax                    || 25);
+    set('pf_wacc',       p.wacc                   || 8.0);
+    set('pf_debtPct',    p.debtPercent            || 70);
+    set('pf_seniorRate', p.seniorRate             || 4.5);
+    set('pf_debtDur',    p.debtDuration           || 18);
+    set('pf_dsra',       p.dsraMonths             || 6);
+    set('pf_dscrTarget', p.dscrTarget             || 1.15);
+
+    const totalPvMw = sites.reduce((s, x) => s + (x.pvCapacity || 0), 0) / 1000;
+    document.getElementById('pfModalTitle').textContent = 'Résultats financiers — ' + (project.name || 'Projet');
+    document.getElementById('pfModalBadge').textContent = sites.length + ' site' + (sites.length > 1 ? 's' : '') + ' · ' + totalPvMw.toLocaleString('fr-FR', {maximumFractionDigits:1}) + ' MWc';
+
+    // Sites info
+    document.getElementById('pfSitesInfo').innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div>Consolidation de <strong>${sites.length} site${sites.length>1?'s':''}</strong> : ${sites.map(s=>s.name||'Site').join(', ')} — Les données techniques proviennent des fiches de chaque site.</div>`;
+
+    document.getElementById('pfModalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    recalcProjFinModal();
+}
+
+function closeProjFinModal() {
+    document.getElementById('pfModalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+function togglePfInputs() {
+    const body = document.getElementById('pfInputsBody');
+    const btn  = document.getElementById('pfToggleBtn');
+    const lbl  = document.getElementById('pfToggleLabel');
+    const open = body.classList.toggle('open');
+    btn.classList.toggle('open', open);
+    lbl.textContent = open ? 'Réduire' : 'Modifier';
+}
+
+function recalcProjFinModal() {
+    if (!_PFM) return;
+    const project = getProject();
+    if (!project) return;
+    const sites = (project.sites || []).filter(s => s.hasPV && s.pvCapacity);
+    if (!sites.length) return;
+
+    const params = {
+        electricityPrice:      _pfNv('pf_elecPrice'),
+        electricityEscalation: _pfNv('pf_elecEsc'),
+        bessSpreadPrice:       _pfNv('pf_bessSpread'),
+        inflation:             _pfNv('pf_inflation'),
+        tax:                   _pfNv('pf_tax'),
+        wacc:                  _pfNv('pf_wacc'),
+        debtPercent:           _pfNv('pf_debtPct'),
+        seniorRate:            _pfNv('pf_seniorRate'),
+        debtDuration:          _pfNv('pf_debtDur'),
+        dsraMonths:            _pfNv('pf_dsra'),
+        dscrTarget:            _pfNv('pf_dscrTarget'),
+    };
+
+    try {
+        const siteResults = sites.map(site => {
+            const siteForModel = Object.assign({}, site);
+            // capexPv stored as €/kWc → convert to absolute €
+            if (site.hasPV && site.capexPv && site.pvCapacity) {
+                siteForModel.capexPv = site.capexPv * site.pvCapacity;
+            }
+            // capexBess already absolute €
+            // ensure required fields have defaults
+            siteForModel.insPv  = siteForModel.insPv  || 4;
+            siteForModel.amPv   = siteForModel.amPv   || 2;
+            siteForModel.rmPv   = siteForModel.rmPv   || 2;
+            siteForModel.insBess = siteForModel.insBess || 3;
+            siteForModel.amBess  = siteForModel.amBess  || 2;
+            siteForModel.rmBess  = siteForModel.rmBess  || 2;
+            siteForModel.bessEffACDC = siteForModel.bessEffACDC || 95;
+            siteForModel.bessEffDCAC = siteForModel.bessEffDCAC || 95;
+            siteForModel.bessMinSoH  = siteForModel.bessMinSoH  || 80;
+            siteForModel.rentEuros   = siteForModel.rentEuros   || 120000;
+            return _PFM.compute(siteForModel, params);
+        });
+
+        const result = sites.length === 1 ? siteResults[0] : _PFM.aggregateSites(siteResults);
+        const { annual, monthly, kpis } = result;
+
+        // For single site, params is already on result._params; for aggregated we use our params
+        const usedParams = Object.assign({}, params);
+
+        _pfRenderSummary(kpis, usedParams, sites);
+        _pfRenderKPIs(kpis, usedParams);
+        _pfRenderChartPL(annual);
+        _pfRenderChartDSCR(annual, usedParams);
+        _pfRenderChartMonthly(monthly);
+        _pfRenderTable(annual, usedParams);
+    } catch(e) { console.error('FinancialModel error:', e); }
+}
+
+function _pfRenderSummary(kpis, params, sites) {
+    const totalCapexM = (kpis.totalCapex / 1e6).toLocaleString('fr-FR', {maximumFractionDigits:1});
+    document.getElementById('pfCapexRow').innerHTML = `
+        <span class="fin-capex-pill">CAPEX Total : ${_pfmtEur(kpis.totalCapex)}</span>
+        <span class="fin-capex-pill">Dette : ${_pfmtEur(kpis.debt)} (${params.debtPercent}%)</span>
+        <span class="fin-capex-pill">Fonds propres : ${_pfmtEur(kpis.equity)}</span>`;
+    const items = [
+        ['Prix électricité Y1', `${params.electricityPrice} €/MWh`],
+        ['Escalation prix', `${params.electricityEscalation} %/an`],
+        ['Inflation OPEX', `${params.inflation} %/an`],
+        ["Taux d'imposition", `${params.tax} %`],
+        ['WACC', `${params.wacc} %`],
+        ['Taux dette senior', `${params.seniorRate} %`],
+        ['Durée endettement', `${params.debtDuration} ans`],
+        ['DSCR cible', `≥ ${params.dscrTarget}`],
+    ];
+    document.getElementById('pfParamsGrid').innerHTML = items.map(([l,v]) =>
+        `<div class="fin-param-item"><span class="fin-param-label">${l}</span><span class="fin-param-value">${v}</span></div>`).join('');
+}
+
+function _pfRenderKPIs(kpis, params) {
+    const dscrCls = kpis.dscrMin === null ? 'accent'
+        : kpis.dscrMin >= params.dscrTarget ? 'success'
+        : kpis.dscrMin >= 1.0 ? 'warning' : 'danger';
+    const cards = [
+        { label:'TRI Projet', value: isFinite(kpis.projectIRR) ? _pfmtPct(kpis.projectIRR) : '—', sub:`WACC : ${params.wacc} %`, cls:'accent', cardCls:'' },
+        { label:'TRI Equity', value: isFinite(kpis.equityIRR)  ? _pfmtPct(kpis.equityIRR)  : '—', sub:`Levier : ${params.debtPercent}%`, cls:'accent', cardCls:'' },
+        { label:'VAN Projet', value: _pfmtEur(kpis.van), sub:`Actualisation ${params.wacc}%`, cls: kpis.van >= 0 ? 'success' : 'danger', cardCls: kpis.van >= 0 ? 'success' : 'danger' },
+        { label:'DSCR Min', value: kpis.dscrMin !== null ? _pfNum(kpis.dscrMin) : '—', sub:`Moy. : ${kpis.dscrAvg !== null ? _pfNum(kpis.dscrAvg) : '—'}`, cls:dscrCls, cardCls: dscrCls === 'success' ? 'success' : dscrCls === 'warning' ? 'warning' : 'danger' },
+    ];
+    document.getElementById('pfKpiGrid').innerHTML = cards.map(c => `
+        <div class="fin-kpi-card ${c.cardCls}">
+            <div class="fin-kpi-label">${c.label}</div>
+            <div class="fin-kpi-value ${c.cls}">${c.value}</div>
+            <div class="fin-kpi-sub">${c.sub}</div>
+        </div>`).join('');
+}
+
+function _pfRenderChartPL(annual) {
+    if (_pfChartPL) { _pfChartPL.destroy(); _pfChartPL = null; }
+    const labels = annual.map(a => `A${a.year}`);
+    const toM = arr => arr.map(v => +(v / 1e6).toFixed(3));
+    _pfChartPL = new Chart(document.getElementById('pfChartPL'), {
+        type: 'line',
+        data: { labels, datasets: [
+            { label:'CA (M€)', data:toM(annual.map(a=>a.totalRevenue)), borderColor:'#1863DC', backgroundColor:'rgba(24,99,220,0.08)', fill:true, tension:0.3, pointRadius:2, borderWidth:2 },
+            { label:'EBITDA (M€)', data:toM(annual.map(a=>a.ebitda)), borderColor:'#2E9E6E', backgroundColor:'rgba(46,158,110,0.07)', fill:false, tension:0.3, pointRadius:2, borderWidth:2 },
+            { label:'EBT (M€)', data:toM(annual.map(a=>a.ebt)), borderColor:'#E8A020', fill:false, tension:0.3, pointRadius:2, borderWidth:1.5, borderDash:[4,3] },
+            { label:'FCF Equity (M€)', data:toM(annual.map(a=>a.fcfEquity)), borderColor:'#9B59B6', fill:false, tension:0.3, pointRadius:2, borderWidth:1.5 },
+        ]},
+        options: { responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+            plugins: { legend:{position:'top',labels:{font:{family:'Poppins',size:10},boxWidth:14,padding:12}},
+                tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} M€`}} },
+            scales: { x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{family:'Poppins',size:9},maxRotation:0}},
+                y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{family:'Poppins',size:9},callback:v=>v.toLocaleString('fr-FR',{maximumFractionDigits:1})+' M€'}} } }
+    });
+}
+
+function _pfRenderChartDSCR(annual, params) {
+    if (_pfChartDSCR) { _pfChartDSCR.destroy(); _pfChartDSCR = null; }
+    const debtYears = annual.filter(a => a.dscr !== null);
+    const labels = debtYears.map(a => `A${a.year}`);
+    const dscrData = debtYears.map(a => +a.dscr.toFixed(4));
+    const tgt = params.dscrTarget;
+    const bgC = dscrData.map(v => v >= tgt ? 'rgba(46,158,110,0.75)' : v >= 1 ? 'rgba(232,160,32,0.75)' : 'rgba(217,83,79,0.75)');
+    const brC = dscrData.map(v => v >= tgt ? '#2E9E6E' : v >= 1 ? '#E8A020' : '#D9534F');
+    _pfChartDSCR = new Chart(document.getElementById('pfChartDSCR'), {
+        type: 'bar',
+        data: { labels, datasets:[{label:'DSCR',data:dscrData,backgroundColor:bgC,borderColor:brC,borderWidth:1.5,borderRadius:4}] },
+        options: { responsive:true, maintainAspectRatio:false,
+            plugins: { legend:{display:false}, tooltip:{callbacks:{label:ctx=>` DSCR : ${ctx.parsed.y.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})}`}} },
+            scales: { x:{grid:{display:false},ticks:{font:{family:'Poppins',size:9},maxRotation:0}},
+                y:{suggestedMin:0.8,grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{family:'Poppins',size:9},callback:v=>v.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})}} } },
+        plugins:[{ id:'pfDscrLine', afterDraw(chart){
+            const {ctx,chartArea,scales}=chart; if(!chartArea) return;
+            const y=scales.y.getPixelForValue(tgt);
+            ctx.save(); ctx.beginPath(); ctx.setLineDash([6,4]);
+            ctx.strokeStyle='#D9534F'; ctx.lineWidth=1.5;
+            ctx.moveTo(chartArea.left,y); ctx.lineTo(chartArea.right,y); ctx.stroke();
+            ctx.setLineDash([]); ctx.font='10px Poppins,sans-serif'; ctx.fillStyle='#D9534F';
+            ctx.textAlign='left'; ctx.fillText(`cible ${tgt.toLocaleString('fr-FR')}`,chartArea.left+4,y-4);
+            ctx.restore();
+        }}]
+    });
+}
+
+function _pfRenderChartMonthly(monthly) {
+    if (_pfChartMonthly) { _pfChartMonthly.destroy(); _pfChartMonthly = null; }
+    const first60 = monthly.filter(m => m.period <= 60);
+    const labels = first60.map(m => `M${m.period}`);
+    const toK = arr => arr.map(v => +(v/1000).toFixed(2));
+    _pfChartMonthly = new Chart(document.getElementById('pfChartMonthly'), {
+        type: 'line',
+        data: { labels, datasets:[
+            { label:'EBITDA (k€)', data:toK(first60.map(m=>m.ebitda)), borderColor:'#1863DC', backgroundColor:'rgba(24,99,220,0.07)', fill:true, tension:0.4, pointRadius:0, borderWidth:2 },
+            { label:'Service dette (k€)', data:toK(first60.map(m=>m.debtSvc)), borderColor:'#D9534F', fill:false, tension:0, pointRadius:0, borderWidth:1.5, borderDash:[5,3] },
+            { label:'FCF Equity (k€)', data:toK(first60.map(m=>m.fcf)), borderColor:'#2E9E6E', fill:false, tension:0.4, pointRadius:0, borderWidth:2 },
+        ]},
+        options: { responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+            plugins: { legend:{position:'top',labels:{font:{family:'Poppins',size:10},boxWidth:14,padding:12}},
+                tooltip:{callbacks:{
+                    label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('fr-FR',{maximumFractionDigits:0})} k€`,
+                    title:ctx=>{ const m=first60[ctx[0].dataIndex]; return `Mois ${m.period} — Année ${m.year} / Mois ${m.month}`; }
+                }} },
+            scales: { x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{family:'Poppins',size:9},maxTicksLimit:20,maxRotation:0}},
+                y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{family:'Poppins',size:9},callback:v=>v.toLocaleString('fr-FR',{maximumFractionDigits:0})+' k€'}} } }
+    });
+}
+
+function _pfRenderTable(annual, params) {
+    document.getElementById('pfTableBody').innerHTML = annual.slice(0, 10).map(row => {
+        let dscrDisplay='—', dscrCls='';
+        if (row.dscr !== null) { dscrDisplay=_pfNum(row.dscr); dscrCls=row.dscr>=params.dscrTarget?'fin-dscr-ok':row.dscr>=1?'fin-dscr-warn':'fin-dscr-bad'; }
+        return `<tr>
+            <td>${row.year}</td>
+            <td>${_pfNum(row.production/1e6,2)} GWh</td>
+            <td>${_pfK(row.totalRevenue)}</td>
+            <td>${_pfK(row.ebitda)}</td>
+            <td class="${row.ebt>=0?'positive':'negative'}">${_pfK(row.ebt)}</td>
+            <td>${_pfK(row.netIncome)}</td>
+            <td class="accent">${_pfK(row.cfads)}</td>
+            <td>${_pfK(row.debtService)}</td>
+            <td class="${dscrCls}">${dscrDisplay}</td>
+            <td class="${row.fcfEquity>=0?'positive':'negative'}">${_pfK(row.fcfEquity)}</td>
+        </tr>`;
+    }).join('');
+}
 </script>
+
+<!-- ═══ PROJECT FINANCIAL RESULTS MODAL ═══ -->
+<div class="fin-modal-overlay" id="pfModalOverlay">
+    <div class="fin-modal-sidebar-spacer"></div>
+    <div class="fin-modal-panel">
+        <div class="fin-modal-header">
+            <div class="fin-modal-title" id="pfModalTitle">Résultats financiers projet</div>
+            <div class="fin-modal-badge" id="pfModalBadge"></div>
+            <button class="fin-close-btn" onclick="closeProjFinModal()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Fermer
+            </button>
+        </div>
+        <div class="fin-modal-body">
+            <!-- Sites info -->
+            <div class="fin-sites-info" id="pfSitesInfo"></div>
+
+            <!-- Collapsible macro params -->
+            <div>
+                <div class="fin-section-label">Hypothèses macroéconomiques &amp; financement</div>
+                <div class="fin-inputs-panel">
+                    <div class="fin-inputs-header" onclick="togglePfInputs()">
+                        <div class="fin-inputs-title">Paramètres du scénario</div>
+                        <button class="fin-toggle-btn" id="pfToggleBtn">
+                            <span id="pfToggleLabel">Modifier</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                        </button>
+                    </div>
+                    <div class="fin-inputs-body" id="pfInputsBody">
+                        <div class="fin-inp-divider">Hypothèses économiques</div>
+                        <div class="fin-inp-group"><label>Prix électricité Y1 (€/MWh)</label><input type="number" id="pf_elecPrice" min="0" step="1" value="85"></div>
+                        <div class="fin-inp-group"><label>Escalation prix (%/an)</label><input type="number" id="pf_elecEsc" min="0" step="0.1" value="1.5"></div>
+                        <div class="fin-inp-group"><label>Spread BESS (€/MWh)</label><input type="number" id="pf_bessSpread" min="0" step="1" value="30"></div>
+                        <div class="fin-inp-group"><label>Inflation OPEX (%/an)</label><input type="number" id="pf_inflation" min="0" step="0.1" value="2.0"></div>
+                        <div class="fin-inp-group"><label>Taux IS (%)</label><input type="number" id="pf_tax" min="0" max="60" step="0.5" value="25"></div>
+                        <div class="fin-inp-group"><label>WACC (%)</label><input type="number" id="pf_wacc" min="0" step="0.1" value="8.0"></div>
+                        <div class="fin-inp-divider">Financement</div>
+                        <div class="fin-inp-group"><label>Gearing dette (%)</label><input type="number" id="pf_debtPct" min="0" max="100" step="1" value="70"></div>
+                        <div class="fin-inp-group"><label>Taux dette senior (%)</label><input type="number" id="pf_seniorRate" min="0" step="0.1" value="4.5"></div>
+                        <div class="fin-inp-group"><label>Durée endettement (ans)</label><input type="number" id="pf_debtDur" min="1" max="30" step="1" value="18"></div>
+                        <div class="fin-inp-group"><label>DSRA (mois)</label><input type="number" id="pf_dsra" min="0" max="24" step="1" value="6"></div>
+                        <div class="fin-inp-group"><label>DSCR cible</label><input type="number" id="pf_dscrTarget" min="1" step="0.01" value="1.15"></div>
+                        <button class="fin-recalc-btn" onclick="recalcProjFinModal()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+                            Recalculer
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="fin-section-label">Récapitulatif CAPEX &amp; hypothèses</div>
+                <div class="fin-card">
+                    <div class="fin-capex-row" id="pfCapexRow"></div>
+                    <div class="fin-params-grid" id="pfParamsGrid"></div>
+                </div>
+            </div>
+            <div>
+                <div class="fin-section-label">Indicateurs de performance</div>
+                <div class="fin-kpi-grid" id="pfKpiGrid"></div>
+            </div>
+            <div class="fin-charts-grid">
+                <div class="fin-card">
+                    <div class="fin-card-title">Compte de résultat annuel</div>
+                    <div class="fin-card-subtitle">CA, EBITDA, EBT et FCF Equity</div>
+                    <div class="fin-chart-wrap"><canvas id="pfChartPL"></canvas></div>
+                </div>
+                <div class="fin-card">
+                    <div class="fin-card-title">DSCR annuel</div>
+                    <div class="fin-card-subtitle">Debt Service Coverage Ratio</div>
+                    <div class="fin-chart-wrap"><canvas id="pfChartDSCR"></canvas></div>
+                </div>
+            </div>
+            <div class="fin-card">
+                <div class="fin-card-title">Flux de trésorerie mensuels — Années 1 à 5</div>
+                <div class="fin-card-subtitle">EBITDA, service de la dette et FCF Equity (60 premiers mois)</div>
+                <div class="fin-chart-wrap-tall"><canvas id="pfChartMonthly"></canvas></div>
+            </div>
+            <div class="fin-card">
+                <div class="fin-card-title">Résumé compte de résultat — 10 premières années</div>
+                <div class="fin-card-subtitle">Montants en k€ — Agrégation de tous les sites du projet</div>
+                <div class="fin-table-wrap">
+                    <table class="fin-pl-table">
+                        <thead><tr>
+                            <th>Année</th><th>Production (GWh)</th><th>CA (k€)</th>
+                            <th>EBITDA (k€)</th><th>EBT (k€)</th><th>Résultat net (k€)</th>
+                            <th>CFADS (k€)</th><th>Service dette (k€)</th><th>DSCR</th><th>FCF Equity (k€)</th>
+                        </tr></thead>
+                        <tbody id="pfTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>

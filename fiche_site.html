@@ -314,6 +314,17 @@ body::before {
     .save-bar { padding: 12px 16px; left: var(--sidebar-width); }
     .fields-grid, .fields-grid.three, .fields-grid.four { grid-template-columns: 1fr; }
 }
+.area-unit-toggle {
+    display: inline-flex; gap: 2px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 6px; padding: 2px;
+    margin-left: 4px; flex-shrink: 0;
+}
+.area-unit-btn {
+    padding: 3px 8px; font-size: 10px; font-weight: 600;
+    font-family: 'Poppins', sans-serif; border: none; border-radius: 4px;
+    cursor: pointer; transition: all 0.15s; color: var(--text-muted); background: transparent;
+}
+.area-unit-btn.active { background: var(--accent); color: #fff; }
 </style>
 <script src="auth.js"></script>
 </head>
@@ -479,7 +490,24 @@ function statusIconHTML(status) {
 function buildField(cfg, sourceObj) {
     const rawVal = sourceObj[cfg.key];
     const defVal = FIELD_DEFAULTS[cfg.key];
-    const displayVal = (rawVal !== null && rawVal !== undefined && rawVal !== '') ? rawVal : (defVal !== undefined ? defVal : '');
+
+    // Apply unit conversion for display
+    let displayVal;
+    if (cfg.factor && rawVal !== null && rawVal !== undefined && rawVal !== '') {
+        displayVal = parseFloat(rawVal) / cfg.factor;
+    } else if (cfg.isCurrencyPerMW) {
+        // capexBess: stored as absolute €, display as €/MW
+        const bpKw = (_site && _site.bessPower != null) ? parseFloat(_site.bessPower) || 0 : 0;
+        const bpMW = bpKw / 1000;
+        if (rawVal !== null && rawVal !== undefined && rawVal !== '' && bpMW > 0) {
+            displayVal = parseFloat(rawVal) / bpMW;
+        } else {
+            displayVal = (rawVal !== null && rawVal !== undefined && rawVal !== '') ? rawVal : (defVal !== undefined ? defVal : '');
+        }
+    } else {
+        displayVal = (rawVal !== null && rawVal !== undefined && rawVal !== '') ? rawVal : (defVal !== undefined ? defVal : '');
+    }
+
     const status = getFieldStatus(rawVal, defVal, cfg.required);
     const inputClass = 'field-input' + (status === 'empty-required' ? ' empty-required' : '');
 
@@ -494,6 +522,8 @@ function buildField(cfg, sourceObj) {
             cfg.step ? `step="${cfg.step}"` : '',
             cfg.min !== undefined ? `min="${cfg.min}"` : '',
             cfg.type === 'number' ? 'min="0"' : '',
+            cfg.factor ? `data-factor="${cfg.factor}"` : '',
+            cfg.isCurrencyPerMW ? 'data-currency-per-mw="1"' : '',
         ].filter(Boolean).join(' ');
         inputHTML = `<input class="${inputClass}" data-key="${cfg.key}" data-source="${cfg.source || 'site'}" ${attrs}>`;
     }
@@ -505,7 +535,15 @@ function buildField(cfg, sourceObj) {
             <div class="field-label">${cfg.label}</div>
             ${inputHTML}
         </div>
-        ${cfg.unit ? `<div class="field-unit">${cfg.unit}</div>` : '<div style="width:60px;flex-shrink:0;"></div>'}
+        ${cfg.areaToggle ? `
+            <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+                <span class="field-unit" data-unit-label="area" style="width:auto;">m²</span>
+                <div class="area-unit-toggle">
+                    <button class="area-unit-btn active" data-unit="m2" onclick="toggleAreaUnit('m2')">m²</button>
+                    <button class="area-unit-btn" data-unit="ha" onclick="toggleAreaUnit('ha')">ha</button>
+                </div>
+            </div>`
+        : cfg.unit ? `<div class="field-unit">${cfg.unit}</div>` : '<div style="width:60px;flex-shrink:0;"></div>'}
     </div>`;
 }
 
@@ -534,7 +572,7 @@ function buildSections(site, project) {
     sections.push({
         id: 's2', title: 'Caractéristiques foncières', badge: null,
         fields: [
-            { key: 'area',      label: 'Superficie du terrain', type: 'number', unit: 'm²',   required: false, source: 'site' },
+            { key: 'area',      label: 'Superficie du terrain', type: 'number', unit: 'm²',   required: false, source: 'site', areaToggle: true },
             { key: 'ownership', label: 'Régime foncier',        type: 'select', required: false, source: 'site',
               options: ['Propriétaire','Locataire'] },
         ]
@@ -545,9 +583,9 @@ function buildSections(site, project) {
         sections.push({
             id: 's3', title: 'Paramètres PV', badge: null,
             fields: [
-                { key: 'pvCapacity',    label: 'Capacité installée PV',        type: 'number', unit: 'kWc',          required: true,  source: 'site' },
+                { key: 'pvCapacity',    label: 'Capacité installée PV',        type: 'number', unit: 'MWc',          required: true,  source: 'site', factor: 1000 },
                 { key: 'pvProdP90',     label: 'Productible annuel P90',       type: 'number', unit: 'kWh/kWc/an',   required: true,  source: 'site' },
-                { key: 'pvProdP75',     label: 'Productible annuel P75',       type: 'number', unit: 'kWh/kWc/an',   required: false, source: 'site' },
+                { key: 'pvProdP50',     label: 'Productible annuel P50',       type: 'number', unit: 'kWh/kWc/an',   required: false, source: 'site' },
                 { key: 'pvDegradation', label: 'Dégradation annuelle modules', type: 'number', unit: '%/an',          required: true,  step: '0.01', source: 'site' },
                 { key: 'pvLifetime',    label: 'Durée de vie modules',         type: 'number', unit: 'ans',           required: true,  source: 'site' },
                 { key: 'pvGridPower',   label: 'Puissance de raccordement',    type: 'number', unit: 'kVA',           required: true,  source: 'site' },
@@ -562,8 +600,8 @@ function buildSections(site, project) {
         sections.push({
             id: 's4', title: 'Paramètres BESS', badge: null,
             fields: [
-                { key: 'bessPower',        label: 'Puissance BESS',            type: 'number', unit: 'kW',    required: true,  source: 'site' },
-                { key: 'bessCapacity',     label: 'Capacité BESS',             type: 'number', unit: 'kWh',   required: true,  source: 'site' },
+                { key: 'bessPower',        label: 'Puissance BESS',            type: 'number', unit: 'MW',    required: true,  source: 'site', factor: 1000 },
+                { key: 'bessCapacity',     label: 'Capacité BESS',             type: 'number', unit: 'MWh',   required: true,  source: 'site', factor: 1000 },
                 { key: 'bessCRate',        label: 'C-rate',                    type: 'number', unit: '—',     required: false, step: '0.01', source: 'site' },
                 { key: 'bessCycleHours',   label: 'Durée cycle stockage',      type: 'number', unit: 'h',     required: false, step: '0.1',  source: 'site' },
                 { key: 'bessCyclesPerDay', label: 'Nb. cycles max / jour',     type: 'number', unit: '/jour', required: true,  step: '0.5',  source: 'site' },
@@ -594,7 +632,7 @@ function buildSections(site, project) {
         sections.push({
             id: 's6', title: 'Coûts & CAPEX BESS', badge: null,
             fields: [
-                { key: 'capexBess', label: 'CAPEX BESS',               type: 'number', unit: '€',        required: true,  source: 'site' },
+                { key: 'capexBess', label: 'CAPEX BESS',               type: 'number', unit: '€/MW',     required: true,  source: 'site', isCurrencyPerMW: true },
                 { key: 'omBess',    label: 'O&M BESS',                 type: 'number', unit: '€/kW/an',  required: true,  step: '0.1', source: 'site' },
                 { key: 'insBess',   label: 'Assurance BESS',           type: 'number', unit: '€/kW/an',  required: false, step: '0.1', source: 'site' },
                 { key: 'amBess',    label: 'Asset Management BESS',    type: 'number', unit: '€/kW/an',  required: false, step: '0.1', source: 'site' },
@@ -795,6 +833,22 @@ function saveData() {
         const key = input.dataset.key;
         const source = input.dataset.source;
         let val = input.type === 'number' ? (input.value !== '' ? parseFloat(input.value) : '') : input.value;
+
+        // Apply unit conversion back to storage units
+        if (input.type === 'number' && val !== '') {
+            if (input.dataset.factor) {
+                val = val * parseFloat(input.dataset.factor);
+            } else if (input.dataset.currencyPerMw) {
+                // capexBess: €/MW × bessPower_MW → absolute €
+                const bpInput = document.querySelector('[data-key="bessPower"]');
+                const bpMW = bpInput && bpInput.value !== '' ? parseFloat(bpInput.value) || 0 : 0;
+                if (bpMW > 0) val = val * bpMW; // €/MW × MW = €
+                // If bpMW = 0, keep as-is (no bessPower defined)
+            } else if (key === 'area' && _areaUnit === 'ha') {
+                val = val * 10000; // ha → m²
+            }
+        }
+
         if (source === 'params') {
             if (!projects[pIdx].params) projects[pIdx].params = {};
             projects[pIdx].params[key] = val;
@@ -822,6 +876,28 @@ function showToast(msg) {
     t.textContent = msg;
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ─── Area unit toggle (ha ↔ m²) ───
+let _areaUnit = 'm2'; // 'ha' or 'm2'
+
+function toggleAreaUnit(unit) {
+    if (_areaUnit === unit) return;
+    const input = document.querySelector('[data-key="area"]');
+    if (!input || input.value === '') { _areaUnit = unit; _syncAreaToggle(); return; }
+    const val = parseFloat(input.value) || 0;
+    input.value = unit === 'ha' ? (val / 10000).toFixed(4) : (val * 10000).toFixed(0);
+    _areaUnit = unit;
+    _syncAreaToggle();
+}
+
+function _syncAreaToggle() {
+    document.querySelectorAll('.area-unit-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.unit === _areaUnit);
+    });
+    // Update the unit label text
+    const unitEl = document.querySelector('[data-unit-label="area"]');
+    if (unitEl) unitEl.textContent = _areaUnit === 'ha' ? 'ha' : 'm²';
 }
 
 // ─── Init ───

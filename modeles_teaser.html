@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modèles de Teaser — Portail Investissement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root {
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --border: #E2E0DB;
+    --border-focus: #1863DC;
+    --text: #1A1A1A;
+    --text-muted: #7A7670;
+    --text-light: #A5A09A;
+    --accent: #1863DC;
+    --accent-hover: #1250B0;
+    --accent-light: rgba(24,99,220,0.08);
+    --accent-lighter: rgba(24,99,220,0.04);
+    --success: #2E9E6E;
+    --warning: #E8A020;
+    --danger: #D94F4F;
+    --sidebar-bg: #0E1520;
+    --sidebar-text: #B8C4D8;
+    --sidebar-text-active: #FFFFFF;
+    --sidebar-hover: rgba(255,255,255,0.07);
+    --sidebar-active: rgba(24,99,220,0.22);
+    --sidebar-width: 240px;
+    --header-height: 72px;
+    --radius: 10px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("Banque d'images/solar-panels-and-wind-energy-plants-e1696032292423.jpg");
+    background-size: cover;
+    background-position: center;
+    opacity: 0.10;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    overflow-y: auto;
+    animation: slideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.sidebar-logo { display: flex; align-items: center; justify-content: center; padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.sidebar-logo-img { height: 44px; width: auto; object-fit: contain; filter: brightness(0) invert(1); opacity: 0.92; }
+.sidebar-user { padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.sidebar-user-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.3); margin-bottom: 6px; font-family: 'Poppins', sans-serif; }
+.sidebar-user-name { font-size: 13px; color: var(--sidebar-text); display: flex; align-items: center; gap: 8px; }
+.user-avatar { width: 28px; height: 28px; background: rgba(24,99,220,0.35); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff; flex-shrink: 0; font-family: 'Poppins', sans-serif; }
+.sidebar-nav { flex: 1; padding: 12px 10px; }
+.nav-section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.25); padding: 12px 10px 6px; font-family: 'Poppins', sans-serif; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; font-size: 13px; color: var(--sidebar-text); text-decoration: none; transition: background var(--transition), color var(--transition); cursor: pointer; margin-bottom: 2px; font-weight: 400; }
+.nav-item:hover { background: var(--sidebar-hover); color: var(--sidebar-text-active); }
+.nav-item.active { background: var(--sidebar-active); color: var(--sidebar-text-active); font-weight: 500; }
+.nav-item svg { width: 18px; height: 18px; opacity: 0.6; flex-shrink: 0; }
+.nav-item.active svg { opacity: 1; }
+.nav-item .nav-badge { margin-left: auto; background: rgba(24,99,220,0.35); color: #B8D4FF; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 12px; font-family: 'Poppins', sans-serif; }
+.sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px; color: rgba(255,255,255,0.2); font-family: 'Poppins', sans-serif; }
+.btn-logout { display: flex; align-items: center; gap: 7px; width: 100%; padding: 8px 12px; border-radius: 8px; font-size: 12px; color: rgba(255,255,255,0.4); background: none; border: none; cursor: pointer; font-family: 'Poppins', sans-serif; transition: background var(--transition), color var(--transition); margin-top: 4px; }
+.btn-logout:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.75); }
+.btn-logout svg { width: 15px; height: 15px; opacity: 0.6; }
+
+/* ═══ MAIN ═══ */
+.main {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+    animation: fadeIn 0.4s ease 0.15s both;
+    padding-bottom: 80px;
+}
+
+.page-header {
+    background: rgba(255,255,255,0.96);
+    border-bottom: 1px solid var(--border);
+    padding: 0 36px;
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(4px);
+}
+.page-title { font-family: 'Teko', sans-serif; font-size: 26px; font-weight: 500; letter-spacing: 0.5px; color: var(--text); line-height: 1; }
+.page-subtitle { font-size: 13px; color: var(--text-muted); font-weight: 300; }
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); font-family: 'Poppins', sans-serif; text-decoration: none; padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px; transition: all var(--transition); }
+.back-link:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.back-link svg { width: 14px; height: 14px; }
+
+.content { flex: 1; padding: 36px; display: flex; flex-direction: column; gap: 32px; }
+
+.section-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ═══ TEMPLATE TILES ═══ */
+.template-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.tmpl-tile {
+    background: rgba(255,255,255,0.97);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition), border-color var(--transition), transform 0.15s;
+    display: flex;
+    flex-direction: column;
+    animation: fadeUp 0.35s cubic-bezier(0.22,1,0.36,1) both;
+}
+.tmpl-tile:hover { box-shadow: var(--shadow-md); border-color: rgba(24,99,220,0.3); transform: translateY(-2px); }
+
+.tmpl-preview {
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+}
+
+.tmpl-preview canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.tmpl-preview-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 100%;
+}
+
+.tmpl-type-icon {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Teko', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #fff;
+}
+.tmpl-type-icon.pptx { background: linear-gradient(135deg, #D04B24, #E8622B); }
+.tmpl-type-icon.pdf  { background: linear-gradient(135deg, #D94F4F, #E8786B); }
+.tmpl-type-icon.docx { background: linear-gradient(135deg, #1863DC, #3B82F6); }
+.tmpl-type-icon.xlsx { background: linear-gradient(135deg, #1A7B47, #2E9E6E); }
+.tmpl-type-icon.default { background: linear-gradient(135deg, #7A7670, #A5A09A); }
+
+.tmpl-type-label {
+    font-size: 10px;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.tmpl-info {
+    padding: 14px 16px 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.tmpl-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tmpl-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'Poppins', sans-serif;
+}
+
+.tmpl-actions {
+    padding: 10px 16px 12px;
+    display: flex;
+    gap: 6px;
+    border-top: 1px solid var(--border);
+}
+.tmpl-btn {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    border-radius: 7px;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+.tmpl-btn svg { width: 12px; height: 12px; }
+.tmpl-btn.download { background: var(--accent-light); color: var(--accent); }
+.tmpl-btn.download:hover { background: rgba(24,99,220,0.15); }
+.tmpl-btn.delete { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+.tmpl-btn.delete:hover { border-color: var(--danger); color: var(--danger); background: rgba(217,79,79,0.06); }
+
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 64px 32px;
+    color: var(--text-muted);
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+.empty-state-icon {
+    width: 56px; height: 56px;
+    background: var(--accent-light);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent);
+    opacity: 0.7;
+}
+
+/* ═══ UPLOAD (dataroom format) ═══ */
+.dataroom-card {
+    background: rgba(255,255,255,0.96);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+}
+.dataroom-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.dataroom-title { font-family: 'Teko', sans-serif; font-size: 18px; font-weight: 500; letter-spacing: 0.3px; color: var(--text); }
+
+.dropzone {
+    border: 2px dashed rgba(24,99,220,0.3);
+    border-radius: 12px;
+    padding: 36px 20px;
+    text-align: center;
+    background: var(--accent-lighter);
+    cursor: pointer;
+    transition: all var(--transition);
+    margin-bottom: 20px;
+    position: relative;
+}
+.dropzone:hover, .dropzone.drag-over { border-color: var(--accent); background: var(--accent-light); }
+.dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.dropzone-icon { color: var(--accent); margin-bottom: 12px; }
+.dropzone-text { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.dropzone-hint { font-size: 11px; color: var(--text-muted); font-family: 'Poppins', sans-serif; }
+
+.file-list { display: flex; flex-direction: column; gap: 8px; }
+.file-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px;
+}
+.file-item-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: 'Teko', sans-serif; font-size: 11px; font-weight: 600; color: #fff; letter-spacing: 0.3px; }
+.file-item-icon.pptx { background: linear-gradient(135deg, #D04B24, #E8622B); }
+.file-item-icon.pdf  { background: linear-gradient(135deg, #D94F4F, #E8786B); }
+.file-item-icon.docx { background: linear-gradient(135deg, #1863DC, #3B82F6); }
+.file-item-icon.xlsx { background: linear-gradient(135deg, #1A7B47, #2E9E6E); }
+.file-item-icon.default { background: linear-gradient(135deg, #7A7670, #A5A09A); }
+.file-item-name { flex: 1; font-size: 13px; font-weight: 500; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-item-size { font-size: 11px; color: var(--text-light); font-family: 'Poppins', sans-serif; flex-shrink: 0; }
+.file-item-status { font-size: 11px; color: var(--success); font-family: 'Poppins', sans-serif; flex-shrink: 0; font-weight: 600; }
+
+/* ═══ DELETE CONFIRMATION MODAL ═══ */
+.delete-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(14,21,32,0.55);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+.delete-overlay.open { display: flex; }
+.delete-modal {
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px 36px 28px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.20);
+    animation: modalIn 0.2s cubic-bezier(0.4,0,0.2,1) both;
+}
+.delete-modal-icon {
+    width: 48px; height: 48px;
+    background: rgba(217,79,79,0.10);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--danger);
+    margin-bottom: 16px;
+}
+.delete-modal-title {
+    font-family: 'Teko', sans-serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+.delete-modal-body {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 24px;
+    font-family: 'Poppins', sans-serif;
+}
+.delete-modal-body strong { color: var(--text); }
+.delete-modal-footer { display: flex; justify-content: flex-end; gap: 10px; }
+.btn-cancel { padding: 9px 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-muted); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all var(--transition); }
+.btn-cancel:hover { border-color: var(--text-muted); color: var(--text); }
+.btn-danger { padding: 9px 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; color: #fff; background: var(--danger); border: none; border-radius: 8px; cursor: pointer; transition: background var(--transition); }
+.btn-danger:hover { background: #B83B3B; }
+
+/* ═══ TOAST ═══ */
+.toast {
+    position: fixed; top: calc(var(--header-height) + 16px); left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: var(--success); color: #fff;
+    padding: 12px 24px; border-radius: 10px;
+    font-size: 13px; font-weight: 600; font-family: 'Poppins', sans-serif;
+    z-index: 600; opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+    box-shadow: 0 4px 20px rgba(46,158,110,0.35);
+    white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Animations */
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes fadeUp  { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+@media (max-width: 768px) {
+    :root { --sidebar-width: 56px; }
+    .sidebar-user, .nav-section-label, .nav-item span, .nav-item .nav-badge, .sidebar-footer { display: none; }
+    .sidebar-logo { padding: 16px 12px; }
+    .sidebar-logo-img { height: 32px; }
+    .sidebar-nav { padding: 8px 6px; }
+    .nav-item { justify-content: center; padding: 10px; }
+    .content { padding: 20px; }
+    .template-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+}
+</style>
+<script src="auth.js"></script>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <img src="Banque d'images/DOL-COG-IV-020-A -Logo final Groupe Dolfines FR transp.png" class="sidebar-logo-img" alt="Dolfines">
+    </div>
+    <div class="sidebar-user">
+        <div class="sidebar-user-label">Utilisateur</div>
+        <div class="sidebar-user-name">
+            <div class="user-avatar" id="userAvatar">?</div>
+            <span id="userName">—</span>
+        </div>
+    </div>
+    <div class="sidebar-nav">
+        <div class="nav-section-label">Navigation</div>
+        <a class="nav-item" href="portefeuille_projets.html" title="Projets">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span>Projets</span>
+            <span class="nav-badge" id="navProjectCount">0</span>
+        </a>
+        <a class="nav-item" href="creer_projet.html" title="Créer Projet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            <span>Créer Projet</span>
+        </a>
+        <a class="nav-item active" href="donnees.html" title="Données">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            <span>Données</span>
+        </a>
+    </div>
+    <div class="sidebar-footer">
+        <button class="btn-logout" onclick="Auth.logout()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Déconnexion
+        </button>
+        v1.0
+    </div>
+</nav>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+    <header class="page-header">
+        <a class="back-link" href="donnees.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Retour
+        </a>
+        <div class="page-title">Modèles de Teaser</div>
+        <div class="page-subtitle">Bibliothèque de présentations et modèles projet</div>
+    </header>
+
+    <div class="content">
+
+        <!-- ═══ TEMPLATE LIBRARY ═══ -->
+        <div>
+            <div class="section-label">Bibliothèque de modèles (<span id="templateCount">0</span>)</div>
+            <div class="template-grid" id="templateGrid">
+                <!-- populated by JS -->
+            </div>
+        </div>
+
+        <!-- ═══ UPLOAD ═══ -->
+        <div>
+            <div class="section-label">Ajouter un modèle</div>
+            <div class="dataroom-card">
+                <div class="dataroom-header">
+                    <div class="dataroom-title">Importer un modèle</div>
+                    <span style="font-size:11px;color:var(--text-muted);font-family:'Poppins',sans-serif;">
+                        PowerPoint, PDF, Word, Excel
+                    </span>
+                </div>
+                <div class="dropzone" id="tdDropzone">
+                    <input type="file" id="tdFileInput" accept=".pptx,.ppt,.pdf,.docx,.doc,.xlsx,.xls" multiple>
+                    <div class="dropzone-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <div class="dropzone-text">Glissez vos fichiers ici ou cliquez pour sélectionner</div>
+                    <div class="dropzone-hint">PPTX, PDF, DOCX, XLSX — Modèles de présentations investisseur</div>
+                </div>
+                <div class="file-list" id="tdFileList"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ═══ DELETE CONFIRMATION ═══ -->
+<div class="delete-overlay" id="deleteOverlay">
+    <div class="delete-modal">
+        <div class="delete-modal-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        </div>
+        <div class="delete-modal-title">Supprimer le modèle</div>
+        <div class="delete-modal-body">
+            Voulez-vous vraiment supprimer <strong id="deleteFileName">ce modèle</strong> ?<br>
+            Cette action est irréversible.
+        </div>
+        <div class="delete-modal-footer">
+            <button class="btn-cancel" onclick="cancelDelete()">Annuler</button>
+            <button class="btn-danger" onclick="confirmDelete()">Supprimer</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+Auth.checkAuth();
+
+// ══════════════════════════════════════════════════
+//  IndexedDB — stockage illimité (pas de quota localStorage)
+//  DB: pi_teaser_db  |  Store: templates
+//  Chaque enregistrement : { id, name, size, mimeType, addedAt, data: ArrayBuffer }
+// ══════════════════════════════════════════════════
+const IDB_NAME    = 'pi_teaser_db';
+const IDB_VERSION = 1;
+const IDB_STORE   = 'templates';
+
+function openDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+        req.onupgradeneeded = e => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(IDB_STORE)) {
+                db.createObjectStore(IDB_STORE, { keyPath: 'id' });
+            }
+        };
+        req.onsuccess = e => resolve(e.target.result);
+        req.onerror   = e => reject(e.target.error);
+    });
+}
+
+async function idbGetAll() {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const req = db.transaction(IDB_STORE, 'readonly').objectStore(IDB_STORE).getAll();
+        req.onsuccess = () => resolve(req.result);
+        req.onerror   = () => reject(req.error);
+    });
+}
+
+async function idbGet(id) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const req = db.transaction(IDB_STORE, 'readonly').objectStore(IDB_STORE).get(id);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror   = () => reject(req.error);
+    });
+}
+
+async function idbPut(record) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const req = db.transaction(IDB_STORE, 'readwrite').objectStore(IDB_STORE).put(record);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror   = () => reject(req.error);
+    });
+}
+
+async function idbDelete(id) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const req = db.transaction(IDB_STORE, 'readwrite').objectStore(IDB_STORE).delete(id);
+        req.onsuccess = () => resolve();
+        req.onerror   = () => reject(req.error);
+    });
+}
+
+// ─── File type helpers ───
+function extOf(name) {
+    const m = name.toLowerCase().match(/\.([a-z0-9]+)$/);
+    return m ? m[1] : 'file';
+}
+function typeClass(ext) {
+    if (['pptx','ppt'].includes(ext)) return 'pptx';
+    if (ext === 'pdf')                return 'pdf';
+    if (['docx','doc'].includes(ext)) return 'docx';
+    if (['xlsx','xls'].includes(ext)) return 'xlsx';
+    return 'default';
+}
+function typeLabel(ext) {
+    if (['pptx','ppt'].includes(ext)) return 'PPTX';
+    if (ext === 'pdf')                return 'PDF';
+    if (['docx','doc'].includes(ext)) return 'DOCX';
+    if (['xlsx','xls'].includes(ext)) return 'XLSX';
+    return ext.toUpperCase();
+}
+function mimeOf(name) {
+    const ext = extOf(name);
+    const map = {
+        pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        ppt:  'application/vnd.ms-powerpoint',
+        pdf:  'application/pdf',
+        docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        doc:  'application/msword',
+        xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        xls:  'application/vnd.ms-excel',
+    };
+    return map[ext] || 'application/octet-stream';
+}
+function fmtBytes(b) {
+    if (b < 1024)    return b + ' o';
+    if (b < 1048576) return (b / 1024).toFixed(0) + ' Ko';
+    return (b / 1048576).toFixed(1) + ' Mo';
+}
+function fmtDate(iso) {
+    return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// ─── PDF thumbnail (ArrayBuffer → canvas) ───
+async function renderPdfThumbnail(arrayBuffer, canvasEl) {
+    try {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const pdf  = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+        const page = await pdf.getPage(1);
+        const containerW = canvasEl.parentElement.offsetWidth || 200;
+        const scale = containerW / page.getViewport({ scale: 1 }).width;
+        const vp = page.getViewport({ scale });
+        canvasEl.width  = vp.width;
+        canvasEl.height = vp.height;
+        await page.render({ canvasContext: canvasEl.getContext('2d'), viewport: vp }).promise;
+    } catch {
+        canvasEl.style.display = 'none';
+        const ph = canvasEl.parentElement.querySelector('.tmpl-preview-placeholder');
+        if (ph) ph.style.display = 'flex';
+    }
+}
+
+// ─── Render tiles ───
+async function renderTemplates() {
+    const templates = await idbGetAll();
+    // Sort newest first
+    templates.sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
+
+    const grid = document.getElementById('templateGrid');
+    document.getElementById('templateCount').textContent = templates.length;
+
+    if (templates.length === 0) {
+        grid.innerHTML = `
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div>Aucun modèle dans la bibliothèque.</div>
+            <div style="font-size:12px;opacity:0.7;">Importez un fichier ci-dessous pour commencer.</div>
+        </div>`;
+        return;
+    }
+
+    grid.innerHTML = templates.map((t, i) => {
+        const ext   = extOf(t.name);
+        const tc    = typeClass(ext);
+        const tl    = typeLabel(ext);
+        const isPdf = ext === 'pdf';
+
+        const previewInner = isPdf
+            ? `<canvas id="pdfCanvas_${t.id}" style="width:100%;display:block;"></canvas>
+               <div class="tmpl-preview-placeholder" style="display:none;">
+                   <div class="tmpl-type-icon ${tc}">${tl}</div>
+                   <div class="tmpl-type-label">${tl}</div>
+               </div>`
+            : `<div class="tmpl-preview-placeholder">
+                   <div class="tmpl-type-icon ${tc}">${tl}</div>
+                   <div class="tmpl-type-label">${tl}</div>
+               </div>`;
+
+        return `
+        <div class="tmpl-tile" style="animation-delay:${i * 0.06}s;">
+            <div class="tmpl-preview">${previewInner}</div>
+            <div class="tmpl-info">
+                <div class="tmpl-name" title="${t.name}">${t.name}</div>
+                <div class="tmpl-meta">${fmtBytes(t.size)} · ${fmtDate(t.addedAt)}</div>
+            </div>
+            <div class="tmpl-actions">
+                <button class="tmpl-btn download" onclick="downloadTemplate('${t.id}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Télécharger
+                </button>
+                <button class="tmpl-btn delete" onclick="openDeleteModal('${t.id}', '${t.name.replace(/'/g, "\\'")}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+
+    // Render PDF thumbnails from ArrayBuffer
+    templates.forEach(t => {
+        if (extOf(t.name) === 'pdf' && t.data) {
+            const canvas = document.getElementById('pdfCanvas_' + t.id);
+            if (canvas) renderPdfThumbnail(t.data, canvas);
+        }
+    });
+}
+
+// ─── Upload ───
+function handleFiles(files) {
+    Array.from(files).forEach(file => {
+        const itemId = 'fi_' + Date.now() + Math.random().toString(36).slice(2);
+        const ext = extOf(file.name);
+        const tc  = typeClass(ext);
+        const tl  = typeLabel(ext);
+
+        // Show progress row
+        const tdFileList = document.getElementById('tdFileList');
+        const item = document.createElement('div');
+        item.className = 'file-item';
+        item.id = itemId;
+        item.innerHTML = `
+            <div class="file-item-icon ${tc}">${tl}</div>
+            <div class="file-item-name">${file.name}</div>
+            <div class="file-item-size">${fmtBytes(file.size)}</div>
+            <div class="file-item-status">Chargement…</div>`;
+        tdFileList.prepend(item);
+
+        const reader = new FileReader();
+        reader.onload = async e => {
+            const statusEl = document.getElementById(itemId)?.querySelector('.file-item-status');
+            try {
+                await idbPut({
+                    id:       Date.now().toString(36) + Math.random().toString(36).slice(2),
+                    name:     file.name,
+                    size:     file.size,
+                    mimeType: mimeOf(file.name),
+                    addedAt:  new Date().toISOString(),
+                    data:     e.target.result,   // ArrayBuffer
+                });
+                if (statusEl) statusEl.textContent = '✓ Ajouté';
+                await renderTemplates();
+                showToast('✓ Modèle "' + file.name + '" ajouté');
+            } catch (err) {
+                if (statusEl) { statusEl.textContent = 'Erreur lors de l\'enregistrement'; statusEl.style.color = 'var(--danger)'; }
+                showToast('Erreur — impossible d\'enregistrer le fichier');
+                console.error(err);
+            }
+        };
+        reader.readAsArrayBuffer(file);   // binaire — pas de surcoût base64
+    });
+}
+
+// ─── Download ───
+async function downloadTemplate(id) {
+    const t = await idbGet(id);
+    if (!t) return;
+    const blob = new Blob([t.data], { type: t.mimeType || mimeOf(t.name) });
+    const url  = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = t.name; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+// ─── Delete ───
+let _deleteId = null;
+
+function openDeleteModal(id, name) {
+    _deleteId = id;
+    document.getElementById('deleteFileName').textContent = '"' + name + '"';
+    document.getElementById('deleteOverlay').classList.add('open');
+}
+function cancelDelete() {
+    _deleteId = null;
+    document.getElementById('deleteOverlay').classList.remove('open');
+}
+async function confirmDelete() {
+    if (!_deleteId) return;
+    await idbDelete(_deleteId);
+    _deleteId = null;
+    document.getElementById('deleteOverlay').classList.remove('open');
+    await renderTemplates();
+    showToast('Modèle supprimé');
+}
+
+// ─── Toast ───
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ─── Drag & drop ───
+(function() {
+    const zone  = document.getElementById('tdDropzone');
+    const input = document.getElementById('tdFileInput');
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+    });
+    input.addEventListener('change', () => { if (input.files.length) handleFiles(input.files); });
+    document.getElementById('deleteOverlay').addEventListener('click', e => {
+        if (e.target === e.currentTarget) cancelDelete();
+    });
+})();
+
+// ─── Init ───
+(async function() {
+    const projects = JSON.parse(localStorage.getItem('pi_projects') || '[]');
+    document.getElementById('navProjectCount').textContent = projects.length;
+    const user = Auth.getUserName ? Auth.getUserName() : '';
+    if (user) {
+        document.getElementById('userName').textContent = user;
+        document.getElementById('userAvatar').textContent = user.charAt(0).toUpperCase();
+    }
+    await renderTemplates();
+})();
+</script>
+</body>
+</html>
