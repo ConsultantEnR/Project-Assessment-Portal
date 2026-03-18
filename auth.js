@@ -9,6 +9,7 @@
     // ── Utilisateurs autorisés ─────────────────────────────
     const USERS = [
         { email: 'nicolas.lecoeur@8p2.fr', password: 'Dolfines@2026.' },
+        { email: 'richard.musi@8p2.fr',    password: 'Claudine2026.'  },
     ];
 
     const SESSION_KEY = 'pi_auth_session';
