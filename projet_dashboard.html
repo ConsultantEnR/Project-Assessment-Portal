@@ -1001,6 +1001,65 @@ body::before {
 .fin-sites-info svg { width: 16px; height: 16px; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
 .fin-sites-info strong { color: var(--text); }
 
+/* ─── Delete site button ─── */
+.btn-delete-site {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px;
+    background: none; border: 1px solid transparent;
+    border-radius: 6px; cursor: pointer;
+    color: var(--text-light);
+    transition: all var(--transition);
+    flex-shrink: 0;
+}
+.btn-delete-site:hover { background: rgba(217,83,79,0.08); border-color: rgba(217,83,79,0.3); color: #D9534F; }
+.btn-delete-site svg { width: 15px; height: 15px; }
+
+/* ─── Delete project button ─── */
+.btn-delete-project {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    background: none; border: 1.5px solid rgba(217,83,79,0.35);
+    border-radius: 8px; font-family: 'Montserrat', sans-serif;
+    font-size: 12px; font-weight: 600; color: #D9534F;
+    cursor: pointer; transition: all var(--transition);
+    flex-shrink: 0;
+}
+.btn-delete-project svg { width: 14px; height: 14px; }
+.btn-delete-project:hover { background: rgba(217,83,79,0.08); border-color: #D9534F; }
+
+/* ─── Custom fields section ─── */
+.custom-fields-wrap { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+.custom-fields-title { font-size: 10.5px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; font-family: 'Poppins', sans-serif; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.custom-fields-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px 20px; }
+.custom-field-item { display: flex; flex-direction: column; gap: 4px; }
+.custom-field-label { font-size: 10px; font-weight: 600; color: var(--text-muted); font-family: 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 0.06em; }
+.custom-field-row { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: #fff; }
+.custom-field-value { flex: 1; padding: 7px 10px; font-size: 13px; font-weight: 500; color: var(--text); font-family: 'Montserrat', sans-serif; }
+.custom-field-unit { padding: 7px 10px; font-size: 11px; font-weight: 600; color: var(--text-light); font-family: 'Poppins', sans-serif; border-left: 1px solid var(--border); background: rgba(247,246,243,0.8); white-space: nowrap; }
+
+/* ─── Confirm delete modal ─── */
+.confirm-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(14,21,32,0.6); z-index: 600;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(2px);
+}
+.confirm-overlay.open { display: flex; }
+.confirm-modal {
+    background: #fff; border-radius: 16px; padding: 28px 32px 24px;
+    width: 100%; max-width: 420px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.22);
+    animation: modalIn 0.2s cubic-bezier(0.4,0,0.2,1) both;
+}
+.confirm-title { font-family: 'Teko', sans-serif; font-size: 22px; font-weight: 500; color: var(--text); margin-bottom: 10px; }
+.confirm-body { font-size: 13px; color: var(--text-muted); font-family: 'Poppins', sans-serif; line-height: 1.6; margin-bottom: 24px; }
+.confirm-body strong { color: var(--text); }
+.confirm-footer { display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 18px; }
+.btn-confirm-cancel { padding: 9px 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-muted); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all var(--transition); }
+.btn-confirm-cancel:hover { border-color: var(--text-muted); color: var(--text); }
+.btn-confirm-delete { padding: 9px 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; color: #fff; background: #D9534F; border: none; border-radius: 8px; cursor: pointer; transition: background var(--transition); }
+.btn-confirm-delete:hover { background: #c0392b; }
+
 /* ═══════════════════ RESPONSIVE ═══════════════════ */
 @media (max-width: 768px) {
     :root { --sidebar-width: 56px; }
@@ -1115,10 +1174,37 @@ body::before {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             Modifier
         </button>
+        <button class="btn-delete-project" onclick="confirmDeleteProject()" title="Supprimer ce projet définitivement" style="margin-left:8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+            Supprimer
+        </button>
     </header>
 
     <!-- Content -->
     <div class="content">
+
+        <!-- ═══ DOCUMENT UPLOAD (top) ═══ -->
+        <div style="margin-bottom:28px;">
+            <div class="section-label">Documents du projet</div>
+            <div class="proj-dataroom-card">
+                <div class="proj-dataroom-header">
+                    <div class="proj-dataroom-title">Glisser des documents pour remplir automatiquement le projet</div>
+                    <span style="font-size:11px;color:var(--text-muted);font-family:'Poppins',sans-serif;">
+                        PDF, Word, TXT, CSV — teasers, études techniques, modèles financiers
+                    </span>
+                </div>
+                <div class="proj-dropzone" id="projDropZone">
+                    <input type="file" id="projFileInput" accept=".pdf,.txt,.doc,.docx,.csv,.xlsx,.xls" multiple onchange="handleProjFiles(this.files)">
+                    <div class="proj-dropzone-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <div class="proj-dropzone-text">Glissez vos documents ici ou cliquez pour sélectionner</div>
+                    <div class="proj-dropzone-hint">L'analyse automatique crée les sites et remplit les champs identifiés</div>
+                </div>
+                <div class="proj-file-list" id="projDocList"></div>
+            </div>
+        </div>
+
         <div class="section-title">Sites du projet</div>
 
         <!-- Sites table -->
@@ -1133,6 +1219,7 @@ body::before {
                         <th>Statut</th>
                         <th>Cap. PV (MWc)</th>
                         <th>BESS (MW / MWh)</th>
+                        <th style="width:52px;"></th>
                     </tr>
                 </thead>
                 <tbody id="sitesTableBody"></tbody>
@@ -1269,6 +1356,12 @@ body::before {
                         </div>
                     </div>
 
+                    <!-- Custom fields extracted from documents -->
+                    <div class="custom-fields-wrap" id="customFieldsWrap" style="display:none;">
+                        <div class="custom-fields-title">Champs détectés dans les documents</div>
+                        <div class="custom-fields-grid" id="customFieldsGrid"></div>
+                    </div>
+
                     <div class="params-save-bar">
                         <span class="params-saved-msg" id="paramsSavedMsg">✓ Paramètres enregistrés</span>
                         <button class="btn-save-params" onclick="saveParams()">
@@ -1280,27 +1373,6 @@ body::before {
             </div>
         </div>
 
-        <!-- ═══ DOCUMENT UPLOAD ═══ -->
-        <div>
-            <div class="section-label">Data Room</div>
-            <div class="proj-dataroom-card">
-                <div class="proj-dataroom-header">
-                    <div class="proj-dataroom-title">Documents du projet</div>
-                    <span style="font-size:11px;color:var(--text-muted);font-family:'Poppins',sans-serif;">
-                        Glissez des documents pour remplir automatiquement le projet
-                    </span>
-                </div>
-                <div class="proj-dropzone" id="projDropZone">
-                    <input type="file" id="projFileInput" accept=".pdf,.txt,.doc,.docx,.csv" multiple onchange="handleProjFiles(this.files)">
-                    <div class="proj-dropzone-icon">
-                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                    </div>
-                    <div class="proj-dropzone-text">Glissez vos documents ici ou cliquez pour sélectionner</div>
-                    <div class="proj-dropzone-hint">PDF, Word, TXT, CSV — Teasers, études techniques, modèles financiers</div>
-                </div>
-                <div class="proj-file-list" id="projDocList"></div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -1520,6 +1592,11 @@ function renderSites(project) {
                 <td>${statusBadge(site.status)}</td>
                 <td>${pvCell}</td>
                 <td>${bessCell}</td>
+                <td style="text-align:center;">
+                    <button class="btn-delete-site" title="Supprimer ce site" onclick="event.stopPropagation(); confirmDeleteSite('${site.id}', ${JSON.stringify(site.name || 'Site ' + (i + 1))})">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                    </button>
+                </td>
             `;
             tr.addEventListener('click', () => {
                 window.location.href = 'site_dashboard.html?project=' + project.id + '&site=' + site.id;
@@ -1576,6 +1653,51 @@ function saveParams() {
     const msg = document.getElementById('paramsSavedMsg');
     msg.style.opacity = '1';
     setTimeout(() => { msg.style.opacity = '0'; }, 2500);
+}
+
+// ─── Delete site ───
+let _pendingDeleteSiteId = null;
+function confirmDeleteSite(siteId, siteName) {
+    _pendingDeleteSiteId = siteId;
+    document.getElementById('confirmTitle').textContent = 'Supprimer le site';
+    document.getElementById('confirmBody').innerHTML = `Supprimer définitivement le site <strong>${siteName}</strong> et toutes ses données ?<br><br>Cette action est irréversible.`;
+    document.getElementById('confirmOverlay').classList.add('open');
+}
+function deleteSite() {
+    if (!_pendingDeleteSiteId) return;
+    const projects = getProjects();
+    const id = getProjectId();
+    const idx = projects.findIndex(p => p.id === id);
+    if (idx === -1) { closeConfirm(); return; }
+    projects[idx].sites = (projects[idx].sites || []).filter(s => s.id !== _pendingDeleteSiteId);
+    localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(projects));
+    _pendingDeleteSiteId = null;
+    closeConfirm();
+    renderSites(projects[idx]);
+}
+
+// ─── Delete project ───
+function confirmDeleteProject() {
+    const project = getProject();
+    if (!project) return;
+    _pendingDeleteSiteId = null; // reuse confirm modal for project deletion
+    document.getElementById('confirmTitle').textContent = 'Supprimer le projet';
+    document.getElementById('confirmBody').innerHTML = `Supprimer définitivement le projet <strong>${project.name}</strong> et tous ses sites ?<br><br>Cette action est irréversible.`;
+    document.getElementById('confirmOverlay').classList.add('open');
+    // Override delete action
+    document.getElementById('confirmDeleteBtn').onclick = doDeleteProject;
+}
+function doDeleteProject() {
+    const id = getProjectId();
+    const projects = getProjects().filter(p => p.id !== id);
+    localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(projects));
+    window.location.href = 'portefeuille_projets.html';
+}
+function closeConfirm() {
+    document.getElementById('confirmOverlay').classList.remove('open');
+    _pendingDeleteSiteId = null;
+    // Reset confirm button to default
+    document.getElementById('confirmDeleteBtn').onclick = deleteSite;
 }
 
 // ─── Teaser modal ───
@@ -1992,6 +2114,9 @@ function saveEditProject() {
 document.getElementById('editProjOverlay').addEventListener('click', e => {
     if (e.target === e.currentTarget) closeEditProjectModal();
 });
+document.getElementById('confirmOverlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeConfirm();
+});
 
 // ─── Document upload (project level) ───
 const PROJ_DR_KEY = () => 'pi_proj_docs_' + getProjectId();
@@ -2074,21 +2199,25 @@ function deleteProjDoc(id) {
 
 // ─── Extraction ───
 let _projExtractItems = [];
+let _projExtractCustom = [];
 
 function extractProjDoc(id) {
     const doc = getProjDocs().find(d => d.id === id);
     if (!doc) return;
     const text = doc.textContent || '';
-    _projExtractItems = parseProjText(text, doc.name);
+    const parsed = parseProjText(text, doc.name);
+    _projExtractItems = parsed.knownItems;
+    _projExtractCustom = parsed.customFields;
 
+    const totalCount = _projExtractItems.length + _projExtractCustom.length;
     const sub = document.getElementById('projExtractSub');
-    sub.textContent = `Fichier : ${doc.name} — ${_projExtractItems.length} donnée(s) détectée(s)`;
+    sub.textContent = `Fichier : ${doc.name} — ${totalCount} donnée(s) détectée(s)${_projExtractCustom.length ? ` dont ${_projExtractCustom.length} champ(s) nouveau(x)` : ''}`;
 
     const list = document.getElementById('projExtractList');
-    if (!_projExtractItems.length) {
+    if (!_projExtractItems.length && !_projExtractCustom.length) {
         list.innerHTML = '<div class="proj-extract-empty">Aucune donnée exploitable détectée dans ce fichier.<br>Les fichiers texte (TXT, CSV) donnent les meilleurs résultats.</div>';
     } else {
-        list.innerHTML = _projExtractItems.map((item, i) => `
+        const knownHtml = _projExtractItems.map((item, i) => `
             <div class="proj-extract-item">
                 <input type="checkbox" id="pex_${i}" checked>
                 <span class="proj-extract-label">${item.label}</span>
@@ -2096,55 +2225,250 @@ function extractProjDoc(id) {
                 <span class="proj-extract-conf ${item.conf}">${item.conf === 'high' ? 'Fiable' : 'Probable'}</span>
             </div>
         `).join('');
+        const customHtml = _projExtractCustom.length ? `
+            <div style="font-size:10px;font-weight:700;color:var(--accent);font-family:'Poppins',sans-serif;text-transform:uppercase;letter-spacing:.06em;padding:10px 0 4px;border-top:1px solid var(--border);margin-top:6px;">
+                Champs non reconnus — seront ajoutés au projet
+            </div>
+            ${_projExtractCustom.map((item, i) => `
+            <div class="proj-extract-item" style="border-color:rgba(24,99,220,0.2);">
+                <input type="checkbox" id="pexc_${i}" checked>
+                <span class="proj-extract-label" style="color:var(--accent);">${item.label}</span>
+                <span class="proj-extract-value">${item.display}</span>
+                <span class="proj-extract-conf medium">Nouveau</span>
+            </div>`).join('')}
+        ` : '';
+        list.innerHTML = knownHtml + customHtml;
     }
     document.getElementById('projExtractOverlay').classList.add('open');
 }
 
 function parseProjText(text, filename) {
     const items = [];
-    const add = (label, key, value, display, conf, target) => items.push({ label, key, value, display, conf, target });
+    const unknownFields = [];
+    const seenKeys = new Set();
+    const add = (label, key, value, display, conf, target, isCustom) => {
+        if (seenKeys.has(key)) return;
+        seenKeys.add(key);
+        items.push({ label, key, value, display, conf, target, isCustom: !!isCustom });
+    };
 
-    // Project name from filename
-    const cleanName = filename.replace(/\.(pdf|docx?|txt|csv)$/i, '').replace(/[-_]/g, ' ').trim();
+    const num = s => parseFloat(String(s).replace(/\s/g, '').replace(',', '.'));
+
+    // ─── Project name from filename ───
+    const cleanName = filename.replace(/\.(pdf|docx?|txt|csv|xlsx?)$/i, '').replace(/[-_]/g, ' ').trim();
     if (cleanName.length > 2 && cleanName.length < 80) {
         add('Nom projet', 'name', cleanName, cleanName, 'medium', 'project');
     }
 
-    // Try to extract capacity: numbers followed by MWc, MW, kWc, kW
-    const capMatches = [...text.matchAll(/(\d[\d\s,.]*)\s*(MWc|MW|kWc|kW)(?:\s+(?:PV|solaire|photovoltaïque))?/gi)];
-    capMatches.slice(0, 2).forEach(m => {
-        const num = parseFloat(m[1].replace(/[\s,]/g, '.'));
-        if (!isNaN(num) && num > 0) {
-            const unit = m[2].toLowerCase();
-            const kWc = unit.startsWith('m') ? num * 1000 : num;
-            if (kWc >= 10 && kWc <= 5000000) {
-                add('Capacité PV', 'pvCapacity', kWc, `${kWc.toLocaleString('fr-FR')} kWc`, 'medium', 'site');
+    // ─── Site / project name patterns ───
+    const siteNameMatch = text.match(/(?:site|projet|parc)\s+(?:de\s+|solaire\s+)?([A-ZÀ-Ü][A-Za-zÀ-ÿ\-\s]{2,30})/);
+    if (siteNameMatch) add('Nom du site', 'siteName', siteNameMatch[1].trim(), siteNameMatch[1].trim(), 'medium', 'site');
+
+    // ─── PV capacity (kWc / MWc / MWp / kWp) ───
+    const pvPatterns = [
+        /capacit[eé].*?PV[^:]*[:=\s]+([0-9][0-9\s,.]*)\s*(MWc|MWp|kWc|kWp|MW|kW)/i,
+        /([0-9][0-9\s,.]*)\s*(MWc|MWp)\b/i,
+        /([0-9][0-9\s,.]*)\s*(kWc|kWp)\s*(?:PV|solaire|photovolta)/i,
+        /puissance\s+(?:install[eé]e|cr[eê]te)[^:]*[:=\s]+([0-9][0-9\s,.]*)\s*(MWc|MWp|kWc|kWp|MW|kW)/i,
+    ];
+    for (const re of pvPatterns) {
+        const m = text.match(re);
+        if (m) {
+            const val = num(m[1]); const unit = m[2].toLowerCase();
+            if (!isNaN(val) && val > 0) {
+                const kWc = unit.startsWith('m') ? val * 1000 : val;
+                if (kWc >= 10 && kWc <= 10000000) {
+                    const origLabel = unit.startsWith('m') ? `${val} ${m[2]} → converti en kWc` : `${val} ${m[2]}`;
+                    add('Capacité PV', 'pvCapacity', kWc, `${kWc.toLocaleString('fr-FR')} kWc (${origLabel})`, 'high', 'site');
+                    break;
+                }
             }
         }
-    });
+    }
 
-    // Country / location
-    const countries = ['France','Espagne','Italie','Grèce','Portugal','Allemagne','Royaume-Uni','Belgique','Pays-Bas','Pologne','Sénégal','Maroc','Tunisie','Côte d\'Ivoire'];
-    countries.forEach(c => {
+    // ─── BESS power (MW / kW) ───
+    const bessPatterns = [
+        /BESS[^:]*puissance[^:]*[:=\s]+([0-9][0-9\s,.]*)\s*(MW|kW)/i,
+        /puissance\s+BESS[^:]*[:=\s]+([0-9][0-9\s,.]*)\s*(MW|kW)/i,
+        /stockage.*?([0-9][0-9\s,.]*)\s*(MW)\b/i,
+    ];
+    for (const re of bessPatterns) {
+        const m = text.match(re);
+        if (m) {
+            const val = num(m[1]); const unit = m[2].toLowerCase();
+            if (!isNaN(val) && val > 0) {
+                const kW = unit === 'mw' ? val * 1000 : val;
+                if (kW > 0 && kW < 2000000) {
+                    add('Puissance BESS', 'bessPower', kW, `${kW.toLocaleString('fr-FR')} kW (${val} ${m[2]})`, 'medium', 'site');
+                    break;
+                }
+            }
+        }
+    }
+
+    // ─── BESS capacity (MWh / kWh) ───
+    const bessCapPatterns = [
+        /BESS[^:]*capacit[eé][^:]*[:=\s]+([0-9][0-9\s,.]*)\s*(MWh|kWh)/i,
+        /capacit[eé]\s+(?:de\s+)?stockage[^:]*[:=\s]+([0-9][0-9\s,.]*)\s*(MWh|kWh)/i,
+        /([0-9][0-9\s,.]*)\s*(MWh)\b/i,
+    ];
+    for (const re of bessCapPatterns) {
+        const m = text.match(re);
+        if (m) {
+            const val = num(m[1]); const unit = m[2].toLowerCase();
+            if (!isNaN(val) && val > 0) {
+                const kWh = unit === 'mwh' ? val * 1000 : val;
+                if (kWh > 0 && kWh < 5000000) {
+                    add('Capacité BESS', 'bessCapacity', kWh, `${kWh.toLocaleString('fr-FR')} kWh (${val} ${m[2]})`, 'medium', 'site');
+                    break;
+                }
+            }
+        }
+    }
+
+    // ─── Country / location ───
+    const COUNTRIES = [
+        ['France','🇫🇷'],['Espagne','🇪🇸'],['Italie','🇮🇹'],['Grèce','🇬🇷'],['Portugal','🇵🇹'],
+        ['Allemagne','🇩🇪'],['Royaume-Uni','🇬🇧'],['Belgique','🇧🇪'],['Pays-Bas','🇳🇱'],['Pologne','🇵🇱'],
+        ['Sénégal','🇸🇳'],['Maroc','🇲🇦'],['Tunisie','🇹🇳'],['Côte d\'Ivoire','🇨🇮'],['Roumanie','🇷🇴'],['Bulgarie','🇧🇬'],
+    ];
+    COUNTRIES.forEach(([c, flag]) => {
         if (text.toLowerCase().includes(c.toLowerCase())) {
-            add('Pays', 'country', c, c, 'high', 'site');
+            add('Pays', 'country', c, `${flag} ${c}`, 'high', 'site');
         }
     });
 
-    // Site name patterns: "site de X", "projet X"
-    const siteMatch = text.match(/(?:site|projet|parc)\s+(?:de\s+)?([A-ZÀ-Ü][a-zà-ü\-\s]{2,30})/i);
-    if (siteMatch) {
-        add('Nom du site', 'siteName', siteMatch[1].trim(), siteMatch[1].trim(), 'medium', 'site');
+    // ─── Electricity price (€/MWh or cts€/kWh or €/kWh) ───
+    const priceMatches = [
+        { re: /(\d{2,3}(?:[.,]\d+)?)\s*(?:€|EUR)\s*\/\s*MWh/i, toMWh: 1, unit: '€/MWh' },
+        { re: /(\d{1,2}(?:[.,]\d+)?)\s*(?:cts?€|centimes?|c€)\s*\/\s*kWh/i, toMWh: 10, unit: 'cts€/kWh' },
+        { re: /(\d{1}(?:[.,]\d+)?)\s*€\s*\/\s*kWh/i, toMWh: 1000, unit: '€/kWh' },
+        { re: /prix.*?[eé]lectricit[eé][^:]*[:=\s]+([0-9][0-9,.]*)\s*(?:€|EUR)/i, toMWh: 1, unit: '€' },
+    ];
+    for (const { re, toMWh, unit } of priceMatches) {
+        const m = text.match(re);
+        if (m) {
+            const raw = num(m[1]); const price = raw * toMWh;
+            if (price > 0 && price < 500) {
+                const display = unit !== '€/MWh' ? `${price.toFixed(2)} €/MWh (converti de ${raw} ${unit})` : `${price} €/MWh`;
+                add('Prix électricité', 'electricityPrice', price, display, 'high', 'project');
+                break;
+            }
+        }
     }
 
-    // Price: €/MWh
-    const priceMatch = text.match(/(\d{2,3}(?:[.,]\d+)?)\s*(?:€|EUR)\s*\/\s*MWh/i);
-    if (priceMatch) {
-        const price = parseFloat(priceMatch[1].replace(',', '.'));
-        if (price > 0 && price < 500) add('Prix électricité', 'electricityPrice', price, `${price} €/MWh`, 'high', 'project');
+    // ─── CAPEX PV (€/kWc or k€/kWc or €/MWc or k€/MWc) ───
+    const capexPvPatterns = [
+        { re: /CAPEX[^:]*PV[^:]*[:=\s]+([0-9][0-9\s,.]*)\s*(€|EUR)\s*\/\s*kWc/i, factor: 1, unit: '€/kWc' },
+        { re: /CAPEX[^:]*PV[^:]*[:=\s]+([0-9][0-9\s,.]*)\s*k€\s*\/\s*kWc/i, factor: 1000, unit: 'k€/kWc' },
+        { re: /CAPEX[^:]*PV[^:]*[:=\s]+([0-9][0-9\s,.]*)\s*(€|EUR)\s*\/\s*MWc/i, factor: 0.001, unit: '€/MWc' },
+        { re: /([0-9][0-9\s,.]*)\s*k€\s*\/\s*MWc\s+(?:PV|solaire)/i, factor: 1, unit: 'k€/MWc' },
+        { re: /([0-9][0-9,.]*)\s*(€|EUR)\s*\/\s*kWc/i, factor: 1, unit: '€/kWc' },
+    ];
+    for (const { re, factor, unit } of capexPvPatterns) {
+        const m = text.match(re);
+        if (m) {
+            const raw = num(m[1]); const ekWc = raw * factor;
+            if (ekWc > 100 && ekWc < 10000) {
+                const display = unit !== '€/kWc' ? `${ekWc.toFixed(0)} €/kWc (converti de ${raw} ${unit})` : `${ekWc.toFixed(0)} €/kWc`;
+                add('CAPEX PV', 'capexPv', ekWc, display, 'medium', 'site');
+                break;
+            }
+        }
     }
 
-    return items;
+    // ─── Irradiation (kWh/kWc/an, kWh/m²/an) ───
+    const iraMatch = text.match(/([0-9][0-9\s,.]*)\s*kWh\s*\/\s*kWc\s*\/\s*an/i)
+                  || text.match(/irradiation[^:]*[:=\s]+([0-9][0-9\s,.]*)\s*kWh/i);
+    if (iraMatch) {
+        const val = num(iraMatch[1]);
+        if (val > 500 && val < 3000) add('Irradiation', 'pvIrradiation', val, `${val.toLocaleString('fr-FR')} kWh/kWc/an`, 'high', 'site');
+    }
+
+    // ─── Performance ratio ───
+    const prMatch = text.match(/(?:PR|performance\s+ratio)[^:]*[:=\s]+([0-9]{1,2}(?:[.,]\d+)?)\s*(%)?/i);
+    if (prMatch) {
+        const val = num(prMatch[1]);
+        if (val > 50 && val <= 100) add('Performance ratio', 'pvPR', val, `${val} %`, 'medium', 'site');
+    }
+
+    // ─── Surface (ha or m²) ───
+    const surfaceMatch = text.match(/([0-9][0-9\s,.]*)\s*ha\b/i)
+                      || text.match(/surface[^:]*[:=\s]+([0-9][0-9\s,.]*)\s*(?:ha|hectares?)/i);
+    if (surfaceMatch) {
+        const val = num(surfaceMatch[1]);
+        if (val > 0 && val < 100000) add('Surface', 'surfaceHa', val, `${val.toLocaleString('fr-FR')} ha`, 'medium', 'site');
+    }
+
+    // ─── Tarif d'achat / PPA ───
+    const ppaMatch = text.match(/(?:tarif|PPA|prix\s+achat)[^:]*[:=\s]+([0-9][0-9,.]*)\s*(?:€|EUR)\s*\/\s*MWh/i);
+    if (ppaMatch) {
+        const val = num(ppaMatch[1]);
+        if (val > 0 && val < 500) add('Tarif PPA', 'electricityPrice', val, `${val} €/MWh (PPA/Tarif)`, 'high', 'project');
+    }
+
+    // ─── WACC ───
+    const waccMatch = text.match(/WACC[^:]*[:=\s]+([0-9]{1,2}(?:[.,]\d+)?)\s*%/i);
+    if (waccMatch) {
+        const val = num(waccMatch[1]);
+        if (val > 0 && val < 30) add('WACC', 'wacc', val, `${val} %`, 'high', 'project');
+    }
+
+    // ─── Taux d'imposition ───
+    const taxMatch = text.match(/(?:IS|taux.*impos[^:]*|impôt)[^:]*[:=\s]+([0-9]{1,2}(?:[.,]\d+)?)\s*%/i);
+    if (taxMatch) {
+        const val = num(taxMatch[1]);
+        if (val > 0 && val < 60) add('Taux IS', 'tax', val, `${val} %`, 'medium', 'project');
+    }
+
+    // ─── Part dette ───
+    const debtMatch = text.match(/(?:gearing|part\s+dette|LTV|leverage)[^:]*[:=\s]+([0-9]{2,3}(?:[.,]\d+)?)\s*%/i);
+    if (debtMatch) {
+        const val = num(debtMatch[1]);
+        if (val > 0 && val <= 100) add('Gearing dette', 'debtPercent', val, `${val} %`, 'medium', 'project');
+    }
+
+    // ─── Durée de vie actifs ───
+    const lifetimeMatch = text.match(/dur[eé]e.*?(?:vie|actif|exploitation)[^:]*[:=\s]+([0-9]{2})\s*ans/i)
+                       || text.match(/([0-9]{2})\s*ans.*?(?:vie|actif|exploitation)/i);
+    if (lifetimeMatch) {
+        const val = parseInt(lifetimeMatch[1]);
+        if (val >= 15 && val <= 40) add('Durée de vie', 'pvLifetime', val, `${val} ans`, 'medium', 'site');
+    }
+
+    // ─── Detect unknown numeric fields ───
+    // Scan for "Label : value unit" patterns not already captured
+    const knownKeys = new Set(items.map(i => i.key));
+    const genericPattern = /([A-ZÀ-ÿa-z][A-Za-zÀ-ÿ\s\-\/]{2,40})\s*[:=]\s*([0-9][0-9\s,.]*)\s*([A-Za-zÀ-ÿ%€\/$²\/]{1,12})?/g;
+    const knownLabels = new Set(['site','projet','parc','total','note','page','section','date','version','ref','source','contact','email','adresse','siège','société']);
+    let gm;
+    const addedCustom = [];
+    while ((gm = genericPattern.exec(text)) !== null && addedCustom.length < 10) {
+        const rawLabel = gm[1].trim();
+        const rawVal = num(gm[2]);
+        const rawUnit = (gm[3] || '').trim();
+        if (isNaN(rawVal) || rawVal === 0) continue;
+        if (rawLabel.split(/\s+/).length > 6) continue;
+        if (knownLabels.has(rawLabel.toLowerCase().split(/\s+/)[0])) continue;
+        // Check if this label maps to a known field already extracted
+        const lowerLabel = rawLabel.toLowerCase();
+        const alreadyMapped = (
+            (lowerLabel.includes('capacit') && lowerLabel.includes('pv')) ||
+            (lowerLabel.includes('capex')) ||
+            (lowerLabel.includes('prix') && lowerLabel.includes('électr')) ||
+            (lowerLabel.includes('wacc')) ||
+            lowerLabel.includes('puissance') ||
+            lowerLabel.includes('irradiation') ||
+            lowerLabel.includes('surface') ||
+            lowerLabel.includes('pays')
+        );
+        if (alreadyMapped) continue;
+        const customKey = 'custom_' + rawLabel.toLowerCase().replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').slice(0, 30);
+        if (seenKeys.has(customKey)) continue;
+        seenKeys.add(customKey);
+        addedCustom.push({ label: rawLabel, key: customKey, value: rawVal, unit: rawUnit, display: `${rawVal.toLocaleString('fr-FR')} ${rawUnit}`, conf: 'medium', target: 'custom', isCustom: true });
+    }
+    return { knownItems: items, customFields: addedCustom };
 }
 
 function closeProjExtractModal() {
@@ -2164,38 +2488,80 @@ function applyProjExtract() {
         if (!cb || !cb.checked) return;
         if (item.target === 'project') {
             projData[item.key] = item.value;
-        } else {
+        } else if (item.target === 'site') {
             siteData[item.key] = item.value;
             hasSiteData = true;
         }
     });
 
     // Apply project-level data
-    Object.assign(projects[idx], projData);
+    if (projData.name) projects[idx].name = projData.name;
+
+    // Apply to project params
+    const paramKeys = ['electricityPrice','wacc','tax','debtPercent'];
+    if (!projects[idx].params) projects[idx].params = {};
+    paramKeys.forEach(k => { if (projData[k] !== undefined) projects[idx].params[k] = projData[k]; });
 
     // Create a new site if site data extracted
-    if (hasSiteData && (siteData.pvCapacity || siteData.country || siteData.siteName)) {
+    if (hasSiteData && (siteData.pvCapacity || siteData.country || siteData.siteName || siteData.bessCapacity)) {
+        const hasBESS = !!(siteData.bessCapacity || siteData.bessPower);
         const newSite = {
             id: 'site_' + Date.now(),
             name: siteData.siteName || 'Site extrait',
             country: siteData.country || '',
+            countryFlag: '',
             status: 'En développement',
-            hasPV: true, hasBESS: false,
+            hasPV: !!(siteData.pvCapacity) || !hasBESS,
+            hasBESS,
             pvCapacity: siteData.pvCapacity || null,
+            bessPower: siteData.bessPower || null,
+            bessCapacity: siteData.bessCapacity || null,
+            pvIrradiation: siteData.pvIrradiation || null,
+            pvPR: siteData.pvPR || null,
+            surfaceHa: siteData.surfaceHa || null,
+            pvLifetime: siteData.pvLifetime || null,
+            capexPv: siteData.capexPv || null,
         };
         if (!projects[idx].sites) projects[idx].sites = [];
         projects[idx].sites.push(newSite);
     }
 
-    // Apply price to project params
-    if (projData.electricityPrice !== undefined) {
-        if (!projects[idx].params) projects[idx].params = {};
-        projects[idx].params.electricityPrice = projData.electricityPrice;
-    }
+    // Apply checked custom fields
+    if (!projects[idx].customFields) projects[idx].customFields = [];
+    _projExtractCustom.forEach((item, i) => {
+        const cb = document.getElementById('pexc_' + i);
+        if (!cb || !cb.checked) return;
+        // Avoid duplicates
+        const existing = projects[idx].customFields.findIndex(f => f.key === item.key);
+        const entry = { key: item.key, label: item.label, value: item.value, unit: item.unit };
+        if (existing >= 0) projects[idx].customFields[existing] = entry;
+        else projects[idx].customFields.push(entry);
+    });
 
     localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(projects));
     closeProjExtractModal();
     loadProject();
+    renderCustomFields(projects[idx]);
+    renderParams(projects[idx]);
+}
+
+// ─── Custom fields rendering ───
+function renderCustomFields(project) {
+    const cf = (project || getProject())?.customFields || [];
+    const wrap = document.getElementById('customFieldsWrap');
+    const grid = document.getElementById('customFieldsGrid');
+    if (!wrap || !grid) return;
+    if (!cf.length) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+    grid.innerHTML = cf.map(f => `
+        <div class="custom-field-item">
+            <span class="custom-field-label">${f.label}</span>
+            <div class="custom-field-row">
+                <span class="custom-field-value">${typeof f.value === 'number' ? f.value.toLocaleString('fr-FR') : f.value}</span>
+                ${f.unit ? `<span class="custom-field-unit">${f.unit}</span>` : ''}
+            </div>
+        </div>
+    `).join('');
 }
 
 // ─── Drag & drop ───
@@ -2214,7 +2580,7 @@ function applyProjExtract() {
 // ─── Init ───
 const _proj = getProject();
 loadProject();
-if (_proj) renderParams(_proj);
+if (_proj) { renderParams(_proj); renderCustomFields(_proj); }
 renderProjDocList();
 
 // ════════════════════════════════════════════════════
@@ -2464,6 +2830,18 @@ function _pfRenderTable(annual, params) {
     }).join('');
 }
 </script>
+
+<!-- ═══ CONFIRM DELETE MODAL ═══ -->
+<div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-modal">
+        <div class="confirm-title" id="confirmTitle">Confirmer la suppression</div>
+        <div class="confirm-body" id="confirmBody"></div>
+        <div class="confirm-footer">
+            <button class="btn-confirm-cancel" onclick="closeConfirm()">Annuler</button>
+            <button class="btn-confirm-delete" id="confirmDeleteBtn" onclick="deleteSite()">Supprimer</button>
+        </div>
+    </div>
+</div>
 
 <!-- ═══ PROJECT FINANCIAL RESULTS MODAL ═══ -->
 <div class="fin-modal-overlay" id="pfModalOverlay">

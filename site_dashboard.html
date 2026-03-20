@@ -1067,6 +1067,12 @@ body::before {
                 <div class="file-list" id="fileList">
                     <!-- populated by JS -->
                 </div>
+
+                <!-- Custom fields extracted from documents -->
+                <div id="siteCustomFieldsWrap" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+                    <div style="font-size:10.5px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.07em;font-family:'Poppins',sans-serif;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">Champs personnalisés détectés</div>
+                    <div id="siteCustomFieldsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px 20px;"></div>
+                </div>
             </div>
         </div>
 
@@ -1667,9 +1673,33 @@ function extractReadableText(binaryStr) {
 }
 
 // ─── Init Data Room ───
+function renderSiteCustomFields(site) {
+    const cf = site?.customFields || [];
+    const wrap = document.getElementById('siteCustomFieldsWrap');
+    const grid = document.getElementById('siteCustomFieldsGrid');
+    if (!wrap || !grid) return;
+    if (!cf.length) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+    grid.innerHTML = cf.map(f => `
+        <div style="display:flex;flex-direction:column;gap:4px;">
+            <span style="font-size:10px;font-weight:600;color:var(--text-muted);font-family:'Poppins',sans-serif;text-transform:uppercase;letter-spacing:0.06em;">${f.label}</span>
+            <div style="display:flex;align-items:center;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff;">
+                <span style="flex:1;padding:7px 10px;font-size:13px;font-weight:500;color:var(--text);font-family:'Montserrat',sans-serif;">${typeof f.value === 'number' ? f.value.toLocaleString('fr-FR') : f.value}</span>
+                ${f.unit ? `<span style="padding:7px 10px;font-size:11px;font-weight:600;color:var(--text-light);font-family:'Poppins',sans-serif;border-left:1px solid var(--border);background:rgba(247,246,243,0.8);white-space:nowrap;">${f.unit}</span>` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
 function initDataRoom(siteId) {
     _drSiteId = siteId;
     renderFileList();
+    // Render custom fields if any
+    const { projectId } = getParams();
+    const projects = getProjects();
+    const proj = projects.find(p => p.id === projectId);
+    const site = proj ? (proj.sites || []).find(s => s.id === siteId) : null;
+    if (site) renderSiteCustomFields(site);
 
     const dz = document.getElementById('dropzone');
     const fi = document.getElementById('fileInput');
@@ -1787,53 +1817,118 @@ function handleFiles(fileList) {
     });
 }
 
-// ─── Field patterns ───
+// ─── Field patterns (with unit conversion metadata) ───
+// Each pattern may have:
+//   isMW(rawStr)    → multiply by 1000 (MW→kW, MWc→kWc, MWh→kWh)
+//   isKilo(rawStr)  → multiply by 1000 (k€→€)
+//   isMega(rawStr)  → multiply by 1e6  (M€→€, MEUR→€)
+//   isCtsKwh(rawStr)→ multiply by 10   (cts€/kWh→€/MWh)
+//   isEurKwh(rawStr)→ multiply by 1000 (€/kWh→€/MWh)
+//   isEurkWcPerMW(rawStr)→ divide by 1000 (€/MWc→€/kWc)
 const FIELD_PATTERNS = [
     { key: 'pvCapacity', label: 'Capacité PV', unit: 'kWc',
-      patterns: [/(\d[\d\s.,]*)\s*(?:mwc|kwc|mwp|kwp)(?:\s+(?:pv|photovoltaïque|installée|crête))?/gi,
-                 /(?:puissance|capacité)\s+(?:installée|crête|pv)[^\d]*([\d\s.,]+)\s*(?:mwc|kwc)/gi],
-      isMW: rawStr => /mwc|mwp/i.test(rawStr) },
+      patterns: [/(\d[\d\s.,]*)\s*(mwc|mwp|kwc|kwp)(?:\s+(?:pv|photovoltaïque|installée|crête))?/gi,
+                 /(?:puissance|capacité)\s+(?:installée|crête|pv)[^\d]*([\d\s.,]+)\s*(mwc|kwc|mwp|kwp)/gi],
+      isMW: (rawStr, m) => /mwc|mwp/i.test(m ? m[2] : rawStr) },
+    { key: 'pvIrradiation', label: 'Irradiation', unit: 'kWh/kWc/an',
+      patterns: [/irradiation[^\d]*([\d\s.,]+)\s*kwh\/kwc/gi,
+                 /ghi[^\d]*([\d\s.,]+)\s*kwh\/m²/gi,
+                 /ensoleillement[^\d]*([\d\s.,]+)\s*(?:kwh|h\/an)/gi] },
     { key: 'pvProdP90', label: 'Productible P90', unit: 'kWh/kWc/an',
       patterns: [/p\s*90[^\d]*([\d\s.,]+)\s*(?:kwh\/kwc|kwh\/mwc)/gi,
                  /productible\s+p\s*90[^\d]*([\d\s.,]+)/gi] },
     { key: 'pvProdP75', label: 'Productible P75', unit: 'kWh/kWc/an',
       patterns: [/p\s*75[^\d]*([\d\s.,]+)/gi] },
-    { key: 'capexPv', label: 'CAPEX PV', unit: '€',
-      patterns: [/capex\s+pv[^\d]*([\d\s.,]+)\s*(?:m€|k€|€|meur|keur)/gi,
-                 /(?:coût|investissement)\s+(?:total\s+)?(?:pv|installation)[^\d]*([\d\s.,]+)/gi] },
+    { key: 'pvPR', label: 'Performance ratio', unit: '%',
+      patterns: [/performance\s+ratio[^\d]*([\d.,]+)\s*%/gi,
+                 /\bpr\b[^\d]*([\d.,]+)\s*%/gi] },
+    { key: 'pvLifetime', label: 'Durée de vie', unit: 'ans',
+      patterns: [/dur[eé]e\s+(?:de\s+)?(?:vie|actif|exploitation)[^\d]*([\d]{2})\s*ans/gi,
+                 /([\d]{2})\s*ans?\s+(?:de\s+)?(?:vie|exploitation|service)/gi] },
+    { key: 'pvDegradation', label: 'Dégradation PV', unit: '%/an',
+      patterns: [/d[eé]gradation[^\d]*([\d.,]+)\s*%/gi] },
+    { key: 'surfaceHa', label: 'Surface', unit: 'ha',
+      patterns: [/([\d\s.,]+)\s*ha\b/gi,
+                 /surface[^\d]*([\d\s.,]+)\s*(?:ha|hectares?)/gi,
+                 /superficie[^\d]*([\d\s.,]+)\s*(?:ha|hectares?)/gi],
+      isM2: (rawStr, m) => /m²|m2/i.test(rawStr),
+      convert: (val, rawStr) => /m²|m2/i.test(rawStr) ? val / 10000 : val },
+    { key: 'capexPv', label: 'CAPEX PV', unit: '€/kWc',
+      note: 'Stocké en €/kWc',
+      patterns: [/capex\s+pv[^\d]*([\d\s.,]+)\s*(m€|k€|€|meur|keur|€\/kwc|k€\/mwc|€\/mwc)/gi,
+                 /(?:coût|investissement)\s+(?:total\s+)?(?:pv|installation)[^\d]*([\d\s.,]+)\s*(m€|k€|€)?/gi,
+                 /([\d\s.,]+)\s*(?:€|eur)\s*\/\s*kwc/gi,
+                 /([\d\s.,]+)\s*k€\s*\/\s*mwc/gi],
+      convertCapexPv: (val, rawStr) => {
+          if (/k€\/mwc|keur\/mwc/i.test(rawStr)) return val;       // k€/MWc ≈ €/kWc — same magnitude
+          if (/€\/mwc|eur\/mwc/i.test(rawStr)) return val / 1000;  // €/MWc → €/kWc
+          if (/€\/kwc|eur\/kwc/i.test(rawStr)) return val;          // already €/kWc
+          if (/m€|meur/i.test(rawStr)) return (val * 1e6);          // total M€ — keep as-is (treated as absolute later)
+          if (/k€|keur/i.test(rawStr)) return val * 1000;           // total k€
+          return val; // raw €
+      }},
     { key: 'omPv', label: 'O&M PV', unit: '€/kWc/an',
       patterns: [/opex\s+pv[^\d]*([\d\s.,]+)/gi,
                  /(?:maintenance|exploitation)\s+pv[^\d]*([\d\s.,]+)/gi,
                  /o&m\s+pv[^\d]*([\d\s.,]+)/gi] },
     { key: 'electricityPrice', label: 'Prix électricité', unit: '€/MWh',
-      patterns: [/(?:prix|tarif)\s+(?:de\s+)?(?:vente\s+)?(?:de\s+l'?électricité|d'?électricité)[^\d]*([\d\s.,]+)\s*(?:€\/mwh|eur\/mwh)/gi,
-                 /([\d]{2,3}(?:[.,]\d+)?)\s*€\/mwh/gi] },
+      patterns: [/(?:prix|tarif)\s+(?:de\s+)?(?:vente\s+)?(?:de\s+l'?[eé]lectricit[eé]|d'?[eé]lectricit[eé])[^\d]*([\d\s.,]+)\s*(€\/mwh|eur\/mwh|cts?€\/kwh|€\/kwh)/gi,
+                 /([\d]{2,3}(?:[.,]\d+)?)\s*(€\/mwh)/gi,
+                 /([\d]{1,2}(?:[.,]\d+)?)\s*(cts?€|centimes?)\s*\/\s*kwh/gi,
+                 /([\d]{1}(?:[.,]\d+)?)\s*€\s*\/\s*kwh/gi],
+      convertElec: (val, m) => {
+          const unit = (m ? (m[2]||m[3]||'') : '').toLowerCase();
+          if (/cts|centimes/i.test(unit)) return val * 10;      // cts€/kWh → €/MWh
+          if (/€\/kwh/i.test(unit)) return val * 1000;           // €/kWh → €/MWh
+          return val; // already €/MWh
+      }},
     { key: 'rentEuros', label: 'Loyer annuel', unit: '€/an',
       patterns: [/loyer\s+(?:annuel\s+)?foncier[^\d]*([\d\s.,]+)/gi,
-                 /redevance\s+foncière[^\d]*([\d\s.,]+)/gi] },
+                 /redevance\s+fonci[eè]re[^\d]*([\d\s.,]+)/gi],
+      isKilo: (rawStr) => /k€|keur/i.test(rawStr) },
     { key: 'bessPower', label: 'Puissance BESS', unit: 'kW',
-      patterns: [/(\d[\d\s.,]*)\s*(?:mw|kw)\s*(?:bess|batterie|stockage)/gi,
-                 /(?:puissance|power)\s+(?:bess|batterie)[^\d]*([\d\s.,]+)\s*(?:mw|kw)/gi] },
+      patterns: [/(\d[\d\s.,]*)\s*(mw|kw)\s*(?:bess|batterie|stockage)/gi,
+                 /(?:puissance|power)\s+(?:bess|batterie)[^\d]*([\d\s.,]+)\s*(mw|kw)/gi],
+      isMW: (rawStr, m) => /\bmw\b/i.test(m ? m[2] : rawStr) },
     { key: 'bessCapacity', label: 'Capacité BESS', unit: 'kWh',
-      patterns: [/(\d[\d\s.,]*)\s*(?:mwh|kwh)\s*(?:bess|batterie|stockage)/gi,
-                 /(?:capacité|énergie)\s+(?:bess|batterie)[^\d]*([\d\s.,]+)\s*(?:mwh|kwh)/gi] },
+      patterns: [/(\d[\d\s.,]*)\s*(mwh|kwh)\s*(?:bess|batterie|stockage)/gi,
+                 /(?:capacit[eé]|[eé]nergie)\s+(?:bess|batterie)[^\d]*([\d\s.,]+)\s*(mwh|kwh)/gi],
+      isMW: (rawStr, m) => /mwh/i.test(m ? m[2] : rawStr) },
     { key: 'capexBess', label: 'CAPEX BESS', unit: '€',
-      patterns: [/capex\s+(?:bess|batterie)[^\d]*([\d\s.,]+)/gi] },
+      patterns: [/capex\s+(?:bess|batterie)[^\d]*([\d\s.,]+)\s*(m€|k€|€)?/gi],
+      isKilo: (rawStr, m) => /k€|keur/i.test(m ? (m[2]||'') : rawStr),
+      isMega: (rawStr, m) => /m€|meur/i.test(m ? (m[2]||'') : rawStr) },
     { key: 'debtPercent', label: 'Part dette', unit: '%',
       patterns: [/(?:levier|dette)\s+(?:senior\s+)?(?:financier\s+)?[^\d]*([\d]{2,3})\s*%/gi,
-                 /(?:financement|financing)\s+(?:dette|debt)[^\d]*([\d]{2,3})\s*%/gi] },
+                 /(?:financement|financing)\s+(?:dette|debt)[^\d]*([\d]{2,3})\s*%/gi,
+                 /gearing[^\d]*([\d]{2,3})\s*%/gi] },
     { key: 'seniorRate', label: 'Taux dette senior', unit: '%',
       patterns: [/(?:taux|rate)\s+(?:de\s+)?(?:la\s+)?dette\s+senior[^\d]*([\d.,]+)\s*%/gi,
-                 /(?:intérêt|interest)\s+(?:senior|dette)[^\d]*([\d.,]+)\s*%/gi] },
+                 /(?:int[eé]r[eê]t|interest)\s+(?:senior|dette)[^\d]*([\d.,]+)\s*%/gi] },
+    { key: 'wacc', label: 'WACC', unit: '%',
+      patterns: [/wacc[^\d]*([\d.,]+)\s*%/gi,
+                 /taux\s+d'actualisation[^\d]*([\d.,]+)\s*%/gi] },
+    { key: 'tax', label: "Taux d'IS", unit: '%',
+      patterns: [/(?:taux\s+)?(?:is|imp[ôo]t\s+soci[eé]t[eé])[^\d]*([\d.,]+)\s*%/gi] },
 ];
 
-function parseNumericValue(rawStr, pattern) {
-    // Extract just the numeric part
-    let num = rawStr.replace(/\s/g, '').replace(',', '.');
-    let val = parseFloat(num);
+function parseNumericValue(rawStr, pattern, matchObj) {
+    let clean = rawStr.replace(/\s/g, '').replace(',', '.');
+    let val = parseFloat(clean);
     if (isNaN(val)) return null;
-    // MW -> kW/kWc multiplier for pvCapacity
-    if (pattern.isMW && pattern.isMW(rawStr)) val *= 1000;
+
+    // Custom converters take priority
+    if (pattern.convertCapexPv) return pattern.convertCapexPv(val, matchObj ? matchObj[0] : rawStr);
+    if (pattern.convertElec) return pattern.convertElec(val, matchObj);
+    if (pattern.convert) return pattern.convert(val, matchObj ? matchObj[0] : rawStr);
+
+    const fullMatch = matchObj ? matchObj[0] : rawStr;
+    // MW/MWc/MWh → kW/kWc/kWh (×1000)
+    if (pattern.isMW && pattern.isMW(rawStr, matchObj)) val *= 1000;
+    // k€ → € (×1000)
+    if (pattern.isKilo && pattern.isKilo(rawStr, matchObj)) val *= 1000;
+    // M€ → € (×1e6)
+    if (pattern.isMega && pattern.isMega(rawStr, matchObj)) val *= 1e6;
     return val;
 }
 
@@ -1862,6 +1957,7 @@ function analyzeFile(fileId) {
     setTimeout(() => {
         const text = file.textContent;
         const matches = [];
+        const matchedRanges = []; // track positions of matched text to avoid re-scanning
 
         FIELD_PATTERNS.forEach(fp => {
             fp.patterns.forEach(pattern => {
@@ -1869,23 +1965,79 @@ function analyzeFile(fileId) {
                 let m;
                 while ((m = pattern.exec(text)) !== null) {
                     const rawNum = (m[1] || m[0]).replace(/\s/g, '');
-                    const val = parseNumericValue(rawNum, fp);
-                    if (val === null || isNaN(val)) continue;
+                    const val = parseNumericValue(rawNum, fp, m);
+                    if (val === null || isNaN(val)) { pattern.lastIndex = m.index + 1; continue; }
+                    // Sanitize: skip implausible values
+                    if (fp.key === 'pvCapacity' && (val < 10 || val > 10000000)) { pattern.lastIndex = m.index + 1; continue; }
+                    if (fp.key === 'pvPR' && (val < 50 || val > 100)) { pattern.lastIndex = m.index + 1; continue; }
+                    if (fp.key === 'pvLifetime' && (val < 10 || val > 50)) { pattern.lastIndex = m.index + 1; continue; }
                     // Avoid duplicates for same key
-                    if (matches.find(x => x.fieldKey === fp.key && Math.abs(x.value - val) < 0.01)) continue;
+                    if (matches.find(x => x.fieldKey === fp.key && Math.abs(x.value - val) < 0.01)) { pattern.lastIndex = m.index + 1; continue; }
                     const confidence = assignConfidence(m[0], pattern.source);
+                    // Build display with unit note if conversion happened
+                    let displayNote = '';
+                    const rawOrig = (m[1] || m[0]).trim();
+                    if (fp.convertCapexPv || fp.convertElec || fp.convert || fp.isMW || fp.isKilo || fp.isMega) {
+                        const rawNum2 = (m[1] || m[0]).replace(/\s/g,'').replace(',','.');
+                        const rawValOrig = parseFloat(rawNum2);
+                        if (!isNaN(rawValOrig) && Math.abs(rawValOrig - val) > 0.001) {
+                            displayNote = ` (converti de ${rawOrig})`;
+                        }
+                    }
                     matches.push({
                         fieldKey: fp.key,
                         label: fp.label,
                         unit: fp.unit,
                         value: val,
                         rawText: m[0].trim().substring(0, 80),
+                        displayNote,
                         confidence,
+                        isCustom: false,
                     });
+                    matchedRanges.push({ start: m.index, end: m.index + m[0].length });
                     pattern.lastIndex = m.index + 1;
                 }
             });
         });
+
+        // ─── Unknown field detection ───
+        // Scan for labeled numeric patterns not already covered
+        const seenCustomKeys = new Set();
+        const skipLabels = /^(total|note|page|section|date|version|ref|source|contact|email|adresse|siège|société|annexe|tableau|figure)$/i;
+        const genericRe = /([A-ZÀ-ÿa-z][A-Za-zÀ-ÿ\s\-\/]{2,40})\s*[:=]\s*([0-9][0-9\s,.]*)\s*([A-Za-zÀ-ÿ%€\/$²\/]{1,12})?/g;
+        const knownKeys = new Set(matches.map(x => x.fieldKey));
+        let gm;
+        while ((gm = genericRe.exec(text)) !== null) {
+            const lbl = gm[1].trim();
+            const rawV = parseFloat(gm[2].replace(/\s/g,'').replace(',','.'));
+            const unit = (gm[3] || '').trim();
+            if (isNaN(rawV) || rawV === 0) continue;
+            if (lbl.split(/\s+/).length > 7) continue;
+            if (skipLabels.test(lbl.split(/\s+/)[0])) continue;
+            // Skip if this position was already matched by known patterns
+            const pos = gm.index;
+            if (matchedRanges.some(r => pos >= r.start - 5 && pos <= r.end + 5)) continue;
+            // Check if label maps to an already-matched known field
+            const lbl_lc = lbl.toLowerCase();
+            const alreadyMapped = knownKeys.has('pvCapacity') && /capacit|puissance/.test(lbl_lc) && /pv|mwc|kwc/.test(lbl_lc)
+                || knownKeys.has('electricityPrice') && /prix|tarif/.test(lbl_lc) && /[eé]lectr/.test(lbl_lc)
+                || knownKeys.has('capexPv') && /capex/.test(lbl_lc) && /pv/.test(lbl_lc);
+            if (alreadyMapped) continue;
+            const customKey = 'custom_' + lbl.toLowerCase().replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').slice(0,30);
+            if (seenCustomKeys.has(customKey)) continue;
+            seenCustomKeys.add(customKey);
+            matches.push({
+                fieldKey: customKey,
+                label: lbl,
+                unit: unit,
+                value: rawV,
+                rawText: gm[0].trim().substring(0, 80),
+                displayNote: '',
+                confidence: 'low',
+                isCustom: true,
+            });
+            if (matches.filter(x => x.isCustom).length >= 8) break;
+        }
 
         // Save extraction results
         const fileIdx = files.findIndex(f => f.id === fileId);
@@ -1907,19 +2059,44 @@ function analyzeFile(fileId) {
 function openExtractionModal(fileId, matches, fileName) {
     _drActiveFileId = fileId;
     _drActiveMatches = matches;
-    document.getElementById('modalTitle').textContent = 'Données extraites — ' + (fileName || '');
+    const knownCount = matches.filter(m => !m.isCustom).length;
+    const customCount = matches.filter(m => m.isCustom).length;
+    document.getElementById('modalTitle').textContent = `Données extraites — ${fileName || ''} (${matches.length} champ${matches.length > 1 ? 's' : ''})`;
     const body = document.getElementById('modalBody');
 
     if (!matches.length) {
         body.innerHTML = '<p style="color:var(--text-muted);font-size:13px;padding:20px 0;">Aucune donnée reconnue dans ce document.</p>';
     } else {
-        body.innerHTML = matches.map((m, i) => `
-        <div class="extraction-item">
-            <input type="checkbox" id="exm_${i}" checked data-idx="${i}">
-            <label class="extraction-item-label" for="exm_${i}">${escHtml(m.label)}</label>
-            <span class="extraction-item-value">${m.value.toLocaleString('fr-FR')} <span style="font-size:11px;font-weight:400;color:var(--text-muted);">${m.unit}</span></span>
-            <span class="extraction-item-confidence ${m.confidence}">${m.confidence === 'high' ? 'Élevée' : m.confidence === 'medium' ? 'Moyenne' : 'Faible'}</span>
-        </div>`).join('');
+        const knownHtml = matches
+            .filter(m => !m.isCustom)
+            .map((m, _, arr) => {
+                const i = matches.indexOf(m);
+                const confLabel = m.confidence === 'high' ? 'Élevée' : m.confidence === 'medium' ? 'Moyenne' : 'Faible';
+                return `
+                <div class="extraction-item">
+                    <input type="checkbox" id="exm_${i}" checked data-idx="${i}">
+                    <label class="extraction-item-label" for="exm_${i}">${escHtml(m.label)}</label>
+                    <span class="extraction-item-value">${m.value.toLocaleString('fr-FR', {maximumFractionDigits:3})} <span style="font-size:11px;font-weight:400;color:var(--text-muted);">${m.unit}${m.displayNote ? ' ' + escHtml(m.displayNote) : ''}</span></span>
+                    <span class="extraction-item-confidence ${m.confidence}">${confLabel}</span>
+                </div>`;
+            }).join('');
+
+        const customHtml = customCount > 0 ? `
+            <div style="font-size:10px;font-weight:700;color:var(--accent);font-family:'Poppins',sans-serif;text-transform:uppercase;letter-spacing:.06em;padding:10px 0 4px;border-top:1px solid var(--border);margin-top:6px;">
+                Champs non reconnus — seront ajoutés comme données personnalisées
+            </div>
+            ${matches.filter(m => m.isCustom).map(m => {
+                const i = matches.indexOf(m);
+                return `
+                <div class="extraction-item" style="border-color:rgba(24,99,220,0.2);">
+                    <input type="checkbox" id="exm_${i}" checked data-idx="${i}">
+                    <label class="extraction-item-label" for="exm_${i}" style="color:var(--accent);">${escHtml(m.label)}</label>
+                    <span class="extraction-item-value">${m.value.toLocaleString('fr-FR', {maximumFractionDigits:3})} <span style="font-size:11px;font-weight:400;color:var(--text-muted);">${m.unit}</span></span>
+                    <span class="extraction-item-confidence medium">Nouveau</span>
+                </div>`;
+            }).join('')}` : '';
+
+        body.innerHTML = knownHtml + customHtml;
     }
 
     document.getElementById('extractionModal').classList.remove('hidden');
@@ -1957,7 +2134,14 @@ function applyExtractedData() {
     const projectLevelKeys = ['electricityPrice','electricityEscalation','bessSpreadPrice','inflation','tax','wacc','debtPercent','seniorRate','debtDuration','dsraMonths','dscrTarget'];
 
     toApply.forEach(m => {
-        if (projectLevelKeys.includes(m.fieldKey)) {
+        if (m.isCustom) {
+            // Store in site.customFields
+            if (!projects[pIdx].sites[sIdx].customFields) projects[pIdx].sites[sIdx].customFields = [];
+            const cf = projects[pIdx].sites[sIdx].customFields;
+            const existIdx = cf.findIndex(f => f.key === m.fieldKey);
+            const entry = { key: m.fieldKey, label: m.label, value: m.value, unit: m.unit };
+            if (existIdx >= 0) cf[existIdx] = entry; else cf.push(entry);
+        } else if (projectLevelKeys.includes(m.fieldKey)) {
             if (!projects[pIdx].params) projects[pIdx].params = {};
             projects[pIdx].params[m.fieldKey] = m.value;
         } else {
@@ -1975,13 +2159,21 @@ function applyExtractedData() {
 
     localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(projects));
     closeExtractionModal();
-    showDrToast(toApply.length + ' donnée(s) appliquée(s) à la fiche du site');
+    const customCount = toApply.filter(m => m.isCustom).length;
+    const knownCount  = toApply.length - customCount;
+    let msg = toApply.length + ' donnée(s) appliquée(s)';
+    if (customCount > 0) msg += ` dont ${customCount} champ(s) personnalisé(s)`;
+    showDrToast(msg);
     renderFileList();
+    // Refresh custom fields display
+    renderSiteCustomFields(projects[pIdx].sites[sIdx]);
 
-    // Navigate to fiche_site to show updated fields
-    setTimeout(() => {
-        window.location.href = 'fiche_site.html?project=' + projectId + '&site=' + siteId;
-    }, 1200);
+    // Navigate to fiche_site to show updated fields (only if known fields were applied)
+    if (knownCount > 0) {
+        setTimeout(() => {
+            window.location.href = 'fiche_site.html?project=' + projectId + '&site=' + siteId;
+        }, 1200);
+    }
 }
 
 // ─── Delete file ───
