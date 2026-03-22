@@ -110,6 +110,37 @@ body::before {
 }
 .period-tab.active { background: #fff; color: var(--accent); box-shadow: var(--shadow-sm); font-weight: 600; }
 
+/* Source selector */
+.source-tabs { display: flex; gap: 4px; background: #eee; border-radius: 8px; padding: 3px; margin-bottom: 16px; }
+.source-tab { padding: 6px 14px; border-radius: 6px; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 500; color: var(--text-muted); transition: all 0.15s; border: none; background: none; display: flex; align-items: center; gap: 6px; }
+.source-tab.active { background: #fff; color: var(--accent); box-shadow: var(--shadow-sm); font-weight: 600; }
+.source-tab svg { width: 13px; height: 13px; }
+
+/* ENTSOE panels */
+.entsoe-panel { background: var(--accent-lighter); border: 1px solid rgba(24,99,220,0.15); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+.entsoe-panel-title { font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.entsoe-token-row { display: flex; gap: 8px; align-items: center; }
+.entsoe-token-input { flex: 1; border: 1.5px solid var(--border); border-radius: 8px; padding: 7px 10px; font-family: 'Montserrat', sans-serif; font-size: 12px; color: var(--text); background: #fff; outline: none; transition: border-color 0.15s; }
+.entsoe-token-input:focus { border-color: var(--accent); }
+.entsoe-info { font-family: 'Poppins', sans-serif; font-size: 10.5px; color: var(--text-muted); margin-top: 8px; line-height: 1.5; }
+.entsoe-info a { color: var(--accent); text-decoration: underline; cursor: pointer; }
+
+/* CSV import zone */
+.csv-dropzone { border: 2px dashed rgba(24,99,220,0.35); border-radius: 10px; padding: 24px 20px; text-align: center; background: var(--accent-lighter); cursor: pointer; transition: all 0.15s; position: relative; margin-bottom: 14px; }
+.csv-dropzone:hover, .csv-dropzone.drag-over { border-color: var(--accent); background: rgba(24,99,220,0.08); }
+.csv-dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.csv-dropzone-text { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.csv-dropzone-hint { font-size: 11px; color: var(--text-muted); font-family: 'Poppins', sans-serif; }
+.csv-loaded-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.csv-loaded-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #fff; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; }
+.csv-loaded-item .csv-name { flex: 1; font-weight: 500; color: var(--text); }
+.csv-loaded-item .csv-country { font-family: 'Poppins', sans-serif; font-size: 11px; color: var(--accent); font-weight: 600; }
+.csv-loaded-item .csv-rows { font-family: 'Poppins', sans-serif; font-size: 10px; color: var(--text-muted); }
+
+/* Cors warning */
+.cors-warn { background: rgba(232,160,32,0.08); border: 1px solid rgba(232,160,32,0.35); border-radius: 8px; padding: 10px 14px; font-family: 'Poppins', sans-serif; font-size: 11px; color: #8a5500; display: flex; gap: 8px; align-items: flex-start; margin-bottom: 12px; }
+.cors-warn svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; color: var(--warning); }
+
 /* Fetch row */
 .fetch-row { display: flex; align-items: center; gap: 10px; }
 .btn-fetch {
@@ -228,6 +259,63 @@ body::before {
             <div class="card">
                 <div class="card-title">Prix spot day-ahead par pays</div>
                 <div class="card-subtitle">Données horaires agrégées en moyenne journalière. Cliquez sur les pays pour les afficher/masquer.</div>
+
+                <!-- Source selector -->
+                <div style="margin-bottom:4px;">
+                    <div class="source-tabs" id="sourceTabs">
+                        <button class="source-tab active" data-src="energy-charts" onclick="switchSource('energy-charts')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                            Energy Charts
+                        </button>
+                        <button class="source-tab" data-src="entsoe-api" onclick="switchSource('entsoe-api')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
+                            ENTSOE API
+                        </button>
+                        <button class="source-tab" data-src="entsoe-csv" onclick="switchSource('entsoe-csv')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            ENTSOE CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- CORS warning for Energy Charts -->
+                <div class="cors-warn" id="corsWarnPanel" style="display:none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <div>L'API Energy Charts est bloquée par CORS lorsque l'application est ouverte en <code>file://</code>. Utilisez <strong>ENTSOE API</strong> (avec un token) ou <strong>ENTSOE CSV</strong> (téléchargement manuel, toujours fonctionnel).</div>
+                </div>
+
+                <!-- ENTSOE API panel -->
+                <div class="entsoe-panel" id="entsoeApiPanel" style="display:none;">
+                    <div class="entsoe-panel-title">Connexion ENTSOE Transparency Platform</div>
+                    <div class="entsoe-token-row">
+                        <input class="entsoe-token-input" type="password" id="entsoeTokenInput" placeholder="Coller votre Security Token ENTSOE ici…">
+                        <button class="btn-fetch" onclick="saveENTSOEToken()">Enregistrer</button>
+                    </div>
+                    <div class="entsoe-info">
+                        Token gratuit sur <a href="https://transparency.entsoe.eu/usrm/user/myAccountSettings" target="_blank">transparency.entsoe.eu → Mon compte → Security Token</a> (inscription requise).
+                        Le token est stocké localement et n'est jamais transmis à un tiers.
+                    </div>
+                </div>
+
+                <!-- ENTSOE CSV import panel -->
+                <div id="entsoeCsvPanel" style="display:none;">
+                    <div class="entsoe-panel">
+                        <div class="entsoe-panel-title">Importer un export CSV depuis ENTSOE</div>
+                        <div class="entsoe-info" style="margin-top:0; margin-bottom:10px;">
+                            <strong>Comment télécharger ?</strong><br>
+                            1. Aller sur <a href="https://transparency.entsoe.eu/transmission-domain/r2/dayAheadPrices/show" target="_blank">transparency.entsoe.eu → Day Ahead Prices</a><br>
+                            2. Sélectionner la zone de prix (ex. France = BZN|FR), la période souhaitée<br>
+                            3. Cliquer <strong>Export → CSV</strong> et déposer le fichier ci-dessous<br>
+                            Vous pouvez importer plusieurs fichiers (pays différents ou périodes différentes).
+                        </div>
+                        <div class="csv-dropzone" id="csvDropZone">
+                            <input type="file" id="csvFileInput" accept=".csv,.txt" multiple onchange="handleCsvFiles(this.files)">
+                            <div class="csv-dropzone-text">Déposez vos fichiers CSV ENTSOE ici ou cliquez</div>
+                            <div class="csv-dropzone-hint">Format accepté : export Day-Ahead Prices de transparency.entsoe.eu</div>
+                        </div>
+                        <div class="csv-loaded-list" id="csvLoadedList"></div>
+                    </div>
+                </div>
 
                 <!-- Country chips -->
                 <div class="controls-bar">
@@ -352,20 +440,43 @@ Auth.checkAuth();
 //  CONFIG
 // ══════════════════════════════════════════════════════════
 const COUNTRIES = {
-    'France':      { bzn: 'FR',       color: '#1863DC', flag: '🇫🇷' },
-    'Allemagne':   { bzn: 'DE-LU',    color: '#2E9E6E', flag: '🇩🇪' },
-    'Espagne':     { bzn: 'ES',       color: '#E8A020', flag: '🇪🇸' },
-    'Portugal':    { bzn: 'PT',       color: '#D9534F', flag: '🇵🇹' },
-    'Italie':      { bzn: 'IT-North', color: '#7F77DD', flag: '🇮🇹' },
-    'Belgique':    { bzn: 'BE',       color: '#1D9E75', flag: '🇧🇪' },
-    'Pays-Bas':    { bzn: 'NL',       color: '#FF6B6B', flag: '🇳🇱' },
-    'Pologne':     { bzn: 'PL',       color: '#A67C52', flag: '🇵🇱' },
-    'Roumanie':    { bzn: 'RO',       color: '#6C757D', flag: '🇷🇴' },
+    'France':      { bzn: 'FR',       eic: '10YFR-RTE------C',    color: '#1863DC', flag: '🇫🇷' },
+    'Allemagne':   { bzn: 'DE-LU',    eic: '10Y1001A1001A82H',    color: '#2E9E6E', flag: '🇩🇪' },
+    'Espagne':     { bzn: 'ES',       eic: '10YES-REE------0',    color: '#E8A020', flag: '🇪🇸' },
+    'Portugal':    { bzn: 'PT',       eic: '10YPT-REN------W',    color: '#D9534F', flag: '🇵🇹' },
+    'Italie':      { bzn: 'IT-North', eic: '10Y1001A1001A73I',    color: '#7F77DD', flag: '🇮🇹' },
+    'Belgique':    { bzn: 'BE',       eic: '10YBE----------2',    color: '#1D9E75', flag: '🇧🇪' },
+    'Pays-Bas':    { bzn: 'NL',       eic: '10YNL----------L',    color: '#FF6B6B', flag: '🇳🇱' },
+    'Pologne':     { bzn: 'PL',       eic: '10YPL-AREA-----S',    color: '#A67C52', flag: '🇵🇱' },
+    'Roumanie':    { bzn: 'RO',       eic: '10YRO-TEL------P',    color: '#6C757D', flag: '🇷🇴' },
 };
+
+// EIC reverse lookup (for CSV import)
+const EIC_TO_NAME = {};
+const FLAG_TO_NAME = {};
+Object.entries(COUNTRIES).forEach(([name, c]) => {
+    EIC_TO_NAME[c.eic] = name;
+    FLAG_TO_NAME[c.flag] = name;
+});
+// ENTSOE CSV column header → country name mapping
+const CSV_HEADER_MAP = {
+    'france':      'France',
+    'germany':     'Allemagne', 'germany/luxembourg': 'Allemagne',
+    'spain':       'Espagne',
+    'portugal':    'Portugal',
+    'italy':       'Italie', 'italy north': 'Italie',
+    'belgium':     'Belgique',
+    'netherlands': 'Pays-Bas',
+    'poland':      'Pologne',
+    'romania':     'Roumanie',
+};
+
 const COUNTRY_NAMES = Object.keys(COUNTRIES);
 const CACHE_TTL_MS  = 23 * 60 * 60 * 1000; // 23 hours
 const CACHE_KEY     = (bzn, days) => `pi_market_${bzn}_${days}d`;
+const ENTSOE_CACHE_KEY = (eic, days) => `pi_entsoe_${eic}_${days}d`;
 const API_BASE      = 'https://api.energy-charts.info/price';
+const ENTSOE_API    = 'https://web-api.tp.entsoe.eu/api';
 
 // State
 let activeCountries = new Set(['France', 'Allemagne', 'Portugal']);
@@ -376,6 +487,9 @@ let cachedData      = {};  // { [name]: { dates:[], prices:[], fetchedAt: ts } }
 let chartSpot       = null;
 let chartForecast   = null;
 let chartNegHours   = null;
+let dataSource      = localStorage.getItem('pi_datasource') || 'energy-charts';
+let entsoeToken     = localStorage.getItem('pi_entsoe_token') || '';
+let csvLoadedFiles  = []; // [{ name, country, rows }]
 
 // ══════════════════════════════════════════════════════════
 //  SIDEBAR NAV BADGE
@@ -386,6 +500,37 @@ let chartNegHours   = null;
         document.getElementById('navProjectCount').textContent = p.length;
     } catch(e) {}
 })();
+
+// ══════════════════════════════════════════════════════════
+//  SOURCE SELECTOR
+// ══════════════════════════════════════════════════════════
+function switchSource(src) {
+    dataSource = src;
+    localStorage.setItem('pi_datasource', src);
+    document.querySelectorAll('.source-tab').forEach(t => t.classList.toggle('active', t.dataset.src === src));
+    document.getElementById('entsoeApiPanel').style.display  = src === 'entsoe-api'  ? 'block' : 'none';
+    document.getElementById('entsoeCsvPanel').style.display  = src === 'entsoe-csv'  ? 'block' : 'none';
+    document.getElementById('corsWarnPanel').style.display   = 'none';
+    // Update page subtitle
+    const subs = { 'energy-charts': 'Energy Charts (Fraunhofer ISE)', 'entsoe-api': 'ENTSOE Transparency Platform API', 'entsoe-csv': 'ENTSOE Transparency Platform — Import CSV' };
+    document.querySelector('.page-sub').textContent = `Prix spot européens — Source : ${subs[src]} · Mise à jour automatique quotidienne`;
+    // Prefill token input if stored
+    if (src === 'entsoe-api' && entsoeToken) {
+        document.getElementById('entsoeTokenInput').value = entsoeToken;
+    }
+    // Re-render if data available
+    renderSpotChart();
+    renderSpotKpis();
+    renderNegHours();
+}
+
+function saveENTSOEToken() {
+    const val = document.getElementById('entsoeTokenInput').value.trim();
+    if (!val) return;
+    entsoeToken = val;
+    localStorage.setItem('pi_entsoe_token', val);
+    fetchAll();
+}
 
 // ══════════════════════════════════════════════════════════
 //  DATE HELPERS
@@ -465,67 +610,311 @@ document.getElementById('forecastTabs').addEventListener('click', e => {
 });
 
 // ══════════════════════════════════════════════════════════
-//  FETCH FROM API (with localStorage cache, 23h TTL)
+//  SHARED: build normalized result from raw hourly arrays
 // ══════════════════════════════════════════════════════════
-async function fetchCountry(name, days) {
-    const cacheKey = CACHE_KEY(COUNTRIES[name].bzn, days);
-    const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
-    if (cached && (Date.now() - cached.fetchedAt) < CACHE_TTL_MS) {
-        return { ...cached, fromCache: true };
-    }
-
-    const { start, end } = dateRange(days);
-    const url = `${API_BASE}?bzn=${encodeURIComponent(COUNTRIES[name].bzn)}&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
-
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const json = await resp.json();
-
-    // Aggregate hourly → daily averages
+function buildResult(timesUnix, pricesArr, cacheKey) {
     const dailyMap = {};
-    const prices = json.price || [];
-    const times  = json.unix_seconds || [];
-
-    times.forEach((ts, i) => {
-        if (prices[i] === null || prices[i] === undefined) return;
+    timesUnix.forEach((ts, i) => {
+        if (pricesArr[i] === null || pricesArr[i] === undefined) return;
         const d = tsToDate(ts);
-        if (!dailyMap[d]) dailyMap[d] = { sum: 0, count: 0, hours: [] };
-        dailyMap[d].sum   += prices[i];
+        if (!dailyMap[d]) dailyMap[d] = { sum: 0, count: 0 };
+        dailyMap[d].sum   += pricesArr[i];
         dailyMap[d].count += 1;
-        dailyMap[d].hours.push(prices[i]);
     });
-
-    const sortedDates = Object.keys(dailyMap).sort();
-    const dailyPrices = sortedDates.map(d => +(dailyMap[d].sum / dailyMap[d].count).toFixed(2));
-    const hourlyAll   = { times, prices }; // raw hourly for negative hours calc
-
+    const sortedDates  = Object.keys(dailyMap).sort();
+    const dailyPrices  = sortedDates.map(d => +(dailyMap[d].sum / dailyMap[d].count).toFixed(2));
     const result = {
         dates:     sortedDates,
         prices:    dailyPrices,
-        hourlyAll,
+        hourlyAll: { times: timesUnix, prices: pricesArr },
         dailyMap,
         fetchedAt: Date.now(),
     };
-    localStorage.setItem(cacheKey, JSON.stringify(result));
+    if (cacheKey) {
+        try { localStorage.setItem(cacheKey, JSON.stringify(result)); } catch(e) {}
+    }
+    return result;
+}
+
+// ══════════════════════════════════════════════════════════
+//  SOURCE A — ENERGY CHARTS API
+// ══════════════════════════════════════════════════════════
+async function fetchCountryEnergyCharts(name, days) {
+    const cacheKey = CACHE_KEY(COUNTRIES[name].bzn, days);
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+    if (cached && (Date.now() - cached.fetchedAt) < CACHE_TTL_MS) return { ...cached, fromCache: true };
+
+    const { start, end } = dateRange(days);
+    const url = `${API_BASE}?bzn=${encodeURIComponent(COUNTRIES[name].bzn)}&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const json = await resp.json();
+    const result = buildResult(json.unix_seconds || [], json.price || [], cacheKey);
     return { ...result, fromCache: false };
 }
 
+// ══════════════════════════════════════════════════════════
+//  SOURCE B — ENTSOE REST API
+// ══════════════════════════════════════════════════════════
+function entsoeDate(d) {
+    // Format: YYYYMMDDHHMM (UTC)
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}`;
+}
+
+function parseENTSOEXml(xmlText) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlText, 'application/xml');
+
+    // Check for ENTSOE error
+    const reason = doc.querySelector('Reason text');
+    if (reason) throw new Error('ENTSOE: ' + reason.textContent);
+
+    const timesUnix = [], prices = [];
+
+    doc.querySelectorAll('TimeSeries').forEach(ts => {
+        ts.querySelectorAll('Period').forEach(period => {
+            const startStr = period.querySelector('timeInterval start')?.textContent?.trim();
+            if (!startStr) return;
+            const periodStart = new Date(startStr); // UTC ISO string from ENTSOE
+            const resEl = period.querySelector('resolution');
+            const resMinutes = resEl ? (resEl.textContent.includes('PT60') ? 60 : resEl.textContent.includes('PT30') ? 30 : 60) : 60;
+
+            period.querySelectorAll('Point').forEach(pt => {
+                const pos   = parseInt(pt.querySelector('position')?.textContent || '1') - 1;
+                const price = parseFloat(pt.querySelector('price\\.amount')?.textContent || pt.querySelector('price_amount')?.textContent || 'NaN');
+                if (isNaN(price)) return;
+                const ts_ms = periodStart.getTime() + pos * resMinutes * 60000;
+                timesUnix.push(Math.floor(ts_ms / 1000));
+                prices.push(price);
+            });
+        });
+    });
+
+    if (!timesUnix.length) throw new Error('Aucun point de données dans la réponse ENTSOE');
+    return { timesUnix, prices };
+}
+
+async function fetchCountryENTSOE(name, days, token) {
+    const eic = COUNTRIES[name].eic;
+    const cacheKey = ENTSOE_CACHE_KEY(eic, days);
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+    if (cached && (Date.now() - cached.fetchedAt) < CACHE_TTL_MS) return { ...cached, fromCache: true };
+
+    const end = new Date();
+    end.setUTCHours(23, 0, 0, 0); // end of today UTC
+    const start = new Date(end.getTime() - days * 86400000);
+
+    // ENTSOE max range per request = 1 year (366 days). Split if needed.
+    const MAX_DAYS = 365;
+    const chunks = [];
+    let cur = new Date(start);
+    while (cur < end) {
+        const chunkEnd = new Date(Math.min(cur.getTime() + MAX_DAYS * 86400000, end.getTime()));
+        chunks.push({ s: new Date(cur), e: chunkEnd });
+        cur = new Date(chunkEnd);
+    }
+
+    const allTimes = [], allPrices = [];
+    for (const { s, e } of chunks) {
+        const url = `${ENTSOE_API}?securityToken=${encodeURIComponent(token)}&documentType=A44&in_Domain=${encodeURIComponent(eic)}&out_Domain=${encodeURIComponent(eic)}&periodStart=${entsoeDate(s)}&periodEnd=${entsoeDate(e)}`;
+        const resp = await fetch(url);
+        if (!resp.ok) {
+            const txt = await resp.text();
+            throw new Error(`ENTSOE HTTP ${resp.status}: ${txt.substring(0, 200)}`);
+        }
+        const xml = await resp.text();
+        const { timesUnix, prices } = parseENTSOEXml(xml);
+        allTimes.push(...timesUnix);
+        allPrices.push(...prices);
+    }
+
+    const result = buildResult(allTimes, allPrices, cacheKey);
+    return { ...result, fromCache: false };
+}
+
+// ══════════════════════════════════════════════════════════
+//  SOURCE C — ENTSOE CSV IMPORT
+// ══════════════════════════════════════════════════════════
+// ENTSOE CSV format:
+//   "MTU (CET/CEST)","France [EUR/MWh] Original resolutions"
+//   "01.01.2024 00:00 - 01.01.2024 01:00","95,12"
+function parseENTSOECsv(text, filename) {
+    const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim());
+    if (lines.length < 2) throw new Error('Fichier CSV trop court');
+
+    // Parse CSV (handles quoted fields)
+    function parseCsvLine(line) {
+        const fields = [];
+        let cur = '', inQ = false;
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') { inQ = !inQ; continue; }
+            if (ch === ',' && !inQ) { fields.push(cur.trim()); cur = ''; continue; }
+            cur += ch;
+        }
+        fields.push(cur.trim());
+        return fields;
+    }
+
+    const headers = parseCsvLine(lines[0]);
+    // headers[0] = "MTU (CET/CEST)" or "MTU"
+    // headers[1..n] = "France [EUR/MWh]..." or "Day-ahead Price [EUR/MWh]"
+
+    // Map column index → country name
+    const colToCountry = {};
+    for (let c = 1; c < headers.length; c++) {
+        const h = headers[c].toLowerCase().replace(/\s*\[.*?\]/g, '').trim();
+        if (!h || h === 'day-ahead price') {
+            // Single-country file — try to guess from filename
+            const fn = filename.toLowerCase();
+            for (const [key, country] of Object.entries(CSV_HEADER_MAP)) {
+                if (fn.includes(key)) { colToCountry[c] = country; break; }
+            }
+            if (!colToCountry[c]) colToCountry[c] = null; // unknown, will try row 1
+        } else {
+            // Multi-country header
+            for (const [key, country] of Object.entries(CSV_HEADER_MAP)) {
+                if (h.includes(key)) { colToCountry[c] = country; break; }
+            }
+        }
+    }
+
+    // Parse rows
+    // Date format: "01.01.2024 00:00 - 01.01.2024 01:00"
+    const rowsByCountry = {}; // { country: [{ts, price}] }
+
+    for (let r = 1; r < lines.length; r++) {
+        const fields = parseCsvLine(lines[r]);
+        if (fields.length < 2) continue;
+        // Parse date
+        const dtStr = fields[0]; // "01.01.2024 00:00 - ..."
+        const dtMatch = dtStr.match(/(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})/);
+        if (!dtMatch) continue;
+        // CET/CEST → UTC: subtract 1 or 2 hours (approximate: use CET = UTC+1)
+        const dateUtc = new Date(Date.UTC(
+            parseInt(dtMatch[3]),
+            parseInt(dtMatch[2]) - 1,
+            parseInt(dtMatch[1]),
+            parseInt(dtMatch[4]) - 1, // CET = UTC+1
+            parseInt(dtMatch[5])
+        ));
+        const tsUnix = Math.floor(dateUtc.getTime() / 1000);
+
+        for (let c = 1; c < fields.length; c++) {
+            const country = colToCountry[c];
+            if (!country) continue;
+            const rawPrice = fields[c].replace(',', '.');
+            const price = parseFloat(rawPrice);
+            if (isNaN(price)) continue;
+            if (!rowsByCountry[country]) rowsByCountry[country] = [];
+            rowsByCountry[country].push({ ts: tsUnix, price });
+        }
+    }
+
+    return rowsByCountry;
+}
+
+function handleCsvFiles(files) {
+    document.getElementById('csvFileInput').value = '';
+    Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            try {
+                const rowsByCountry = parseENTSOECsv(e.target.result, file.name);
+                const countries = Object.keys(rowsByCountry);
+                if (!countries.length) {
+                    alert(`Impossible de détecter le pays dans ${file.name}. Vérifiez le format d'export ENTSOE.`);
+                    return;
+                }
+                countries.forEach(country => {
+                    const rows = rowsByCountry[country].sort((a,b) => a.ts - b.ts);
+                    const result = buildResult(rows.map(r => r.ts), rows.map(r => r.price), null);
+                    result.fetchedAt = Date.now();
+                    cachedData[country] = result;
+                    // Track for display
+                    csvLoadedFiles = csvLoadedFiles.filter(f => f.country !== country);
+                    csvLoadedFiles.push({ name: file.name, country, rows: rows.length });
+                    // Auto-activate this country
+                    activeCountries.add(country);
+                });
+                renderCsvLoadedList();
+                buildChips();
+                renderSpotChart();
+                renderSpotKpis();
+                renderNegHours();
+                setStatus('ok', `${countries.length} pays importé(s)`);
+                document.getElementById('lastUpdateLabel').textContent = `Import du ${today()}`;
+            } catch(err) {
+                alert('Erreur lors de la lecture du CSV : ' + err.message);
+            }
+        };
+        reader.readAsText(file, 'UTF-8');
+    });
+}
+
+function renderCsvLoadedList() {
+    const el = document.getElementById('csvLoadedList');
+    if (!el) return;
+    el.innerHTML = csvLoadedFiles.map(f => `
+        <div class="csv-loaded-item">
+            <span class="csv-country">${COUNTRIES[f.country]?.flag || ''} ${f.country}</span>
+            <span class="csv-name">${f.name}</span>
+            <span class="csv-rows">${f.rows.toLocaleString('fr-FR')} points horaires</span>
+        </div>
+    `).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+//  FETCH ALL (routes to correct source)
+// ══════════════════════════════════════════════════════════
 async function fetchAll() {
+    if (dataSource === 'entsoe-csv') {
+        // CSV mode — data loaded via drop zone, nothing to auto-fetch
+        if (!csvLoadedFiles.length) {
+            setStatus('error', 'Aucun CSV importé');
+        }
+        return;
+    }
+
     setStatus('loading', 'Chargement…');
     const btn = document.getElementById('btnFetch');
     btn.disabled = true;
     btn.innerHTML = `<span class="spinner"></span> Chargement…`;
+    document.getElementById('corsWarnPanel').style.display = 'none';
 
-    let anyNew = false;
-    let errors = 0;
-    for (const name of COUNTRY_NAMES) {
-        try {
-            const data = await fetchCountry(name, activePeriod);
-            cachedData[name] = data;
-            if (!data.fromCache) anyNew = true;
-        } catch(e) {
-            console.warn(`Erreur pour ${name}:`, e);
-            errors++;
+    let anyNew = false, errors = 0;
+    let corsError = false;
+
+    if (dataSource === 'entsoe-api') {
+        if (!entsoeToken) {
+            setStatus('error', 'Token ENTSOE manquant');
+            btn.disabled = false;
+            btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg> Actualiser les données`;
+            return;
+        }
+        for (const name of COUNTRY_NAMES) {
+            try {
+                const data = await fetchCountryENTSOE(name, activePeriod, entsoeToken);
+                cachedData[name] = data;
+                if (!data.fromCache) anyNew = true;
+            } catch(e) {
+                console.warn(`ENTSOE erreur ${name}:`, e);
+                errors++;
+            }
+        }
+    } else {
+        // Energy Charts
+        for (const name of COUNTRY_NAMES) {
+            try {
+                const data = await fetchCountryEnergyCharts(name, activePeriod);
+                cachedData[name] = data;
+                if (!data.fromCache) anyNew = true;
+            } catch(e) {
+                console.warn(`Energy Charts erreur ${name}:`, e);
+                if (e instanceof TypeError) corsError = true; // CORS/network error
+                errors++;
+            }
         }
     }
 
@@ -534,6 +923,9 @@ async function fetchAll() {
 
     if (errors === COUNTRY_NAMES.length) {
         setStatus('error', 'Erreur de connexion');
+        if (corsError && dataSource === 'energy-charts') {
+            document.getElementById('corsWarnPanel').style.display = 'flex';
+        }
     } else if (errors > 0) {
         setStatus('ok', `${COUNTRY_NAMES.length - errors}/${COUNTRY_NAMES.length} pays chargés`);
     } else {
@@ -856,10 +1248,20 @@ function renderNegHours() {
 //  Si les données ont plus de 23h → re-fetch automatiquement
 // ══════════════════════════════════════════════════════════
 function loadFromCache() {
+    // CSV mode — data must be re-imported each session (no persistent cache)
+    if (dataSource === 'entsoe-csv') {
+        renderSpotChart();
+        renderSpotKpis();
+        renderNegHours();
+        return;
+    }
+
     let allCached = true;
     let oldestFetch = Infinity;
     for (const name of COUNTRY_NAMES) {
-        const cacheKey = CACHE_KEY(COUNTRIES[name].bzn, activePeriod);
+        const cacheKey = dataSource === 'entsoe-api'
+            ? ENTSOE_CACHE_KEY(COUNTRIES[name].eic, activePeriod)
+            : CACHE_KEY(COUNTRIES[name].bzn, activePeriod);
         const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
         if (cached) {
             cachedData[name] = cached;
@@ -882,9 +1284,25 @@ function loadFromCache() {
 }
 
 // ══════════════════════════════════════════════════════════
+//  CSV DROPZONE — drag & drop
+// ══════════════════════════════════════════════════════════
+(function() {
+    const zone = document.getElementById('csvDropZone');
+    if (!zone) return;
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', e => { if (!zone.contains(e.relatedTarget)) zone.classList.remove('drag-over'); });
+    zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) handleCsvFiles(e.dataTransfer.files);
+    });
+})();
+
+// ══════════════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════════════
 buildChips();
+switchSource(dataSource); // restore saved source and show correct panels
 loadFromCache();
 
 // Show empty forecast state initially
