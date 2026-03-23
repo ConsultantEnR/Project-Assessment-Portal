@@ -297,6 +297,12 @@ body::before {
                         Le token est stocké localement et n'est jamais transmis à un tiers.
                     </div>
                     <div id="entsoeAutoStatus" style="display:none; margin-top:8px; padding:6px 10px; background:rgba(46,158,110,0.08); border:1px solid rgba(46,158,110,0.2); border-radius:6px; font-family:'Poppins',sans-serif; font-size:10.5px; color:var(--success);"></div>
+                    <!-- Progress per country -->
+                    <div id="entsoeProgress" style="display:none; margin-top:10px;">
+                        <div style="font-family:'Poppins',sans-serif; font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">Téléchargement en cours</div>
+                        <div id="entsoeProgressTrack" style="background:#e8e6e0; border-radius:4px; height:4px; margin-bottom:8px;"><div id="entsoeProgressBar" style="background:var(--accent); height:4px; border-radius:4px; width:0%; transition:width 0.3s;"></div></div>
+                        <div id="entsoeProgressCountries" style="display:flex; flex-wrap:wrap; gap:4px;"></div>
+                    </div>
                 </div>
 
                 <!-- ENTSOE CSV import panel -->
@@ -1060,74 +1066,102 @@ function removeCsvCountry(country) {
 // ══════════════════════════════════════════════════════════
 //  FETCH ALL (routes to correct source)
 // ══════════════════════════════════════════════════════════
+const REFRESH_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>`;
+
+function setProgress(done, total, countryStatuses) {
+    const prog = document.getElementById('entsoeProgress');
+    if (!prog) return;
+    prog.style.display = 'block';
+    document.getElementById('entsoeProgressBar').style.width = `${Math.round(done/total*100)}%`;
+    document.getElementById('entsoeProgressCountries').innerHTML = countryStatuses
+        .map(s => `<span style="font-family:'Poppins',sans-serif;font-size:10px;padding:2px 7px;border-radius:12px;background:${s.ok?'rgba(46,158,110,0.12)':s.loading?'rgba(232,160,32,0.12)':'rgba(217,83,79,0.1)'};color:${s.ok?'var(--success)':s.loading?'var(--warning)':'var(--danger)'};">${COUNTRIES[s.name]?.flag||''} ${s.name}</span>`)
+        .join('');
+}
+function hideProgress() {
+    const el = document.getElementById('entsoeProgress');
+    if (el) el.style.display = 'none';
+}
+
 async function fetchAll() {
     if (dataSource === 'entsoe-csv') {
-        // CSV mode — data loaded via drop zone, nothing to auto-fetch
-        if (!csvLoadedFiles.length) {
-            setStatus('error', 'Aucun CSV importé');
-        }
+        if (!csvLoadedFiles.length) setStatus('error', 'Aucun CSV importé');
         return;
     }
 
-    setStatus('loading', 'Chargement…');
     const btn = document.getElementById('btnFetch');
     btn.disabled = true;
     btn.innerHTML = `<span class="spinner"></span> Chargement…`;
     document.getElementById('corsWarnPanel').style.display = 'none';
 
-    let anyNew = false, errors = 0;
-    let corsError = false;
+    let anyNew = false, errors = 0, corsError = false;
+    const statuses = COUNTRY_NAMES.map(n => ({ name: n, ok: false, loading: false }));
 
     if (dataSource === 'entsoe-api') {
         if (!entsoeToken) {
-            setStatus('error', 'Token ENTSOE manquant');
+            setStatus('error', 'Token ENTSOE manquant — saisissez-le ci-dessus');
             btn.disabled = false;
-            btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg> Actualiser les données`;
+            btn.innerHTML = `${REFRESH_SVG} Actualiser les données`;
             return;
         }
-        for (const name of COUNTRY_NAMES) {
+        setStatus('loading', `Connexion ENTSOE…`);
+        for (let i = 0; i < COUNTRY_NAMES.length; i++) {
+            const name = COUNTRY_NAMES[i];
+            statuses[i].loading = true;
+            setProgress(i, COUNTRY_NAMES.length, statuses);
+            setStatus('loading', `${COUNTRIES[name].flag} ${name} (${i+1}/${COUNTRY_NAMES.length})`);
             try {
                 const data = await fetchCountryENTSOE(name, activePeriod, entsoeToken);
                 cachedData[name] = data;
                 if (!data.fromCache) anyNew = true;
+                statuses[i].ok = true;
             } catch(e) {
-                console.warn(`ENTSOE erreur ${name}:`, e);
+                console.warn(`ENTSOE ${name}:`, e);
                 errors++;
             }
+            statuses[i].loading = false;
+            setProgress(i + 1, COUNTRY_NAMES.length, statuses);
+            // Render chart progressively after each country
+            renderSpotChart();
+            renderSpotKpis();
         }
     } else {
-        // Energy Charts
-        for (const name of COUNTRY_NAMES) {
+        setStatus('loading', 'Energy Charts…');
+        for (let i = 0; i < COUNTRY_NAMES.length; i++) {
+            const name = COUNTRY_NAMES[i];
+            statuses[i].loading = true;
+            setProgress(i, COUNTRY_NAMES.length, statuses);
             try {
                 const data = await fetchCountryEnergyCharts(name, activePeriod);
                 cachedData[name] = data;
                 if (!data.fromCache) anyNew = true;
+                statuses[i].ok = true;
             } catch(e) {
-                console.warn(`Energy Charts erreur ${name}:`, e);
-                if (e instanceof TypeError) corsError = true; // CORS/network error
+                console.warn(`Energy Charts ${name}:`, e);
+                if (e instanceof TypeError) corsError = true;
                 errors++;
             }
+            statuses[i].loading = false;
+            setProgress(i + 1, COUNTRY_NAMES.length, statuses);
+            renderSpotChart();
+            renderSpotKpis();
         }
     }
 
     btn.disabled = false;
-    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg> Actualiser les données`;
+    btn.innerHTML = `${REFRESH_SVG} Actualiser les données`;
+    setTimeout(hideProgress, 3000);
 
+    const loaded = COUNTRY_NAMES.length - errors;
     if (errors === COUNTRY_NAMES.length) {
         setStatus('error', 'Erreur de connexion');
-        if (corsError && dataSource === 'energy-charts') {
-            document.getElementById('corsWarnPanel').style.display = 'flex';
-        }
+        if (corsError) document.getElementById('corsWarnPanel').style.display = 'flex';
     } else if (errors > 0) {
-        setStatus('ok', `${COUNTRY_NAMES.length - errors}/${COUNTRY_NAMES.length} pays chargés`);
+        setStatus('ok', `${loaded}/${COUNTRY_NAMES.length} pays chargés`);
     } else {
-        setStatus(anyNew ? 'ok' : 'cached', anyNew ? 'Données à jour' : 'Cache utilisé');
+        setStatus(anyNew ? 'ok' : 'cached', anyNew ? `${loaded} pays — données à jour` : 'Cache utilisé');
     }
     if (dataSource === 'entsoe-api') updateAutoStatus(Date.now());
     document.getElementById('lastUpdateLabel').textContent = `Dernière actualisation : ${today()}`;
-
-    renderSpotChart();
-    renderSpotKpis();
     renderNegHours();
 }
 
@@ -1477,7 +1511,7 @@ function loadFromCache() {
     }
 
     const ttl = dataSource === 'entsoe-api' ? ENTSOE_AUTO_TTL_MS : CACHE_TTL_MS;
-    let allCached = true;
+    let cachedCount = 0;
     let oldestFetch = Infinity;
     for (const name of COUNTRY_NAMES) {
         const cacheKey = dataSource === 'entsoe-api'
@@ -1487,20 +1521,26 @@ function loadFromCache() {
         if (cached) {
             cachedData[name] = cached;
             oldestFetch = Math.min(oldestFetch, cached.fetchedAt);
-        } else {
-            allCached = false;
+            cachedCount++;
         }
     }
-    if (!allCached || (Date.now() - oldestFetch) > ttl) {
-        fetchAll();
-    } else {
+
+    // Always show whatever is in cache immediately
+    if (cachedCount > 0) {
         const d = new Date(oldestFetch);
         document.getElementById('lastUpdateLabel').textContent = `Cache du ${d.toLocaleDateString('fr-FR')} à ${d.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}`;
-        setStatus('cached', 'Données en cache');
+        setStatus('cached', `${cachedCount}/${COUNTRY_NAMES.length} pays en cache`);
         if (dataSource === 'entsoe-api') updateAutoStatus(oldestFetch);
         renderSpotChart();
         renderSpotKpis();
         renderNegHours();
+    }
+
+    // Fetch if incomplete or stale (runs in background if cache was shown above)
+    const isStale = cachedCount < COUNTRY_NAMES.length || (Date.now() - oldestFetch) > ttl;
+    if (isStale) {
+        if (cachedCount === 0) setStatus('loading', 'Téléchargement initial…');
+        fetchAll();
     }
 }
 
