@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root {
     --bg: #F7F6F3;
@@ -309,9 +310,9 @@ body::before {
                             Vous pouvez importer plusieurs fichiers (pays différents ou périodes différentes).
                         </div>
                         <div class="csv-dropzone" id="csvDropZone" onclick="document.getElementById('csvFileInput').click()">
-                            <input type="file" id="csvFileInput" accept=".csv,.txt" multiple onchange="handleCsvFiles(this.files)">
-                            <div class="csv-dropzone-text">Déposez vos fichiers CSV ENTSOE ici ou cliquez</div>
-                            <div class="csv-dropzone-hint">Format accepté : export Day-Ahead Prices de transparency.entsoe.eu</div>
+                            <input type="file" id="csvFileInput" accept=".csv,.txt,.xml,.xlsx" multiple onchange="handleCsvFiles(this.files)">
+                            <div class="csv-dropzone-text">Déposez vos fichiers ENTSOE ici ou cliquez</div>
+                            <div class="csv-dropzone-hint">Formats acceptés : CSV, XLSX, XML — exports journaliers ou annuels de transparency.entsoe.eu</div>
                         </div>
                         <div class="csv-loaded-list" id="csvLoadedList"></div>
                     </div>
@@ -815,13 +816,82 @@ function parseENTSOECsv(text, filename) {
     return rowsByCountry;
 }
 
+// Parse ENTSOE XML file export → { country: [{ts, price}] }
+function parseENTSOEXmlFile(xmlText, filename) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlText, 'application/xml');
+    const reason = doc.getElementsByTagName('Reason')[0];
+    if (reason) {
+        const txt = reason.getElementsByTagName('text')[0];
+        if (txt) throw new Error('ENTSOE: ' + txt.textContent);
+    }
+
+    const rowsByCountry = {};
+
+    Array.from(doc.getElementsByTagName('TimeSeries')).forEach(ts => {
+        // Extract EIC bidding zone code
+        let eic = null;
+        const eicCandidates = ['outBiddingZone_Domain.mRID', 'in_Domain.mRID', 'out_Domain.mRID'];
+        for (const tag of eicCandidates) {
+            const el = ts.getElementsByTagName(tag)[0];
+            if (el) { eic = el.textContent.trim(); break; }
+        }
+        let country = eic ? EIC_TO_NAME[eic] : null;
+        // Fallback: filename-based detection
+        if (!country) {
+            const fn = filename.toLowerCase();
+            for (const [key, c] of Object.entries(CSV_HEADER_MAP)) {
+                if (fn.includes(key)) { country = c; break; }
+            }
+        }
+        if (!country) country = 'Inconnu';
+
+        Array.from(ts.getElementsByTagName('Period')).forEach(period => {
+            const startEl = period.getElementsByTagName('start')[0];
+            if (!startEl) return;
+            const periodStart = new Date(startEl.textContent.trim());
+            const resEl = period.getElementsByTagName('resolution')[0];
+            const resText = resEl ? resEl.textContent : 'PT60M';
+            const resMinutes = resText.includes('PT30') ? 30 : 60;
+
+            Array.from(period.getElementsByTagName('Point')).forEach(pt => {
+                const posEl   = pt.getElementsByTagName('position')[0];
+                const priceEl = pt.getElementsByTagName('price.amount')[0] || pt.getElementsByTagName('price_amount')[0];
+                if (!posEl || !priceEl) return;
+                const pos   = parseInt(posEl.textContent) - 1;
+                const price = parseFloat(priceEl.textContent);
+                if (isNaN(price)) return;
+                const tsUnix = Math.floor((periodStart.getTime() + pos * resMinutes * 60000) / 1000);
+                if (!rowsByCountry[country]) rowsByCountry[country] = [];
+                rowsByCountry[country].push({ ts: tsUnix, price });
+            });
+        });
+    });
+
+    if (!Object.keys(rowsByCountry).length) throw new Error('Aucun point de données trouvé dans le XML');
+    return rowsByCountry;
+}
+
 function handleCsvFiles(files) {
     document.getElementById('csvFileInput').value = '';
     Array.from(files).forEach(file => {
+        const ext = file.name.split('.').pop().toLowerCase();
         const reader = new FileReader();
+
         reader.onload = e => {
             try {
-                const rowsByCountry = parseENTSOECsv(e.target.result, file.name);
+                let rowsByCountry;
+                if (ext === 'xml') {
+                    rowsByCountry = parseENTSOEXmlFile(e.target.result, file.name);
+                } else if (ext === 'xlsx') {
+                    const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+                    const sheet = wb.Sheets[wb.SheetNames[0]];
+                    const csvText = XLSX.utils.sheet_to_csv(sheet);
+                    rowsByCountry = parseENTSOECsv(csvText, file.name);
+                } else {
+                    rowsByCountry = parseENTSOECsv(e.target.result, file.name);
+                }
+
                 const countries = Object.keys(rowsByCountry);
                 if (!countries.length) {
                     alert(`Impossible de détecter le pays dans ${file.name}. Vérifiez le format d'export ENTSOE.`);
@@ -829,13 +899,20 @@ function handleCsvFiles(files) {
                 }
                 countries.forEach(country => {
                     const rows = rowsByCountry[country].sort((a,b) => a.ts - b.ts);
-                    const result = buildResult(rows.map(r => r.ts), rows.map(r => r.price), null);
-                    result.fetchedAt = Date.now();
-                    cachedData[country] = result;
-                    // Track for display
-                    csvLoadedFiles = csvLoadedFiles.filter(f => f.country !== country);
-                    csvLoadedFiles.push({ name: file.name, country, rows: rows.length });
-                    // Auto-activate this country
+                    // Merge with existing data for the same country
+                    if (cachedData[country] && cachedData[country].hourlyAll) {
+                        const existing = cachedData[country].hourlyAll;
+                        const existingSet = new Set(existing.times);
+                        rows.forEach(r => { if (!existingSet.has(r.ts)) { existing.times.push(r.ts); existing.prices.push(r.price); } });
+                        const merged = existing.times.map((t,i) => ({ ts: t, price: existing.prices[i] })).sort((a,b) => a.ts - b.ts);
+                        cachedData[country] = buildResult(merged.map(r => r.ts), merged.map(r => r.price), null);
+                    } else {
+                        cachedData[country] = buildResult(rows.map(r => r.ts), rows.map(r => r.price), null);
+                    }
+                    cachedData[country].fetchedAt = Date.now();
+                    csvLoadedFiles = csvLoadedFiles.filter(f => !(f.country === country && f.name === file.name));
+                    const totalRows = cachedData[country].hourlyAll?.times.length || rows.length;
+                    csvLoadedFiles.push({ name: file.name, country, rows: totalRows });
                     activeCountries.add(country);
                 });
                 renderCsvLoadedList();
@@ -843,13 +920,18 @@ function handleCsvFiles(files) {
                 renderSpotChart();
                 renderSpotKpis();
                 renderNegHours();
-                setStatus('ok', `${countries.length} pays importé(s)`);
+                setStatus('ok', `${countries.length} pays importé(s) depuis ${file.name}`);
                 document.getElementById('lastUpdateLabel').textContent = `Import du ${today()}`;
             } catch(err) {
-                alert('Erreur lors de la lecture du CSV : ' + err.message);
+                alert(`Erreur lors de la lecture de ${file.name} : ${err.message}`);
             }
         };
-        reader.readAsText(file, 'UTF-8');
+
+        if (ext === 'xlsx') {
+            reader.readAsArrayBuffer(file);
+        } else {
+            reader.readAsText(file, 'UTF-8');
+        }
     });
 }
 
