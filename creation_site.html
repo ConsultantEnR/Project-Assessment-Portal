@@ -689,13 +689,7 @@ function getProjects() {
     if (id) {
         document.getElementById('backLink').href = 'projet_dashboard.html?id=' + id;
     } else {
-        // fallback to last project
-        const projects = getProjects();
-        if (projects.length > 0) {
-            document.getElementById('backLink').href = 'projet_dashboard.html?id=' + projects[projects.length - 1].id;
-        } else {
-            document.getElementById('backLink').href = 'creer_projet.html';
-        }
+        document.getElementById('backLink').href = 'portefeuille_projets.html';
     }
 })();
 

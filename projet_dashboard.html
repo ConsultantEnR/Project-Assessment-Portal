@@ -2127,10 +2127,11 @@ function saveEditProject() {
     const id = getProjectId();
     const idx = projects.findIndex(p => p.id === id);
     if (idx === -1) return;
-    projects[idx].name          = document.getElementById('editProjName').value.trim()     || projects[idx].name;
-    projects[idx].courtier      = document.getElementById('editProjCourtier').value.trim() || projects[idx].courtier;
-    projects[idx].courtierEmail = document.getElementById('editProjEmail').value.trim();
-    projects[idx].vendeur       = document.getElementById('editProjVendeur').value.trim()  || projects[idx].vendeur;
+    const _v = id => document.getElementById(id)?.value.trim() ?? '';
+    if (_v('editProjName'))     projects[idx].name          = _v('editProjName');
+    if (_v('editProjCourtier')) projects[idx].courtier      = _v('editProjCourtier');
+    projects[idx].courtierEmail = _v('editProjEmail'); // email can be cleared intentionally
+    if (_v('editProjVendeur'))  projects[idx].vendeur       = _v('editProjVendeur');
     localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(projects));
     closeEditProjectModal();
     loadProject();
@@ -2453,7 +2454,7 @@ function parseProjText(text, filename) {
                   || text.match(/irradiation[^:]*[:=\s]+([0-9][0-9\s,.]*)\s*kWh/i);
     if (iraMatch) {
         const val = num(iraMatch[1]);
-        if (val > 500 && val < 3000) add('Irradiation', 'pvIrradiation', val, `${val.toLocaleString('fr-FR')} kWh/kWc/an`, 'high', 'site');
+        if (val > 500 && val < 3000) add('Irradiation / Productible P90', 'pvProdP90', val, `${val.toLocaleString('fr-FR')} kWh/kWc/an`, 'high', 'site');
     }
 
     // ─── Performance ratio ───
@@ -2576,22 +2577,44 @@ function applyProjExtract() {
     // Create a new site if site data extracted
     if (hasSiteData && (siteData.pvCapacity || siteData.country || siteData.siteName || siteData.bessCapacity)) {
         const hasBESS = !!(siteData.bessCapacity || siteData.bessPower);
+        const _FLAG_MAP = {'France':'🇫🇷','Espagne':'🇪🇸','Italie':'🇮🇹','Grèce':'🇬🇷','Portugal':'🇵🇹','Allemagne':'🇩🇪','Royaume-Uni':'🇬🇧','Belgique':'🇧🇪','Pays-Bas':'🇳🇱','Pologne':'🇵🇱','Sénégal':'🇸🇳','Maroc':'🇲🇦','Tunisie':'🇹🇳','Roumanie':'🇷🇴','Bulgarie':'🇧🇬'};
+        const hasPV = !!(siteData.pvCapacity) || !hasBESS;
         const newSite = {
             id: 'site_' + Date.now(),
             name: siteData.siteName || 'Site extrait',
+            location: '',
             country: siteData.country || '',
-            countryFlag: '',
+            countryFlag: siteData.country ? (_FLAG_MAP[siteData.country] || '') : '',
             status: 'En développement',
-            hasPV: !!(siteData.pvCapacity) || !hasBESS,
+            commissioningDate: '',
+            area: null,
+            ownership: '',
+            hasPV,
             hasBESS,
+            technologies: [hasPV && 'PV', hasBESS && 'BESS'].filter(Boolean).join(' + ') || '—',
             pvCapacity: siteData.pvCapacity || null,
+            pvProdP90: siteData.pvProdP90 || null,
+            pvProdP75: null,
+            pvDegradation: null,
+            pvLifetime: siteData.pvLifetime || null,
+            pvGridPower: null,
+            pvGridType: '',
             bessPower: siteData.bessPower || null,
             bessCapacity: siteData.bessCapacity || null,
-            pvIrradiation: siteData.pvIrradiation || null,
-            pvPR: siteData.pvPR || null,
-            surfaceHa: siteData.surfaceHa || null,
-            pvLifetime: siteData.pvLifetime || null,
+            bessCRate: null,
+            bessCycleHours: null,
+            bessCyclesPerDay: null,
+            bessEffACDC: null,
+            bessEffDCAC: null,
+            bessMinSoH: null,
+            bessDegradation: null,
             capexPv: siteData.capexPv || null,
+            omPv: null, insPv: null, amPv: null, rmPv: null,
+            capexBess: null,
+            omBess: null, insBess: null, amBess: null, rmBess: null,
+            rentEuros: null, rentPerM2: null,
+            surfaceHa: siteData.surfaceHa || null,
+            createdAt: new Date().toISOString(),
         };
         if (!projects[idx].sites) projects[idx].sites = [];
         projects[idx].sites.push(newSite);

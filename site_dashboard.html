@@ -1171,6 +1171,10 @@ function loadData() {
 
     if (!project || !site) {
         document.getElementById('headerSiteName').textContent = 'Site introuvable';
+        if (projectId) {
+            document.getElementById('projectLink').href = 'projet_dashboard.html?id=' + projectId;
+            document.getElementById('projectLink').textContent = 'Retour au projet';
+        }
         return;
     }
 
