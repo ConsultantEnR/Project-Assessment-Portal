@@ -751,82 +751,90 @@ async function fetchCountryENTSOE(name, days, token) {
 }
 
 // ══════════════════════════════════════════════════════════
-//  SOURCE C — ENTSOE CSV IMPORT
+//  SOURCE C — ENTSOE CSV/XLSX IMPORT
 // ══════════════════════════════════════════════════════════
-// ENTSOE CSV format:
-//   "MTU (CET/CEST)","France [EUR/MWh] Original resolutions"
-//   "01.01.2024 00:00 - 01.01.2024 01:00","95,12"
 function parseENTSOECsv(text, filename, forcedCountry = null) {
-    const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim());
-    if (lines.length < 2) throw new Error('Fichier CSV trop court');
+    const allLines = text.replace(/\r/g, '').split('\n');
 
-    // Parse CSV (handles quoted fields)
-    function parseCsvLine(line) {
+    // ── 1. Auto-detect separator (comma or semicolon) ─────
+    const sample = allLines.slice(0, 10).join('\n');
+    const sep = (sample.split(';').length > sample.split(',').length) ? ';' : ',';
+
+    // ── 2. Find the header row containing "MTU" ───────────
+    //    ENTSOE XLSX exports often have metadata rows before the real headers
+    let headerIdx = -1;
+    for (let i = 0; i < Math.min(allLines.length, 20); i++) {
+        if (/\bmtu\b/i.test(allLines[i])) { headerIdx = i; break; }
+    }
+    if (headerIdx === -1) throw new Error('En-tête MTU introuvable — vérifiez le format ENTSOE');
+    const lines = allLines.slice(headerIdx).filter(l => l.trim());
+    if (lines.length < 2) throw new Error('Aucune donnée après l\'en-tête');
+
+    // ── 3. CSV line parser (quoted fields, configurable sep) ─
+    function parseLine(line) {
         const fields = [];
         let cur = '', inQ = false;
         for (let i = 0; i < line.length; i++) {
             const ch = line[i];
             if (ch === '"') { inQ = !inQ; continue; }
-            if (ch === ',' && !inQ) { fields.push(cur.trim()); cur = ''; continue; }
+            if (ch === sep && !inQ) { fields.push(cur.trim()); cur = ''; continue; }
             cur += ch;
         }
         fields.push(cur.trim());
         return fields;
     }
 
-    const headers = parseCsvLine(lines[0]);
-    // headers[0] = "MTU (CET/CEST)" or "MTU"
-    // headers[1..n] = "France [EUR/MWh]..." or "Day-ahead Price [EUR/MWh]"
+    // ── 4. Flexible date parser (CET → UTC) ──────────────
+    //    Supports: DD.MM.YYYY HH:MM  /  M/D/YYYY H:MM (SheetJS)  /  YYYY-MM-DD HH:MM
+    function parseDate(str) {
+        let m;
+        // "01.01.2024 00:00" or "1.1.2024 0:00"
+        m = str.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})\s+(\d{1,2}):(\d{2})/);
+        if (m) return Math.floor(Date.UTC(+m[3], +m[2]-1, +m[1], +m[4]-1, +m[5]) / 1000);
+        // "1/1/2024 0:00" or "01/01/2024 00:00" (SheetJS: M/D/YYYY or D/M/YYYY)
+        m = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
+        if (m) {
+            // SheetJS outputs M/D/YYYY for en-US locale
+            return Math.floor(Date.UTC(+m[3], +m[1]-1, +m[2], +m[4]-1, +m[5]) / 1000);
+        }
+        // "2024-01-01 00:00" or "2024-01-01T00:00"
+        m = str.match(/(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/);
+        if (m) return Math.floor(Date.UTC(+m[1], +m[2]-1, +m[3], +m[4]-1, +m[5]) / 1000);
+        return null;
+    }
 
-    // Map column index → country name
+    // ── 5. Map columns → countries ────────────────────────
+    const headers = parseLine(lines[0]);
     const colToCountry = {};
     for (let c = 1; c < headers.length; c++) {
-        const h = headers[c].toLowerCase().replace(/\s*\[.*?\]/g, '').trim();
-        if (!h || h === 'day-ahead price') {
+        const h = headers[c].toLowerCase().replace(/\s*\[.*?\]/g, '').replace(/-\s*bzn\|?\w*/gi, '').trim();
+        if (!h || /^day.?ahead\s*price/i.test(h) || h === 'price') {
             if (forcedCountry) {
                 colToCountry[c] = forcedCountry;
             } else {
-                // Single-country file — try to guess from filename
                 const fn = filename.toLowerCase();
                 for (const [key, country] of Object.entries(CSV_HEADER_MAP)) {
                     if (fn.includes(key)) { colToCountry[c] = country; break; }
                 }
-                if (!colToCountry[c]) colToCountry[c] = null;
             }
         } else {
-            // Multi-country header
             for (const [key, country] of Object.entries(CSV_HEADER_MAP)) {
                 if (h.includes(key)) { colToCountry[c] = country; break; }
             }
         }
     }
 
-    // Parse rows
-    // Date format: "01.01.2024 00:00 - 01.01.2024 01:00"
-    const rowsByCountry = {}; // { country: [{ts, price}] }
-
+    // ── 6. Parse data rows ────────────────────────────────
+    const rowsByCountry = {};
     for (let r = 1; r < lines.length; r++) {
-        const fields = parseCsvLine(lines[r]);
+        const fields = parseLine(lines[r]);
         if (fields.length < 2) continue;
-        // Parse date
-        const dtStr = fields[0]; // "01.01.2024 00:00 - ..."
-        const dtMatch = dtStr.match(/(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})/);
-        if (!dtMatch) continue;
-        // CET/CEST → UTC: subtract 1 or 2 hours (approximate: use CET = UTC+1)
-        const dateUtc = new Date(Date.UTC(
-            parseInt(dtMatch[3]),
-            parseInt(dtMatch[2]) - 1,
-            parseInt(dtMatch[1]),
-            parseInt(dtMatch[4]) - 1, // CET = UTC+1
-            parseInt(dtMatch[5])
-        ));
-        const tsUnix = Math.floor(dateUtc.getTime() / 1000);
-
+        const tsUnix = parseDate(fields[0]);
+        if (tsUnix === null) continue;
         for (let c = 1; c < fields.length; c++) {
             const country = colToCountry[c];
             if (!country) continue;
-            const rawPrice = fields[c].replace(',', '.');
-            const price = parseFloat(rawPrice);
+            const price = parseFloat(fields[c].replace(',', '.').replace(/\s/g, ''));
             if (isNaN(price)) continue;
             if (!rowsByCountry[country]) rowsByCountry[country] = [];
             rowsByCountry[country].push({ ts: tsUnix, price });
@@ -977,7 +985,8 @@ async function handleCsvFiles(files) {
                 totalCountries++;
             });
         } catch(err) {
-            alert(`Erreur lors de la lecture de ${file.name} : ${err.message}`);
+            setStatus('error', `Erreur : ${err.message}`);
+            console.error(file.name, err);
         }
     }
 
