@@ -1493,7 +1493,8 @@ function getProjects() {
 
 function getProjectId() {
     const params = new URLSearchParams(window.location.search);
-    return params.get('id');
+    const id = params.get('id');
+    return (id && id !== 'undefined' && id !== 'null') ? id : null;
 }
 
 function getProject() {
@@ -1511,26 +1512,48 @@ function saveProject(project) {
 
 // ─── Load project data into UI ───
 function loadProject() {
+    // Always update nav badge regardless of project found status
+    const allProjects = getProjects();
+    document.getElementById('navProjectCount').textContent = allProjects.length;
+
     const project = getProject();
     if (!project) {
+        const id = getProjectId();
+        if (!id) {
+            // No ID in URL — redirect to portfolio
+            window.location.replace('portefeuille_projets.html');
+            return;
+        }
         document.getElementById('headerProjectName').textContent = 'Projet introuvable';
+        // Show friendly redirect message
+        const sitesPanel = document.getElementById('sitesEmptyPanel');
+        if (sitesPanel) {
+            sitesPanel.style.display = 'block';
+            sitesPanel.innerHTML = `
+                <div class="sites-empty-icon" style="color:#D9534F">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="40" height="40"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <div class="sites-empty-title" style="color:#D9534F">Projet introuvable</div>
+                <p class="sites-empty-text">L'identifiant <code style="font-size:11px;background:#f1f1f1;padding:2px 6px;border-radius:4px">${id}</code> ne correspond à aucun projet enregistré dans ce navigateur.</p>
+                <a class="btn-add-site" href="portefeuille_projets.html" style="margin-top:12px">← Retour au portefeuille</a>
+            `;
+        }
+        const tableWrap = document.getElementById('sitesTableWrap');
+        if (tableWrap) tableWrap.style.display = 'none';
         return;
     }
 
     document.title = project.name + ' — Portail Investissement';
     document.getElementById('headerProjectName').textContent = project.name;
-    document.getElementById('headerCourtier').textContent = project.courtier;
-    document.getElementById('headerVendeur').textContent = project.vendeur;
+    document.getElementById('headerCourtier').textContent = project.courtier || '—';
+    document.getElementById('headerVendeur').textContent = project.vendeur || '—';
 
     if (project.courtierEmail) {
-        document.getElementById('headerEmailWrap').style.display = 'flex';
-        document.getElementById('headerEmail').textContent = project.courtierEmail;
+        const wrap = document.getElementById('headerEmailWrap');
+        if (wrap) wrap.style.display = 'flex';
+        const el = document.getElementById('headerEmail');
+        if (el) el.textContent = project.courtierEmail;
     }
-
-    // Project count in nav
-    const projects = getProjects();
-    document.getElementById('navProjectCount').textContent = projects.length;
-
 
     renderSites(project);
 }

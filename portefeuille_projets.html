@@ -608,21 +608,24 @@ function init() {
 
     tbody.innerHTML = '';
     projects.forEach(p => {
+        if (!p.id) return; // skip corrupted entries
         const sitesCount = (p.sites || []).length;
         const date = p.createdAt
             ? new Date(p.createdAt).toLocaleDateString('fr-FR')
             : '<span class="cell-muted">—</span>';
+        const url = 'projet_dashboard.html?id=' + encodeURIComponent(p.id);
 
         const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
         tr.innerHTML = `
-            <td class="project-name-cell">${p.name || '—'}</td>
+            <td class="project-name-cell"><a href="${url}" style="text-decoration:none;color:inherit;display:block">${p.name || '—'}</a></td>
             <td>${p.courtier || '<span class="cell-muted">—</span>'}</td>
             <td>${p.vendeur  || '<span class="cell-muted">—</span>'}</td>
             <td>${sitesCount}</td>
             <td>${date}</td>
         `;
-        tr.addEventListener('click', () => {
-            window.location.href = 'projet_dashboard.html?id=' + p.id;
+        tr.addEventListener('click', e => {
+            if (e.target.tagName !== 'A') window.location.href = url;
         });
         tbody.appendChild(tr);
     });
