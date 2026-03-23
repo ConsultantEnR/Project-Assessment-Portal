@@ -982,21 +982,36 @@ async function handleCsvFiles(files) {
 
             Object.entries(rowsByCountry).forEach(([country, rawRows]) => {
                 const rows = rawRows.sort((a,b) => a.ts - b.ts);
-                if (cachedData[country] && cachedData[country].hourlyAll) {
-                    const ex  = cachedData[country].hourlyAll;
-                    const exSet = new Set(ex.times);
-                    rows.forEach(r => { if (!exSet.has(r.ts)) { ex.times.push(r.ts); ex.prices.push(r.price); } });
-                    const merged = ex.times.map((t,i) => ({ ts: t, price: ex.prices[i] })).sort((a,b) => a.ts - b.ts);
-                    cachedData[country] = buildResult(merged.map(r => r.ts), merged.map(r => r.price), null);
-                } else {
-                    cachedData[country] = buildResult(rows.map(r => r.ts), rows.map(r => r.price), null);
+                // Merge with existing persisted data for this country
+                const persisted = JSON.parse(localStorage.getItem('pi_csv_import_' + country) || 'null');
+                let baseTimes = [], basePrices = [];
+                if (persisted && persisted.hourlyAll) {
+                    baseTimes  = persisted.hourlyAll.times;
+                    basePrices = persisted.hourlyAll.prices;
+                } else if (cachedData[country] && cachedData[country].hourlyAll) {
+                    baseTimes  = cachedData[country].hourlyAll.times;
+                    basePrices = cachedData[country].hourlyAll.prices;
                 }
+                const existingSet = new Set(baseTimes);
+                rows.forEach(r => { if (!existingSet.has(r.ts)) { baseTimes.push(r.ts); basePrices.push(r.price); } });
+                const merged = baseTimes.map((t,i) => ({ ts: t, price: basePrices[i] })).sort((a,b) => a.ts - b.ts);
+                cachedData[country] = buildResult(merged.map(r => r.ts), merged.map(r => r.price), null);
                 cachedData[country].fetchedAt = Date.now();
+
+                // ── Persist to localStorage ────────────────
+                try {
+                    localStorage.setItem('pi_csv_import_' + country, JSON.stringify(cachedData[country]));
+                } catch(e) { console.warn('localStorage plein :', e); }
+
                 csvLoadedFiles = csvLoadedFiles.filter(f => !(f.country === country && f.name === file.name));
-                csvLoadedFiles.push({ name: file.name, country, rows: cachedData[country].hourlyAll?.times.length || rows.length });
+                csvLoadedFiles.push({ name: file.name, country, rows: merged.length });
                 activeCountries.add(country);
                 totalCountries++;
             });
+
+            // Persist file list
+            try { localStorage.setItem('pi_csv_files', JSON.stringify(csvLoadedFiles)); } catch(e) {}
+
         } catch(err) {
             setStatus('error', `Erreur : ${err.message}`);
             console.error(file.name, err);
@@ -1009,7 +1024,7 @@ async function handleCsvFiles(files) {
         renderSpotChart();
         renderSpotKpis();
         renderNegHours();
-        setStatus('ok', `${totalCountries} pays importé(s)`);
+        setStatus('ok', `${totalCountries} pays importé(s) — données sauvegardées`);
         document.getElementById('lastUpdateLabel').textContent = `Import du ${today()}`;
     }
 }
@@ -1021,9 +1036,22 @@ function renderCsvLoadedList() {
         <div class="csv-loaded-item">
             <span class="csv-country">${COUNTRIES[f.country]?.flag || ''} ${f.country}</span>
             <span class="csv-name">${f.name}</span>
-            <span class="csv-rows">${f.rows.toLocaleString('fr-FR')} points horaires</span>
+            <span class="csv-rows">${(f.rows||0).toLocaleString('fr-FR')} pts</span>
+            <button onclick="removeCsvCountry('${f.country}')" title="Supprimer" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--danger);font-size:14px;padding:0 4px;">✕</button>
         </div>
     `).join('');
+}
+
+function removeCsvCountry(country) {
+    csvLoadedFiles = csvLoadedFiles.filter(f => f.country !== country);
+    delete cachedData[country];
+    localStorage.removeItem('pi_csv_import_' + country);
+    try { localStorage.setItem('pi_csv_files', JSON.stringify(csvLoadedFiles)); } catch(e) {}
+    renderCsvLoadedList();
+    buildChips();
+    renderSpotChart();
+    renderSpotKpis();
+    renderNegHours();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1419,8 +1447,26 @@ function updateAutoStatus(fetchedAt) {
 }
 
 function loadFromCache() {
-    // CSV mode — data must be re-imported each session (no persistent cache)
+    // CSV mode — load persisted imports from localStorage
     if (dataSource === 'entsoe-csv') {
+        const savedFiles = JSON.parse(localStorage.getItem('pi_csv_files') || 'null');
+        if (savedFiles && savedFiles.length) {
+            csvLoadedFiles = savedFiles;
+            savedFiles.forEach(f => {
+                if (!cachedData[f.country]) {
+                    const saved = JSON.parse(localStorage.getItem('pi_csv_import_' + f.country) || 'null');
+                    if (saved) { cachedData[f.country] = saved; activeCountries.add(f.country); }
+                }
+            });
+            renderCsvLoadedList();
+            buildChips();
+            setStatus('cached', 'Données CSV chargées');
+            const dates = Object.values(cachedData).map(d => d.fetchedAt).filter(Boolean);
+            if (dates.length) {
+                const d = new Date(Math.max(...dates));
+                document.getElementById('lastUpdateLabel').textContent = `Dernier import : ${d.toLocaleDateString('fr-FR')}`;
+            }
+        }
         renderSpotChart();
         renderSpotKpis();
         renderNegHours();
