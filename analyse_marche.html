@@ -377,7 +377,7 @@ body::before {
             <div class="section-label">2. Projections des prix (€/MWh)</div>
             <div class="card">
                 <div class="card-title">Forecast des prix spot</div>
-                <div class="card-subtitle">Modèle statistique — tendance linéaire + saisonnalité mensuelle. Basé sur l'historique chargé.</div>
+                <div class="card-subtitle">Régression linéaire + saisonnalité mensuelle. Bande de Bollinger (±1,5σ) : scénarios haut / médian / bas.</div>
 
                 <div class="controls-bar">
                     <div class="ctrl-group">
@@ -394,7 +394,7 @@ body::before {
                     </button>
                 </div>
 
-                <div class="chart-wrap" style="height:300px">
+                <div class="chart-wrap" style="height:380px">
                     <canvas id="chartForecast"></canvas>
                 </div>
                 <div id="forecastEmpty" class="empty-state" style="display:none">
@@ -411,7 +411,7 @@ body::before {
             <div class="section-label">3. Heures à prix négatifs</div>
             <div class="card">
                 <div class="card-title">Historique et projection des heures négatives</div>
-                <div class="card-subtitle">Nombre d'heures avec un prix spot ≤ 0 €/MWh. Tendance basée sur l'historique chargé.</div>
+                <div class="card-subtitle">Heures avec prix ≤ 0 €/MWh. Projection 5 ans avec bande de scénarios (haut / médian / bas) basée sur la variance historique.</div>
 
                 <div class="controls-bar">
                     <div class="ctrl-group">
@@ -428,11 +428,12 @@ body::before {
                         </div>
                     </div>
                     <div>
-                        <div class="card-subtitle" style="margin-bottom:8px;">Synthèse annuelle</div>
-                        <div id="negTableWrap">
-                            <div class="empty-state" style="padding:40px 20px">
-                                <div>Chargez d'abord l'historique (section 1)</div>
-                            </div>
+                        <div class="card-subtitle" style="margin-bottom:8px;">Projection annuelle — scénarios</div>
+                        <div class="chart-wrap" style="height:240px">
+                            <canvas id="chartNegAnnual"></canvas>
+                        </div>
+                        <div id="negAnnualEmpty" class="empty-state" style="padding:30px 20px; display:none">
+                            <div>Données insuffisantes pour la projection</div>
                         </div>
                     </div>
                 </div>
@@ -512,6 +513,7 @@ let cachedData      = {};  // { [name]: { dates:[], prices:[], fetchedAt: ts } }
 let chartSpot       = null;
 let chartForecast   = null;
 let chartNegHours   = null;
+let chartNegAnnual  = null;
 // Si un token ENTSOE est déjà stocké, basculer automatiquement sur ENTSOE API
 let dataSource      = localStorage.getItem('pi_datasource') ||
                       (localStorage.getItem('pi_entsoe_token') ? 'entsoe-api' : 'energy-charts');
@@ -1176,12 +1178,17 @@ function setStatus(type, text) {
 //  SPOT CHART
 // ══════════════════════════════════════════════════════════
 function renderSpotChart() {
+    // Filter displayed dates to activePeriod
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - activePeriod);
+    const cutoffStr = cutoff.toISOString().substring(0, 10);
+
     const datasets = [];
     let allDates = new Set();
 
     activeCountries.forEach(name => {
         const d = cachedData[name];
-        if (d) d.dates.forEach(dt => allDates.add(dt));
+        if (d) d.dates.filter(dt => dt >= cutoffStr).forEach(dt => allDates.add(dt));
     });
     const labels = [...allDates].sort();
 
@@ -1241,12 +1248,18 @@ function renderSpotChart() {
 }
 
 function renderSpotKpis() {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - activePeriod);
+    const cutoffStr = cutoff.toISOString().substring(0, 10);
     const container = document.getElementById('spotKpis');
     const pills = [];
     activeCountries.forEach(name => {
         const d = cachedData[name];
         if (!d || !d.prices.length) return;
-        const prices = d.prices.filter(p => p !== null);
+        const prices = d.dates
+            .map((dt, i) => dt >= cutoffStr ? d.prices[i] : null)
+            .filter(p => p !== null);
+        if (!prices.length) return;
         const avg = prices.reduce((a,b) => a+b, 0) / prices.length;
         const min = Math.min(...prices);
         const max = Math.max(...prices);
@@ -1265,9 +1278,9 @@ function renderSpotKpis() {
 //  FORECAST (linear trend + monthly seasonality)
 // ══════════════════════════════════════════════════════════
 function computeForecasts() {
-    const forecastDatasets = [];
-    const histDatasets = [];
+    const allDatasets = [];
     let hasData = false;
+    const K = 1.5; // Bollinger multiplier
 
     activeCountries.forEach(name => {
         const d = cachedData[name];
@@ -1297,7 +1310,7 @@ function computeForecasts() {
         const intercept = ym - slope * xm;
 
         // Seasonal factors (deviation from trend)
-        const seasonalFactor = {}; // by month-of-year (1-12)
+        const seasonalFactor = {};
         months.forEach((m, i) => {
             const trend = intercept + slope * i;
             const monNum = parseInt(m.split('-')[1]);
@@ -1310,35 +1323,68 @@ function computeForecasts() {
             avgSeasonal[mo] = arr.reduce((a,b)=>a+b,0)/arr.length;
         }
 
-        // Generate forecast
+        // Residuals → sigma for Bollinger bands
+        const residuals = months.map((m, i) => {
+            const monNum = parseInt(m.split('-')[1]);
+            const fitted = intercept + slope * i + (avgSeasonal[monNum] || 0);
+            return monthlyAvg[i] - fitted;
+        });
+        const sigma = Math.sqrt(residuals.reduce((s, r) => s + r*r, 0) / residuals.length);
+
+        // Generate forecast arrays (med / high / low)
         const lastDate = new Date(months[months.length-1] + '-01');
         const forecastMonths = activeForecastYears * 12;
-        const fLabels = [], fValues = [];
+        const fLabels = [], fMed = [], fHigh = [], fLow = [];
         for (let i = 1; i <= forecastMonths; i++) {
             const fd = new Date(lastDate);
             fd.setMonth(fd.getMonth() + i);
             const label = `${fd.getFullYear()}-${String(fd.getMonth()+1).padStart(2,'0')}`;
             const monNum = fd.getMonth() + 1;
-            const projected = intercept + slope * (n + i - 1) + (avgSeasonal[monNum] || 0);
+            const base = intercept + slope * (n + i - 1) + (avgSeasonal[monNum] || 0);
             fLabels.push(label);
-            fValues.push(+projected.toFixed(2));
+            fMed.push(+base.toFixed(2));
+            fHigh.push(+(base + K * sigma).toFixed(2));
+            fLow.push(+(base - K * sigma).toFixed(2));
         }
 
+        const colorBase = c.color;
+        const colorFill = colorBase + '22'; // translucent fill
+
         // Historical monthly line
-        histDatasets.push({
+        allDatasets.push({
             label: `${c.flag} ${name} (historique)`,
             data: months.map((m,i) => ({ x: m, y: +monthlyAvg[i].toFixed(2) })),
-            borderColor: c.color,
+            borderColor: colorBase,
             borderWidth: 1.5,
             pointRadius: 2,
             fill: false, tension: 0.3,
-            borderDash: undefined,
         });
-        // Forecast line (dashed)
-        forecastDatasets.push({
-            label: `${c.flag} ${name} (projection)`,
-            data: fLabels.map((m,i) => ({ x: m, y: fValues[i] })),
-            borderColor: c.color,
+        // Low band (fill: '+1' → fills to next dataset = High)
+        allDatasets.push({
+            label: `_low_${name}`,
+            data: fLabels.map((m,i) => ({ x: m, y: fLow[i] })),
+            borderColor: 'transparent',
+            borderWidth: 0,
+            pointRadius: 0,
+            fill: '+1',
+            backgroundColor: colorFill,
+            tension: 0.3,
+        });
+        // High band
+        allDatasets.push({
+            label: `_high_${name}`,
+            data: fLabels.map((m,i) => ({ x: m, y: fHigh[i] })),
+            borderColor: 'transparent',
+            borderWidth: 0,
+            pointRadius: 0,
+            fill: false,
+            tension: 0.3,
+        });
+        // Median projection (dashed)
+        allDatasets.push({
+            label: `${c.flag} ${name} (projection médiane)`,
+            data: fLabels.map((m,i) => ({ x: m, y: fMed[i] })),
+            borderColor: colorBase,
             borderWidth: 1.5,
             borderDash: [5, 4],
             pointRadius: 0,
@@ -1355,13 +1401,27 @@ function computeForecasts() {
     if (chartForecast) { chartForecast.destroy(); }
     chartForecast = new Chart(document.getElementById('chartForecast'), {
         type: 'line',
-        data: { datasets: [...histDatasets, ...forecastDatasets] },
+        data: { datasets: allDatasets },
         options: {
             responsive: true, maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: { position: 'top', labels: { font: { family: 'Poppins', size: 10 }, boxWidth: 12, padding: 12 } },
-                tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y?.toFixed(1)} €/MWh` } }
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: { family: 'Poppins', size: 10 }, boxWidth: 12, padding: 12,
+                        filter: item => !item.text.startsWith('_')
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => {
+                            if (ctx.dataset.label.startsWith('_')) return null;
+                            return ` ${ctx.dataset.label}: ${ctx.parsed.y?.toFixed(1)} €/MWh`;
+                        }
+                    },
+                    filter: item => !item.dataset.label.startsWith('_')
+                }
             },
             scales: {
                 x: { type: 'category', ticks: { font: { family: 'Poppins', size: 9 }, maxTicksLimit: 14, maxRotation: 0 }, grid: { color: 'rgba(0,0,0,0.04)' } },
@@ -1376,8 +1436,11 @@ function computeForecasts() {
 // ══════════════════════════════════════════════════════════
 function renderNegHours() {
     const data = cachedData[activeNegCountry];
+    const c = COUNTRIES[activeNegCountry];
+
     if (!data || !data.hourlyAll) {
-        document.getElementById('negTableWrap').innerHTML = '<div class="empty-state" style="padding:40px 20px"><div>Données non disponibles pour ce pays</div></div>';
+        if (chartNegHours) { chartNegHours.destroy(); chartNegHours = null; }
+        if (chartNegAnnual) { chartNegAnnual.destroy(); chartNegAnnual = null; }
         return;
     }
 
@@ -1396,10 +1459,8 @@ function renderNegHours() {
     const months = Object.keys(totalByMonth).sort();
     const negCounts = months.map(m => negByMonth[m] || 0);
     const negPcts   = months.map((m,i) => totalByMonth[m] > 0 ? +(negCounts[i] / totalByMonth[m] * 100).toFixed(1) : 0);
-    const maxNeg    = Math.max(...negCounts, 1);
-    const c = COUNTRIES[activeNegCountry];
 
-    // Bar chart
+    // ── Monthly bar chart (left column) ────────────────────────────
     if (chartNegHours) { chartNegHours.destroy(); }
     chartNegHours = new Chart(document.getElementById('chartNegHours'), {
         type: 'bar',
@@ -1427,7 +1488,7 @@ function renderNegHours() {
         }
     });
 
-    // Annual summary table
+    // ── Annual aggregation ──────────────────────────────────────────
     const byYear = {};
     months.forEach((m, i) => {
         const y = m.substring(0,4);
@@ -1436,38 +1497,111 @@ function renderNegHours() {
         byYear[y].total += totalByMonth[m];
     });
     const years = Object.keys(byYear).sort();
-
-    // Compute YoY trend for forecast
     const yearCounts = years.map(y => byYear[y].neg);
-    let forecastTrend = '';
-    if (yearCounts.length >= 2) {
-        const growthRates = yearCounts.slice(1).map((v,i) => yearCounts[i] > 0 ? (v - yearCounts[i]) / yearCounts[i] * 100 : 0);
-        const avgGrowth = growthRates.reduce((a,b)=>a+b,0) / growthRates.length;
-        const nextYearEst = Math.round(yearCounts[yearCounts.length-1] * (1 + avgGrowth/100));
-        const nextYear = parseInt(years[years.length-1]) + 1;
-        forecastTrend = `<tr style="background:rgba(217,83,79,0.04); font-weight:600">
-            <td>${nextYear} <span style="font-size:10px;color:#888;font-weight:400">(prévision)</span></td>
-            <td colspan="3" style="text-align:right;color:#D9534F">~${nextYearEst} h estimées (tendance ${avgGrowth>0?'+':''}${avgGrowth.toFixed(0)}%/an)</td>
-        </tr>`;
+
+    // ── Annual forecast with Bollinger bands (right column) ─────────
+    const K = 1.5;
+    const nY = years.length;
+    const forecastYrs = 5;
+    const annDatasets = [];
+
+    // Historical bars
+    annDatasets.push({
+        type: 'bar',
+        label: `${c ? c.flag : ''} ${activeNegCountry} (historique)`,
+        data: years.map((y,i) => ({ x: y, y: yearCounts[i] })),
+        backgroundColor: '#D9534F66',
+        borderColor: '#D9534F',
+        borderWidth: 1,
+        borderRadius: 3,
+        order: 2,
+    });
+
+    if (nY >= 3) {
+        // OLS regression on annual counts
+        const xs = years.map((_,i) => i);
+        const xm = xs.reduce((a,b)=>a+b,0)/nY;
+        const ym = yearCounts.reduce((a,b)=>a+b,0)/nY;
+        const slopeY = xs.reduce((s,x,i) => s + (x-xm)*(yearCounts[i]-ym), 0) /
+                       xs.reduce((s,x) => s + (x-xm)**2, 0);
+        const interceptY = ym - slopeY * xm;
+
+        // Residuals → sigma
+        const resid = yearCounts.map((v, i) => v - (interceptY + slopeY * i));
+        const sigmaY = Math.sqrt(resid.reduce((s,r) => s + r*r, 0) / resid.length);
+
+        // Forecast labels and values
+        const lastYearNum = parseInt(years[nY-1]);
+        const fYears = Array.from({ length: forecastYrs }, (_, i) => String(lastYearNum + i + 1));
+        const fMed  = fYears.map((_, i) => Math.max(0, Math.round(interceptY + slopeY * (nY + i))));
+        const fHigh = fYears.map((_, i) => Math.max(0, Math.round(interceptY + slopeY * (nY + i) + K * sigmaY)));
+        const fLow  = fYears.map((_, i) => Math.max(0, Math.round(interceptY + slopeY * (nY + i) - K * sigmaY)));
+
+        // Band: _low_ fills to _high_
+        annDatasets.push({
+            type: 'line',
+            label: '_low_neg',
+            data: fYears.map((y,i) => ({ x: y, y: fLow[i] })),
+            borderColor: 'transparent',
+            borderWidth: 0,
+            pointRadius: 0,
+            fill: '+1',
+            backgroundColor: '#D9534F22',
+            tension: 0.3,
+            order: 1,
+        });
+        annDatasets.push({
+            type: 'line',
+            label: '_high_neg',
+            data: fYears.map((y,i) => ({ x: y, y: fHigh[i] })),
+            borderColor: 'transparent',
+            borderWidth: 0,
+            pointRadius: 0,
+            fill: false,
+            tension: 0.3,
+            order: 1,
+        });
+        // Median projection (dashed line)
+        annDatasets.push({
+            type: 'line',
+            label: `Projection médiane`,
+            data: fYears.map((y,i) => ({ x: y, y: fMed[i] })),
+            borderColor: '#D9534F',
+            borderWidth: 2,
+            borderDash: [5, 4],
+            pointRadius: 3,
+            fill: false,
+            tension: 0.3,
+            order: 1,
+        });
     }
 
-    document.getElementById('negTableWrap').innerHTML = `
-        <table class="neg-table">
-            <thead><tr><th>Année</th><th>Heures négatives</th><th>% du temps</th><th>Visualisation</th></tr></thead>
-            <tbody>
-                ${years.map(y => {
-                    const pct = byYear[y].total > 0 ? (byYear[y].neg / byYear[y].total * 100).toFixed(1) : '0.0';
-                    const barW = Math.round(byYear[y].neg / maxNeg * 80);
-                    return `<tr>
-                        <td>${y}</td>
-                        <td style="color:#D9534F;font-weight:600">${byYear[y].neg} h</td>
-                        <td>${pct}%</td>
-                        <td><span class="neg-bar" style="width:${barW}px"></span></td>
-                    </tr>`;
-                }).join('')}
-                ${forecastTrend}
-            </tbody>
-        </table>`;
+    if (chartNegAnnual) { chartNegAnnual.destroy(); }
+    chartNegAnnual = new Chart(document.getElementById('chartNegAnnual'), {
+        type: 'bar',
+        data: { datasets: annDatasets },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: { family: 'Poppins', size: 10 }, boxWidth: 12, padding: 12,
+                        filter: item => !item.text.startsWith('_')
+                    }
+                },
+                tooltip: {
+                    callbacks: { label: ctx => ctx.dataset.label.startsWith('_') ? null : ` ${ctx.dataset.label}: ${ctx.parsed.y} h` },
+                    filter: item => !item.dataset.label.startsWith('_')
+                }
+            },
+            scales: {
+                x: { type: 'category', ticks: { font: { family: 'Poppins', size: 9 } }, grid: { display: false } },
+                y: { ticks: { font: { family: 'Poppins', size: 9 } }, grid: { color: 'rgba(0,0,0,0.04)' }, title: { display: true, text: 'Heures/an', font: { size: 10, family: 'Poppins' } } }
+            }
+        }
+    });
 }
 
 // ══════════════════════════════════════════════════════════
