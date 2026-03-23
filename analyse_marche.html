@@ -334,10 +334,10 @@ body::before {
                         <div class="period-tabs" id="periodTabs">
                             <button class="period-tab" data-days="7">7 jours</button>
                             <button class="period-tab" data-days="30">30 jours</button>
-                            <button class="period-tab active" data-days="90">3 mois</button>
+                            <button class="period-tab" data-days="90">3 mois</button>
                             <button class="period-tab" data-days="180">6 mois</button>
                             <button class="period-tab" data-days="365">1 an</button>
-                            <button class="period-tab" data-days="730">2 ans</button>
+                            <button class="period-tab active" data-days="730">2 ans</button>
                         </div>
                     </div>
                     <div class="fetch-row">
@@ -499,14 +499,16 @@ const ENTSOE_API    = 'https://web-api.tp.entsoe.eu/api';
 
 // State
 let activeCountries = new Set(['France', 'Allemagne', 'Portugal']);
-let activePeriod    = 90;  // days
+let activePeriod    = 730; // days — défaut 2 ans pour un historique complet
 let activeForecastYears = 1;
 let activeNegCountry    = 'France';
 let cachedData      = {};  // { [name]: { dates:[], prices:[], fetchedAt: ts } }
 let chartSpot       = null;
 let chartForecast   = null;
 let chartNegHours   = null;
-let dataSource      = localStorage.getItem('pi_datasource') || 'energy-charts';
+// Si un token ENTSOE est déjà stocké, basculer automatiquement sur ENTSOE API
+let dataSource      = localStorage.getItem('pi_datasource') ||
+                      (localStorage.getItem('pi_entsoe_token') ? 'entsoe-api' : 'energy-charts');
 let entsoeToken     = localStorage.getItem('pi_entsoe_token') || '';
 let csvLoadedFiles  = []; // [{ name, country, rows }]
 
@@ -617,6 +619,7 @@ document.getElementById('periodTabs').addEventListener('click', e => {
     const btn = e.target.closest('.period-tab');
     if (!btn) return;
     activePeriod = parseInt(btn.dataset.days);
+    localStorage.setItem('pi_active_period', activePeriod);
     document.querySelectorAll('#periodTabs .period-tab').forEach(b => b.classList.toggle('active', b === btn));
     fetchAll();
 });
@@ -1521,6 +1524,18 @@ function loadFromCache() {
 // ══════════════════════════════════════════════════════════
 buildChips();
 switchSource(dataSource); // restore saved source and show correct panels
+
+// Restore saved period selection
+(function() {
+    const saved = parseInt(localStorage.getItem('pi_active_period') || '0');
+    if (saved) {
+        activePeriod = saved;
+        document.querySelectorAll('#periodTabs .period-tab').forEach(b => {
+            b.classList.toggle('active', parseInt(b.dataset.days) === saved);
+        });
+    }
+})();
+
 loadFromCache();
 
 // Show empty forecast state initially
