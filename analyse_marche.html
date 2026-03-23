@@ -296,6 +296,7 @@ body::before {
                         Token gratuit sur <a href="https://transparency.entsoe.eu/usrm/user/myAccountSettings" target="_blank">transparency.entsoe.eu → Mon compte → Security Token</a> (inscription requise).
                         Le token est stocké localement et n'est jamais transmis à un tiers.
                     </div>
+                    <div id="entsoeAutoStatus" style="display:none; margin-top:8px; padding:6px 10px; background:rgba(46,158,110,0.08); border:1px solid rgba(46,158,110,0.2); border-radius:6px; font-family:'Poppins',sans-serif; font-size:10.5px; color:var(--success);"></div>
                 </div>
 
                 <!-- ENTSOE CSV import panel -->
@@ -435,6 +436,20 @@ body::before {
     </div><!-- /content -->
 </div><!-- /main -->
 
+<!-- ═══ COUNTRY PICKER MODAL ═══ -->
+<div id="countryPickerOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:500; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:14px; padding:28px 32px; max-width:400px; width:90%; box-shadow:0 24px 64px rgba(0,0,0,0.18);">
+        <div style="font-family:'Teko',sans-serif; font-size:22px; font-weight:500; margin-bottom:4px;">Pays non détecté</div>
+        <div style="font-family:'Poppins',sans-serif; font-size:11px; color:var(--text-muted); margin-bottom:6px;">Fichier : <strong id="cpFilename" style="color:var(--text);"></strong></div>
+        <div style="font-family:'Poppins',sans-serif; font-size:11px; color:var(--text-muted); margin-bottom:14px;">Le pays n'a pas pu être identifié automatiquement. Sélectionnez-le manuellement :</div>
+        <select id="cpSelect" style="width:100%; padding:9px 10px; border:1.5px solid var(--border); border-radius:8px; font-family:'Montserrat',sans-serif; font-size:13px; margin-bottom:18px; outline:none; cursor:pointer; color:var(--text); background:#fff;"></select>
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+            <button onclick="closeCountryPicker()" style="padding:8px 16px; border-radius:8px; border:1.5px solid var(--border); background:#fff; font-family:'Poppins',sans-serif; font-size:11px; font-weight:500; cursor:pointer; color:var(--text);">Annuler</button>
+            <button onclick="confirmCountryPicker()" style="padding:8px 22px; border-radius:8px; border:none; background:var(--accent); color:#fff; font-family:'Poppins',sans-serif; font-size:11px; font-weight:600; cursor:pointer;">Confirmer</button>
+        </div>
+    </div>
+</div>
+
 <script>
 Auth.checkAuth();
 // ══════════════════════════════════════════════════════════
@@ -473,7 +488,8 @@ const CSV_HEADER_MAP = {
 };
 
 const COUNTRY_NAMES = Object.keys(COUNTRIES);
-const CACHE_TTL_MS  = 23 * 60 * 60 * 1000; // 23 hours
+const CACHE_TTL_MS       = 23 * 60 * 60 * 1000;      // 23h (Energy Charts)
+const ENTSOE_AUTO_TTL_MS = 7  * 24 * 60 * 60 * 1000; // 7 jours (ENTSOE API auto-hebdo)
 const CACHE_KEY     = (bzn, days) => `pi_market_${bzn}_${days}d`;
 const ENTSOE_CACHE_KEY = (eic, days) => `pi_entsoe_${eic}_${days}d`;
 const API_BASE      = 'https://api.energy-charts.info/price';
@@ -740,7 +756,7 @@ async function fetchCountryENTSOE(name, days, token) {
 // ENTSOE CSV format:
 //   "MTU (CET/CEST)","France [EUR/MWh] Original resolutions"
 //   "01.01.2024 00:00 - 01.01.2024 01:00","95,12"
-function parseENTSOECsv(text, filename) {
+function parseENTSOECsv(text, filename, forcedCountry = null) {
     const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim());
     if (lines.length < 2) throw new Error('Fichier CSV trop court');
 
@@ -767,12 +783,16 @@ function parseENTSOECsv(text, filename) {
     for (let c = 1; c < headers.length; c++) {
         const h = headers[c].toLowerCase().replace(/\s*\[.*?\]/g, '').trim();
         if (!h || h === 'day-ahead price') {
-            // Single-country file — try to guess from filename
-            const fn = filename.toLowerCase();
-            for (const [key, country] of Object.entries(CSV_HEADER_MAP)) {
-                if (fn.includes(key)) { colToCountry[c] = country; break; }
+            if (forcedCountry) {
+                colToCountry[c] = forcedCountry;
+            } else {
+                // Single-country file — try to guess from filename
+                const fn = filename.toLowerCase();
+                for (const [key, country] of Object.entries(CSV_HEADER_MAP)) {
+                    if (fn.includes(key)) { colToCountry[c] = country; break; }
+                }
+                if (!colToCountry[c]) colToCountry[c] = null;
             }
-            if (!colToCountry[c]) colToCountry[c] = null; // unknown, will try row 1
         } else {
             // Multi-country header
             for (const [key, country] of Object.entries(CSV_HEADER_MAP)) {
@@ -872,67 +892,104 @@ function parseENTSOEXmlFile(xmlText, filename) {
     return rowsByCountry;
 }
 
-function handleCsvFiles(files) {
-    document.getElementById('csvFileInput').value = '';
-    Array.from(files).forEach(file => {
-        const ext = file.name.split('.').pop().toLowerCase();
-        const reader = new FileReader();
-
-        reader.onload = e => {
-            try {
-                let rowsByCountry;
-                if (ext === 'xml') {
-                    rowsByCountry = parseENTSOEXmlFile(e.target.result, file.name);
-                } else if (ext === 'xlsx') {
-                    const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-                    const sheet = wb.Sheets[wb.SheetNames[0]];
-                    const csvText = XLSX.utils.sheet_to_csv(sheet);
-                    rowsByCountry = parseENTSOECsv(csvText, file.name);
-                } else {
-                    rowsByCountry = parseENTSOECsv(e.target.result, file.name);
-                }
-
-                const countries = Object.keys(rowsByCountry);
-                if (!countries.length) {
-                    alert(`Impossible de détecter le pays dans ${file.name}. Vérifiez le format d'export ENTSOE.`);
-                    return;
-                }
-                countries.forEach(country => {
-                    const rows = rowsByCountry[country].sort((a,b) => a.ts - b.ts);
-                    // Merge with existing data for the same country
-                    if (cachedData[country] && cachedData[country].hourlyAll) {
-                        const existing = cachedData[country].hourlyAll;
-                        const existingSet = new Set(existing.times);
-                        rows.forEach(r => { if (!existingSet.has(r.ts)) { existing.times.push(r.ts); existing.prices.push(r.price); } });
-                        const merged = existing.times.map((t,i) => ({ ts: t, price: existing.prices[i] })).sort((a,b) => a.ts - b.ts);
-                        cachedData[country] = buildResult(merged.map(r => r.ts), merged.map(r => r.price), null);
-                    } else {
-                        cachedData[country] = buildResult(rows.map(r => r.ts), rows.map(r => r.price), null);
-                    }
-                    cachedData[country].fetchedAt = Date.now();
-                    csvLoadedFiles = csvLoadedFiles.filter(f => !(f.country === country && f.name === file.name));
-                    const totalRows = cachedData[country].hourlyAll?.times.length || rows.length;
-                    csvLoadedFiles.push({ name: file.name, country, rows: totalRows });
-                    activeCountries.add(country);
-                });
-                renderCsvLoadedList();
-                buildChips();
-                renderSpotChart();
-                renderSpotKpis();
-                renderNegHours();
-                setStatus('ok', `${countries.length} pays importé(s) depuis ${file.name}`);
-                document.getElementById('lastUpdateLabel').textContent = `Import du ${today()}`;
-            } catch(err) {
-                alert(`Erreur lors de la lecture de ${file.name} : ${err.message}`);
-            }
-        };
-
-        if (ext === 'xlsx') {
-            reader.readAsArrayBuffer(file);
-        } else {
-            reader.readAsText(file, 'UTF-8');
-        }
+// ── FileReader → Promise ──────────────────────────────────
+function readFileAs(file, type) {
+    return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload  = e => resolve(e.target.result);
+        r.onerror = () => reject(new Error('Lecture impossible'));
+        if (type === 'arrayBuffer') r.readAsArrayBuffer(file);
+        else r.readAsText(file, 'UTF-8');
     });
+}
+
+// ── Country picker (modal) ────────────────────────────────
+function showCountryPicker(filename) {
+    return new Promise(resolve => {
+        document.getElementById('cpFilename').textContent = filename;
+        const sel = document.getElementById('cpSelect');
+        sel.innerHTML = '<option value="">— Sélectionner un pays —</option>' +
+            COUNTRY_NAMES.map(n => `<option value="${n}">${COUNTRIES[n].flag} ${n}</option>`).join('');
+        sel.value = '';
+        document.getElementById('countryPickerOverlay').style.display = 'flex';
+        window._cpResolve = resolve;
+    });
+}
+function confirmCountryPicker() {
+    const country = document.getElementById('cpSelect').value;
+    if (!country) return;
+    closeCountryPicker(country);
+}
+function closeCountryPicker(result = null) {
+    document.getElementById('countryPickerOverlay').style.display = 'none';
+    if (window._cpResolve) { window._cpResolve(result); window._cpResolve = null; }
+}
+
+// ── Import files (CSV / XLSX / XML) ──────────────────────
+async function handleCsvFiles(files) {
+    document.getElementById('csvFileInput').value = '';
+    let totalCountries = 0;
+
+    for (const file of Array.from(files)) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        try {
+            let rowsByCountry;
+
+            if (ext === 'xml') {
+                const text = await readFileAs(file, 'text');
+                rowsByCountry = parseENTSOEXmlFile(text, file.name);
+            } else if (ext === 'xlsx') {
+                const buf  = await readFileAs(file, 'arrayBuffer');
+                const wb   = XLSX.read(new Uint8Array(buf), { type: 'array' });
+                const sheet = wb.Sheets[wb.SheetNames[0]];
+                const csvText = XLSX.utils.sheet_to_csv(sheet);
+                rowsByCountry = parseENTSOECsv(csvText, file.name);
+                if (!Object.keys(rowsByCountry).length) {
+                    const country = await showCountryPicker(file.name);
+                    if (!country) continue;
+                    rowsByCountry = parseENTSOECsv(csvText, file.name, country);
+                }
+            } else {
+                const text = await readFileAs(file, 'text');
+                rowsByCountry = parseENTSOECsv(text, file.name);
+                if (!Object.keys(rowsByCountry).length) {
+                    const country = await showCountryPicker(file.name);
+                    if (!country) continue;
+                    rowsByCountry = parseENTSOECsv(text, file.name, country);
+                }
+            }
+
+            Object.entries(rowsByCountry).forEach(([country, rawRows]) => {
+                const rows = rawRows.sort((a,b) => a.ts - b.ts);
+                if (cachedData[country] && cachedData[country].hourlyAll) {
+                    const ex  = cachedData[country].hourlyAll;
+                    const exSet = new Set(ex.times);
+                    rows.forEach(r => { if (!exSet.has(r.ts)) { ex.times.push(r.ts); ex.prices.push(r.price); } });
+                    const merged = ex.times.map((t,i) => ({ ts: t, price: ex.prices[i] })).sort((a,b) => a.ts - b.ts);
+                    cachedData[country] = buildResult(merged.map(r => r.ts), merged.map(r => r.price), null);
+                } else {
+                    cachedData[country] = buildResult(rows.map(r => r.ts), rows.map(r => r.price), null);
+                }
+                cachedData[country].fetchedAt = Date.now();
+                csvLoadedFiles = csvLoadedFiles.filter(f => !(f.country === country && f.name === file.name));
+                csvLoadedFiles.push({ name: file.name, country, rows: cachedData[country].hourlyAll?.times.length || rows.length });
+                activeCountries.add(country);
+                totalCountries++;
+            });
+        } catch(err) {
+            alert(`Erreur lors de la lecture de ${file.name} : ${err.message}`);
+        }
+    }
+
+    if (totalCountries > 0) {
+        renderCsvLoadedList();
+        buildChips();
+        renderSpotChart();
+        renderSpotKpis();
+        renderNegHours();
+        setStatus('ok', `${totalCountries} pays importé(s)`);
+        document.getElementById('lastUpdateLabel').textContent = `Import du ${today()}`;
+    }
 }
 
 function renderCsvLoadedList() {
@@ -1013,6 +1070,7 @@ async function fetchAll() {
     } else {
         setStatus(anyNew ? 'ok' : 'cached', anyNew ? 'Données à jour' : 'Cache utilisé');
     }
+    if (dataSource === 'entsoe-api') updateAutoStatus(Date.now());
     document.getElementById('lastUpdateLabel').textContent = `Dernière actualisation : ${today()}`;
 
     renderSpotChart();
@@ -1329,6 +1387,15 @@ function renderNegHours() {
 //  AUTO-REFRESH CHECK ON PAGE LOAD
 //  Si les données ont plus de 23h → re-fetch automatiquement
 // ══════════════════════════════════════════════════════════
+function updateAutoStatus(fetchedAt) {
+    const el = document.getElementById('entsoeAutoStatus');
+    if (!el) return;
+    if (!entsoeToken) { el.style.display = 'none'; return; }
+    const nextFetch = new Date(fetchedAt + ENTSOE_AUTO_TTL_MS);
+    el.style.display = 'block';
+    el.innerHTML = `✓ Actualisation automatique hebdomadaire activée — prochaine mise à jour : <strong>${nextFetch.toLocaleDateString('fr-FR')}</strong>`;
+}
+
 function loadFromCache() {
     // CSV mode — data must be re-imported each session (no persistent cache)
     if (dataSource === 'entsoe-csv') {
@@ -1338,6 +1405,7 @@ function loadFromCache() {
         return;
     }
 
+    const ttl = dataSource === 'entsoe-api' ? ENTSOE_AUTO_TTL_MS : CACHE_TTL_MS;
     let allCached = true;
     let oldestFetch = Infinity;
     for (const name of COUNTRY_NAMES) {
@@ -1352,13 +1420,13 @@ function loadFromCache() {
             allCached = false;
         }
     }
-    if (!allCached || (Date.now() - oldestFetch) > CACHE_TTL_MS) {
-        // Auto-fetch on load
+    if (!allCached || (Date.now() - oldestFetch) > ttl) {
         fetchAll();
     } else {
         const d = new Date(oldestFetch);
         document.getElementById('lastUpdateLabel').textContent = `Cache du ${d.toLocaleDateString('fr-FR')} à ${d.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}`;
         setStatus('cached', 'Données en cache');
+        if (dataSource === 'entsoe-api') updateAutoStatus(oldestFetch);
         renderSpotChart();
         renderSpotKpis();
         renderNegHours();
