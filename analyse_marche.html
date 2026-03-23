@@ -128,7 +128,7 @@ body::before {
 /* CSV import zone */
 .csv-dropzone { border: 2px dashed rgba(24,99,220,0.35); border-radius: 10px; padding: 24px 20px; text-align: center; background: var(--accent-lighter); cursor: pointer; transition: all 0.15s; position: relative; margin-bottom: 14px; }
 .csv-dropzone:hover, .csv-dropzone.drag-over { border-color: var(--accent); background: rgba(24,99,220,0.08); }
-.csv-dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.csv-dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; pointer-events: none; width: 100%; height: 100%; }
 .csv-dropzone-text { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
 .csv-dropzone-hint { font-size: 11px; color: var(--text-muted); font-family: 'Poppins', sans-serif; }
 .csv-loaded-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
@@ -308,7 +308,7 @@ body::before {
                             3. Cliquer <strong>Export → CSV</strong> et déposer le fichier ci-dessous<br>
                             Vous pouvez importer plusieurs fichiers (pays différents ou périodes différentes).
                         </div>
-                        <div class="csv-dropzone" id="csvDropZone">
+                        <div class="csv-dropzone" id="csvDropZone" onclick="document.getElementById('csvFileInput').click()">
                             <input type="file" id="csvFileInput" accept=".csv,.txt" multiple onchange="handleCsvFiles(this.files)">
                             <div class="csv-dropzone-text">Déposez vos fichiers CSV ENTSOE ici ou cliquez</div>
                             <div class="csv-dropzone-hint">Format accepté : export Day-Ahead Prices de transparency.entsoe.eu</div>
