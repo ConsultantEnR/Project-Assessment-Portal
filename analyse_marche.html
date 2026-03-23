@@ -470,9 +470,11 @@ const COUNTRIES = {
 // EIC reverse lookup (for CSV import)
 const EIC_TO_NAME = {};
 const FLAG_TO_NAME = {};
+const BZN_TO_NAME = {}; // BZN|FR → 'France', BZN|PT → 'Portugal', etc.
 Object.entries(COUNTRIES).forEach(([name, c]) => {
     EIC_TO_NAME[c.eic] = name;
     FLAG_TO_NAME[c.flag] = name;
+    BZN_TO_NAME[c.bzn.toUpperCase()] = name;
 });
 // ENTSOE CSV column header → country name mapping
 const CSV_HEADER_MAP = {
@@ -807,19 +809,30 @@ function parseENTSOECsv(text, filename, forcedCountry = null) {
     const headers = parseLine(lines[0]);
     const colToCountry = {};
     for (let c = 1; c < headers.length; c++) {
-        const h = headers[c].toLowerCase().replace(/\s*\[.*?\]/g, '').replace(/-\s*bzn\|?\w*/gi, '').trim();
-        if (!h || /^day.?ahead\s*price/i.test(h) || h === 'price') {
-            if (forcedCountry) {
-                colToCountry[c] = forcedCountry;
-            } else {
-                const fn = filename.toLowerCase();
-                for (const [key, country] of Object.entries(CSV_HEADER_MAP)) {
-                    if (fn.includes(key)) { colToCountry[c] = country; break; }
-                }
-            }
+        const raw = headers[c];
+
+        // Priority 1 : BZN|XX code (e.g. "Day-ahead Price [EUR/MWh] - BZN|FR")
+        const bznMatch = raw.match(/BZN\|([A-Z0-9-]+)/i);
+        if (bznMatch) {
+            colToCountry[c] = BZN_TO_NAME[bznMatch[1].toUpperCase()] || null;
+            continue;
+        }
+
+        // Priority 2 : country name in header (e.g. "France [EUR/MWh]")
+        const h = raw.toLowerCase().replace(/\s*\[.*?\]/g, '').trim();
+        let matched = false;
+        for (const [key, country] of Object.entries(CSV_HEADER_MAP)) {
+            if (h.includes(key)) { colToCountry[c] = country; matched = true; break; }
+        }
+        if (matched) continue;
+
+        // Priority 3 : generic header → forced country or filename fallback
+        if (forcedCountry) {
+            colToCountry[c] = forcedCountry;
         } else {
+            const fn = filename.toLowerCase();
             for (const [key, country] of Object.entries(CSV_HEADER_MAP)) {
-                if (h.includes(key)) { colToCountry[c] = country; break; }
+                if (fn.includes(key)) { colToCountry[c] = country; break; }
             }
         }
     }
