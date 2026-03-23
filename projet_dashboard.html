@@ -1086,6 +1086,7 @@ body::before {
 <script src="auth.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -2128,41 +2129,88 @@ function saveProjDocs(docs) {
     localStorage.setItem(PROJ_DR_KEY(), JSON.stringify(docs));
 }
 
-function handleProjFiles(files) {
-    Array.from(files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = e => {
-            const entry = {
-                id: 'pdoc_' + Date.now() + '_' + Math.random().toString(36).slice(2),
-                name: file.name,
-                size: file.size,
-                type: file.type,
-                date: new Date().toISOString(),
-                textContent: typeof e.target.result === 'string' ? e.target.result.slice(0, 50000) : null,
-                dataUrl: null
-            };
-            // Also read as dataUrl for download
-            const dr = new FileReader();
-            dr.onload = de => { entry.dataUrl = de.target.result; const docs = getProjDocs(); docs.push(entry); saveProjDocs(docs); renderProjDocList(); };
-            dr.readAsDataURL(file);
-        };
-        if (file.type.startsWith('text') || file.name.endsWith('.csv') || file.name.endsWith('.txt')) {
-            reader.readAsText(file);
-        } else {
-            reader.onload = e => {
-                const entry = {
-                    id: 'pdoc_' + Date.now() + '_' + Math.random().toString(36).slice(2),
-                    name: file.name, size: file.size, type: file.type,
-                    date: new Date().toISOString(), textContent: null, dataUrl: null
-                };
-                const dr = new FileReader();
-                dr.onload = de => { entry.dataUrl = de.target.result; const docs = getProjDocs(); docs.push(entry); saveProjDocs(docs); renderProjDocList(); };
-                dr.readAsDataURL(file);
-            };
-            reader.readAsArrayBuffer(file);
-        }
+// ─── File reading helpers ───
+function _readAs(file, as) {
+    return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = e => resolve(e.target.result);
+        r.onerror = reject;
+        if (as === 'dataURL')     r.readAsDataURL(file);
+        else if (as === 'buffer') r.readAsArrayBuffer(file);
+        else                      r.readAsText(file, 'utf-8');
     });
-    document.getElementById('projFileInput').value = '';
+}
+
+async function _extractPdfText(buf) {
+    try {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+        let text = '';
+        for (let i = 1; i <= Math.min(pdf.numPages, 30); i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            text += content.items.map(it => it.str).join(' ') + '\n';
+        }
+        return text.trim().slice(0, 60000) || null;
+    } catch(e) { console.warn('PDF extract:', e); return null; }
+}
+
+async function _extractDocxText(buf) {
+    try {
+        const zip = await JSZip.loadAsync(buf);
+        const xmlFile = zip.file('word/document.xml');
+        if (!xmlFile) return null;
+        const xml = await xmlFile.async('string');
+        return xml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60000) || null;
+    } catch(e) { console.warn('DOCX extract:', e); return null; }
+}
+
+function _extractXlsxText(buf) {
+    try {
+        const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+        let text = '';
+        wb.SheetNames.forEach(n => { text += XLSX.utils.sheet_to_csv(wb.Sheets[n]) + '\n'; });
+        return text.trim().slice(0, 60000) || null;
+    } catch(e) { console.warn('XLSX extract:', e); return null; }
+}
+
+async function handleProjFiles(files) {
+    const zone = document.getElementById('projDropZone');
+    zone && zone.classList.remove('drag-over');
+
+    for (const file of Array.from(files)) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        const id  = 'pdoc_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+        const entry = { id, name: file.name, size: file.size, type: file.type,
+                        date: new Date().toISOString(), textContent: null, dataUrl: null };
+
+        // Always read dataUrl (for download button)
+        entry.dataUrl = await _readAs(file, 'dataURL');
+
+        // Extract readable text based on format
+        if (ext === 'txt' || ext === 'csv') {
+            entry.textContent = (await _readAs(file, 'text')).slice(0, 60000);
+        } else {
+            const buf = await _readAs(file, 'buffer');
+            if (ext === 'pdf')              entry.textContent = await _extractPdfText(buf);
+            else if (ext === 'docx' || ext === 'doc') entry.textContent = await _extractDocxText(buf);
+            else if (ext === 'xlsx' || ext === 'xls') entry.textContent = _extractXlsxText(buf);
+        }
+
+        // Persist and render
+        const docs = getProjDocs();
+        docs.push(entry);
+        saveProjDocs(docs);
+        renderProjDocList();
+
+        // Auto-open extraction modal if text was found
+        if (entry.textContent && entry.textContent.length > 20) {
+            extractProjDoc(id);
+        }
+    }
+    const inp = document.getElementById('projFileInput');
+    if (inp) inp.value = '';
 }
 
 function fmtBytes(n) {
@@ -2215,7 +2263,7 @@ function extractProjDoc(id) {
 
     const list = document.getElementById('projExtractList');
     if (!_projExtractItems.length && !_projExtractCustom.length) {
-        list.innerHTML = '<div class="proj-extract-empty">Aucune donnée exploitable détectée dans ce fichier.<br>Les fichiers texte (TXT, CSV) donnent les meilleurs résultats.</div>';
+        list.innerHTML = '<div class="proj-extract-empty">Aucune donnée exploitable détectée dans ce fichier.<br>Formats supportés : PDF, DOCX, XLSX, TXT, CSV.</div>';
     } else {
         const knownHtml = _projExtractItems.map((item, i) => `
             <div class="proj-extract-item">
