@@ -875,7 +875,7 @@ body::before {
     position: relative;
 }
 .proj-dropzone:hover, .proj-dropzone.drag-over { border-color: var(--accent); background: var(--accent-light); }
-.proj-dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.proj-dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; pointer-events: none; width: 100%; height: 100%; }
 .proj-dropzone-icon { color: var(--accent); margin-bottom: 12px; }
 .proj-dropzone-text { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
 .proj-dropzone-hint { font-size: 11px; color: var(--text-muted); font-family: 'Poppins', sans-serif; }
@@ -1221,8 +1221,8 @@ body::before {
                         PDF, Word, TXT, CSV — teasers, études techniques, modèles financiers
                     </span>
                 </div>
-                <div class="proj-dropzone" id="projDropZone">
-                    <input type="file" id="projFileInput" accept=".pdf,.txt,.doc,.docx,.csv,.xlsx,.xls" multiple onchange="handleProjFiles(this.files)">
+                <div class="proj-dropzone" id="projDropZone" onclick="document.getElementById('projFileInput').click()">
+                    <input type="file" id="projFileInput" accept=".pdf,.txt,.doc,.docx,.csv,.xlsx,.xls" multiple onchange="handleProjFiles(this.files)" onclick="event.stopPropagation()">
                     <div class="proj-dropzone-icon">
                         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                     </div>
@@ -1392,7 +1392,7 @@ body::before {
 
                     <div class="params-save-bar">
                         <span class="params-saved-msg" id="paramsSavedMsg">✓ Paramètres enregistrés</span>
-                        <button class="btn-save-params" onclick="saveParams()">
+                        <button type="button" class="btn-save-params" onclick="saveParams()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                             Enregistrer
                         </button>
@@ -1533,8 +1533,14 @@ function getProject() {
 function saveProject(project) {
     const projects = getProjects();
     const idx = projects.findIndex(p => p.id === project.id);
-    if (idx >= 0) projects[idx] = project;
-    localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(projects));
+    if (idx === -1) { console.warn('[saveProject] projet non trouvé :', project.id); return; }
+    projects[idx] = project;
+    try {
+        localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(projects));
+    } catch (e) {
+        console.error('[saveProject] localStorage quota dépassé :', e);
+        alert('Erreur : stockage local plein. Supprimez des fichiers uploadés ou videz le cache.');
+    }
 }
 
 // ─── Load project data into UI ───
@@ -2236,20 +2242,24 @@ async function handleProjFiles(files) {
         const entry = { id, name: file.name, size: file.size, type: file.type,
                         date: new Date().toISOString(), textContent: null, dataUrl: null };
 
-        // Always read dataUrl (for download button)
-        entry.dataUrl = await _readAs(file, 'dataURL');
+        try {
+            // Always read dataUrl (for download button)
+            entry.dataUrl = await _readAs(file, 'dataURL');
 
-        // Extract readable text based on format
-        if (ext === 'txt' || ext === 'csv') {
-            entry.textContent = (await _readAs(file, 'text')).slice(0, 60000);
-        } else {
-            const buf = await _readAs(file, 'buffer');
-            if (ext === 'pdf')              entry.textContent = await _extractPdfText(buf);
-            else if (ext === 'docx' || ext === 'doc') entry.textContent = await _extractDocxText(buf);
-            else if (ext === 'xlsx' || ext === 'xls') entry.textContent = _extractXlsxText(buf);
+            // Extract readable text based on format
+            if (ext === 'txt' || ext === 'csv') {
+                entry.textContent = (await _readAs(file, 'text')).slice(0, 60000);
+            } else {
+                const buf = await _readAs(file, 'buffer');
+                if (ext === 'pdf')              entry.textContent = await _extractPdfText(buf);
+                else if (ext === 'docx' || ext === 'doc') entry.textContent = await _extractDocxText(buf);
+                else if (ext === 'xlsx' || ext === 'xls') entry.textContent = _extractXlsxText(buf);
+            }
+        } catch (e) {
+            console.warn('[handleProjFiles] lecture fichier :', e);
         }
 
-        // Persist and render
+        // Persist and render (même si l'extraction a échoué)
         const docs = getProjDocs();
         docs.push(entry);
         saveProjDocs(docs);
