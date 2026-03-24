@@ -1519,6 +1519,7 @@ function getProjects() {
 }
 
 function getProjectId() {
+    if (window.__PROJECT_ID__) return window.__PROJECT_ID__;
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
     return (id && id !== 'undefined' && id !== 'null') ? id : null;
@@ -1573,6 +1574,8 @@ function loadProject() {
         }
         const tableWrap = document.getElementById('sitesTableWrap');
         if (tableWrap) tableWrap.style.display = 'none';
+        // Si page dédiée (ID injecté), essayer de charger project.json local
+        if (window.__PROJECT_ID__) { _autoLoadProjectJson(); return; }
         return;
     }
 
@@ -1589,6 +1592,20 @@ function loadProject() {
     }
 
     renderSites(project);
+}
+
+async function _autoLoadProjectJson() {
+    try {
+        const pageDir = window.location.href.split('?')[0].replace(/\/[^\/]*$/, '/');
+        const res = await fetch(pageDir + 'project.json');
+        if (!res.ok) { console.warn('project.json non trouvé'); return; }
+        const proj = await res.json();
+        const all = getProjects();
+        const idx = all.findIndex(p => p.id === proj.id);
+        if (idx === -1) all.push(proj); else all[idx] = proj;
+        localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(all));
+        location.reload();
+    } catch(e) { console.warn('[autoload] project.json:', e); }
 }
 
 function statusBadge(status) {

@@ -854,6 +854,7 @@ function createSite() {
     if (typeof GHSync !== 'undefined') {
         GHSync.syncSite(proj, site).catch(() => {});
         GHSync.syncProject(proj).catch(() => {});
+        GHSync.generateSitePage(proj, site).catch(() => {});
     }
 
     window.location.href = 'projet_dashboard.html?id=' + projectId;

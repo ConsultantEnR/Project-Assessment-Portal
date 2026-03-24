@@ -569,7 +569,10 @@ function validateAndCreate() {
     localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(projects));
 
     // Sync to GitHub (fire-and-forget)
-    if (typeof GHSync !== 'undefined') GHSync.syncProject(project).catch(() => {});
+    if (typeof GHSync !== 'undefined') {
+        GHSync.syncProject(project).catch(() => {});
+        GHSync.generateProjectPage(project).catch(() => {});
+    }
 
     window.location.href = 'projet_dashboard.html?id=' + project.id;
 }

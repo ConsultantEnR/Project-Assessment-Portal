@@ -1178,8 +1178,11 @@ Auth.checkAuth();
 const STORAGE_PROJECTS = 'pi_projects';
 
 function getParams() {
+    if (window.__PROJECT_ID__ && window.__SITE_ID__) {
+        return { projectId: window.__PROJECT_ID__, siteId: window.__SITE_ID__ };
+    }
     const p = new URLSearchParams(window.location.search);
-    return { projectId: p.get('project'), siteId: p.get('site') };
+    return { projectId: p.get('project') || '', siteId: p.get('site') || '' };
 }
 
 function getProjects() {
@@ -1202,6 +1205,8 @@ function loadData() {
             document.getElementById('projectLink').href = 'projet_dashboard.html?id=' + projectId;
             document.getElementById('projectLink').textContent = 'Retour au projet';
         }
+        // Si page dédiée, essayer de charger depuis site.json local
+        if (window.__PROJECT_ID__ && window.__SITE_ID__) { _autoLoadSiteJson(); return; }
         return;
     }
 
@@ -1285,6 +1290,33 @@ function loadData() {
 
     // Data Room
     initDataRoom(siteId);
+}
+
+async function _autoLoadSiteJson() {
+    try {
+        const pageDir = window.location.href.split('?')[0].replace(/\/[^\/]*$/, '/');
+        const res = await fetch(pageDir + 'site.json');
+        if (!res.ok) return;
+        const site = await res.json();
+        const pRes = await fetch(pageDir + '../project.json');
+        let proj = null;
+        if (pRes.ok) proj = await pRes.json();
+        const all = getProjects();
+        if (proj) {
+            const pi = all.findIndex(p => p.id === proj.id);
+            if (pi === -1) all.push(proj); else all[pi] = proj;
+        } else {
+            // Find existing project and inject site
+            const pi2 = all.findIndex(p => p.id === window.__PROJECT_ID__);
+            if (pi2 >= 0) {
+                const si = (all[pi2].sites || []).findIndex(s => s.id === window.__SITE_ID__);
+                if (si === -1) (all[pi2].sites = all[pi2].sites || []).push(site);
+                else all[pi2].sites[si] = site;
+            }
+        }
+        localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(all));
+        location.reload();
+    } catch(e) { console.warn('[autoload] site.json:', e); }
 }
 
 // ─── Revenue estimate ───

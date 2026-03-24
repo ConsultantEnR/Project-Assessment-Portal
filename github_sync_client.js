@@ -210,6 +210,55 @@
         } catch (e) { console.warn('[GHSync] loadFromGitHub:', e); return null; }
     }
 
+    // ── Public : génération pages dédiées ─────────────────────────────────────
+
+    const PAGE_FILES = [
+        'portefeuille_projets','projet_dashboard','creer_projet',
+        'creation_site','site_dashboard','analyse_marche','modeles_teaser'
+    ];
+
+    function _fixJsNavigation(html, prefix) {
+        PAGE_FILES.forEach(page => {
+            html = html.split(`'${page}.html`).join(`'${prefix}${page}.html`);
+            html = html.split(`"${page}.html`).join(`"${prefix}${page}.html`);
+        });
+        return html;
+    }
+
+    async function generateProjectPage(proj) {
+        if (!isConfigured()) return null;
+        try {
+            const tpl = await ghGet('projet_dashboard.html');
+            if (!tpl || !tpl.content) return null;
+            let html = fromB64Text(tpl.content);
+
+            const inj = `<!-- Généré pour : ${proj.name} -->\n<base href="../../">\n<script>window.__PROJECT_ID__=${JSON.stringify(proj.id)};</script>`;
+            html = html.replace(/(<head[^>]*>)/i, '$1\n' + inj);
+            html = _fixJsNavigation(html, '../../');
+
+            const path = `${projFolder(proj)}/projet_dashboard.html`;
+            const ok = await putText(path, html, `Page projet : ${proj.name}`);
+            return ok ? path : null;
+        } catch (e) { console.warn('[GHSync] generateProjectPage:', e); return null; }
+    }
+
+    async function generateSitePage(proj, site) {
+        if (!isConfigured()) return null;
+        try {
+            const tpl = await ghGet('site_dashboard.html');
+            if (!tpl || !tpl.content) return null;
+            let html = fromB64Text(tpl.content);
+
+            const inj = `<!-- Généré pour : ${site.name} (${proj.name}) -->\n<base href="../../../">\n<script>window.__PROJECT_ID__=${JSON.stringify(proj.id)};window.__SITE_ID__=${JSON.stringify(site.id)};</script>`;
+            html = html.replace(/(<head[^>]*>)/i, '$1\n' + inj);
+            html = _fixJsNavigation(html, '../../../');
+
+            const path = `${siteFolder(proj, site)}/site_dashboard.html`;
+            const ok = await putText(path, html, `Page site : ${site.name}`);
+            return ok ? path : null;
+        } catch (e) { console.warn('[GHSync] generateSitePage:', e); return null; }
+    }
+
     // ── Expose ────────────────────────────────────────────────────────────────
 
     global.GHSync = {
@@ -222,6 +271,8 @@
         uploadProjDocB64,
         uploadSiteDocB64,
         loadFromGitHub,
+        generateProjectPage,
+        generateSitePage,
     };
 
 })(window);
