@@ -326,6 +326,7 @@ body::before {
 }
 </style>
 <script src="auth.js"></script>
+<script src="github_sync_client.js"></script>
 </head>
 <body>
 
@@ -848,6 +849,12 @@ function createSite() {
     if (!proj.sites) proj.sites = [];
     proj.sites.push(site);
     localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(projects));
+
+    // Sync to GitHub (fire-and-forget)
+    if (typeof GHSync !== 'undefined') {
+        GHSync.syncSite(proj, site).catch(() => {});
+        GHSync.syncProject(proj).catch(() => {});
+    }
 
     window.location.href = 'projet_dashboard.html?id=' + projectId;
 }

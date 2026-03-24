@@ -669,6 +669,27 @@ body::before {
 .btn-logout { display: flex; align-items: center; gap: 7px; width: 100%; padding: 8px 12px; border-radius: 8px; font-size: 12px; color: rgba(255,255,255,0.4); background: none; border: none; cursor: pointer; font-family: 'Poppins', sans-serif; transition: background var(--transition), color var(--transition); margin-top: 4px; }
 .btn-logout:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.75); }
 .btn-logout svg { width: 15px; height: 15px; opacity: 0.6; }
+.btn-gh-settings { display: flex; align-items: center; gap: 7px; width: 100%; padding: 8px 12px; border-radius: 8px; font-size: 12px; color: rgba(255,255,255,0.4); background: none; border: none; cursor: pointer; font-family: 'Poppins', sans-serif; transition: background var(--transition), color var(--transition); }
+.btn-gh-settings:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.75); }
+.btn-gh-settings svg { width: 15px; height: 15px; opacity: 0.6; flex-shrink: 0; }
+.gh-status-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.15); flex-shrink: 0; margin-left: auto; }
+.gh-status-dot.ok { background: #2E9E6E; }
+.modal-gh { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.55); align-items: center; justify-content: center; }
+.modal-gh.open { display: flex; }
+.modal-gh-box { background: #fff; border-radius: 14px; padding: 28px 32px; width: 440px; max-width: 95vw; box-shadow: 0 8px 40px rgba(0,0,0,0.18); font-family: 'Poppins', sans-serif; }
+.modal-gh-box h3 { font-size: 15px; font-weight: 700; color: #1a2233; margin: 0 0 6px; }
+.modal-gh-box p.gh-desc { font-size: 11px; color: #888; margin: 0 0 16px; line-height: 1.5; }
+.modal-gh-box label { display: block; font-size: 11px; font-weight: 600; color: #666; margin-bottom: 4px; margin-top: 14px; text-transform: uppercase; letter-spacing: .04em; }
+.modal-gh-box input { width: 100%; padding: 8px 12px; border: 1.5px solid #dde3f0; border-radius: 8px; font-size: 13px; font-family: 'Poppins', sans-serif; color: #1a2233; box-sizing: border-box; outline: none; transition: border-color .2s; }
+.modal-gh-box input:focus { border-color: var(--accent); }
+.modal-gh-status { font-size: 11px; margin-top: 10px; min-height: 16px; }
+.modal-gh-status.ok { color: #2E9E6E; }
+.modal-gh-status.err { color: #c0392b; }
+.modal-gh-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+.btn-gh-save { padding: 8px 20px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; }
+.btn-gh-save:hover { background: var(--accent-hover); }
+.btn-gh-cancel { padding: 8px 16px; background: none; color: #888; border: 1.5px solid #dde3f0; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: 'Poppins', sans-serif; }
+.btn-gh-cancel:hover { background: #f5f6fa; }
 
 /* Animations */
 @keyframes fadeIn {
@@ -1084,6 +1105,7 @@ body::before {
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="financial_model.js"></script>
 <script src="auth.js"></script>
+<script src="github_sync_client.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -1125,6 +1147,11 @@ body::before {
     </div>
 
     <div class="sidebar-footer">
+        <button class="btn-gh-settings" onclick="openGHSettings()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M20 12h2M2 12h2M17.66 17.66l-1.41-1.41M6.34 17.66l1.41-1.41"/></svg>
+            GitHub Sync
+            <span class="gh-status-dot" id="ghStatusDot"></span>
+        </button>
         <button class="btn-logout" onclick="Auth.logout()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             Déconnexion
@@ -2228,6 +2255,15 @@ async function handleProjFiles(files) {
         saveProjDocs(docs);
         renderProjDocList();
 
+        // Sync to GitHub
+        if (typeof GHSync !== 'undefined' && entry.dataUrl) {
+            const _proj = getProject();
+            if (_proj) {
+                const b64 = entry.dataUrl.split(',')[1];
+                GHSync.uploadProjDocB64(_proj, file.name, b64).catch(() => {});
+            }
+        }
+
         // Auto-open extraction modal if text was found
         if (entry.textContent && entry.textContent.length > 20) {
             extractProjDoc(id);
@@ -3030,5 +3066,50 @@ function _pfRenderTable(annual, params) {
         </div>
     </div>
 </div>
+
+<!-- GitHub Settings Modal -->
+<div class="modal-gh" id="modalGH">
+    <div class="modal-gh-box">
+        <h3>Synchronisation GitHub</h3>
+        <p class="gh-desc">Les projets, sites et documents sont sauvegardés dans votre dépôt GitHub. Créez un token d'accès personnel (PAT) avec droits <em>repo</em>.</p>
+        <label>Token d'accès personnel (PAT)</label>
+        <input type="password" id="ghTokenInput" placeholder="ghp_xxxxxxxxxxxxxxxx" autocomplete="off">
+        <label>Dépôt (owner/repo)</label>
+        <input type="text" id="ghRepoInput" placeholder="ConsultantEnR/Project-Assessment-Portal">
+        <p class="modal-gh-status" id="ghStatusMsg"></p>
+        <div class="modal-gh-actions">
+            <button class="btn-gh-cancel" onclick="closeGHSettings()">Annuler</button>
+            <button class="btn-gh-save" onclick="saveGHSettings()">Enregistrer</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openGHSettings() {
+    document.getElementById('ghTokenInput').value = (typeof GHSync !== 'undefined') ? GHSync.getToken() : '';
+    document.getElementById('ghRepoInput').value  = (typeof GHSync !== 'undefined') ? GHSync.getRepo()  : '';
+    const msg = document.getElementById('ghStatusMsg');
+    msg.className = 'modal-gh-status';
+    msg.textContent = (typeof GHSync !== 'undefined' && GHSync.isConfigured())
+        ? '✓ Synchronisation active'
+        : 'Entrez votre token GitHub (PAT) pour activer la synchronisation automatique.';
+    if (typeof GHSync !== 'undefined' && GHSync.isConfigured()) msg.classList.add('ok');
+    document.getElementById('modalGH').classList.add('open');
+}
+function closeGHSettings() { document.getElementById('modalGH').classList.remove('open'); }
+function saveGHSettings() {
+    if (typeof GHSync === 'undefined') return;
+    GHSync.setToken(document.getElementById('ghTokenInput').value.trim());
+    GHSync.setRepo(document.getElementById('ghRepoInput').value.trim());
+    _updateGHDot();
+    closeGHSettings();
+}
+function _updateGHDot() {
+    const dot = document.getElementById('ghStatusDot');
+    if (!dot) return;
+    (typeof GHSync !== 'undefined' && GHSync.isConfigured()) ? dot.classList.add('ok') : dot.classList.remove('ok');
+}
+document.addEventListener('DOMContentLoaded', _updateGHDot);
+</script>
 </body>
 </html>
