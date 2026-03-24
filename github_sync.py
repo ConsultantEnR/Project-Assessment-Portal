@@ -11,7 +11,7 @@ Utilisation :
 import json
 import re
 from datetime import datetime
-from github import Github, GithubException
+from github import Github, Auth, GithubException
 
 PROJECTS_BASE = "projects"
 
@@ -26,7 +26,7 @@ def sanitize(name: str) -> str:
 
 
 def _get_repo(token: str, repo_name: str):
-    return Github(token).get_repo(repo_name)
+    return Github(auth=Auth.Token(token)).get_repo(repo_name)
 
 
 def _get_contents_safe(repo, path: str):
