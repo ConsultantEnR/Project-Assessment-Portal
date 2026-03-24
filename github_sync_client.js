@@ -18,7 +18,7 @@
     const TOKEN_KEY   = 'pi_github_token';
     const REPO_KEY    = 'pi_github_repo';
     const API         = 'https://api.github.com';
-    const DATA_ROOT   = 'data';
+    const DATA_ROOT   = 'Projets';
     const DEFAULT_REPO = 'ConsultantEnR/Project-Assessment-Portal';
 
     // ── Config ────────────────────────────────────────────────────────────────
@@ -60,11 +60,11 @@
     // ── Paths ─────────────────────────────────────────────────────────────────
 
     function projFolder(proj) {
-        return `${DATA_ROOT}/projects/${proj.id}_${sanitize(proj.name)}`;
+        return `${DATA_ROOT}/${sanitize(proj.name)}`;
     }
 
     function siteFolder(proj, site) {
-        return `${projFolder(proj)}/sites/${site.id}_${sanitize(site.name)}`;
+        return `${projFolder(proj)}/${sanitize(site.name)}`;
     }
 
     // ── GitHub REST API wrappers ───────────────────────────────────────────────
@@ -125,11 +125,8 @@
                 JSON.stringify(proj, null, 2),
                 `Sync projet : ${proj.name}`
             );
-            // Ensure subfolder placeholders exist (parallel)
-            await Promise.all([
-                ensureGitkeep(`${base}/documents/.gitkeep`),
-                ensureGitkeep(`${base}/sites/.gitkeep`),
-            ]);
+            // Ensure documents subfolder placeholder exists
+            await ensureGitkeep(`${base}/documents/.gitkeep`);
             syncIndex(); // fire-and-forget
         } catch (e) { console.warn('[GHSync] syncProject:', e); }
     }
@@ -154,7 +151,7 @@
             const projects = JSON.parse(raw);
             const index = { projects, lastSync: new Date().toISOString() };
             await putText(
-                `${DATA_ROOT}/projects.json`,
+                `${DATA_ROOT}/_index.json`,
                 JSON.stringify(index, null, 2),
                 'Sync index projets'
             );
@@ -204,7 +201,7 @@
     async function loadFromGitHub() {
         if (!isConfigured()) return null;
         try {
-            const data = await ghGet(`${DATA_ROOT}/projects.json`);
+            const data = await ghGet(`${DATA_ROOT}/_index.json`);
             if (!data || !data.content) return null;
             const text   = fromB64Text(data.content);
             const parsed = JSON.parse(text);
