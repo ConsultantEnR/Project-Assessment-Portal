@@ -276,80 +276,104 @@ function toggleParams() {
     lbl.textContent = open ? 'Réduire' : 'Modifier';
 }
 
-// ─── Simulation engine (logique fidèle à flux_énergétiques_site.py) ───
+// ─── Simulation engine ───
 function runSimulation(p) {
     const HOURS = Array.from({length: 24}, (_, i) => i);
 
-    // Profil PV gaussien centré à 12h30 (même formule que le script Python)
-    const dailyProd = p.pvMWc * p.irr * p.pr / 100;
+    // Mode BESS-only si aucune capacité PV renseignée
+    const bessOnly = p.pvMWc < 0.001;
+
+    // Profil PV gaussien centré à 12h30 (nul en mode BESS-only)
+    const dailyProd = bessOnly ? 0 : p.pvMWc * p.irr * p.pr / 100;
     const mu = 12.5, sigma = 3.2;
     const rawG = HOURS.map(h => Math.exp(-0.5 * Math.pow((h + 0.5 - mu) / sigma, 2)));
     const gSum = rawG.reduce((a, b) => a + b, 0);
     const pvH  = rawG.map(g => g / gSum * dailyProd);
 
+    const effChg = p.effChg / 100;
+    const effDch = p.effDch / 100;
     const socMin = 100 - p.dodMax;
     const socMax = 100;
     let soc = p.socInit;
 
-    const pv = [], chg = [], injD = [], injB = [], curt = [], socArr = [];
+    const pv = [], chg = [], draw = [], injD = [], injB = [], curt = [], socArr = [];
     const gcapArr = HOURS.map(() => p.gridMW);
 
     for (let h = 0; h < 24; h++) {
         const pvPow = pvH[h];
         pv.push(pvPow);
 
-        const inC1ch  = h >= p.c1cs && h < p.c1ce;
-        const inC2ch  = h >= p.c2cs && h < p.c2ce;
-        const inC1dis = h >= p.c1ds && h < p.c1de;
-        const inC2dis = h >= p.c2ds && h < p.c2de;
+        const inCh  = (h >= p.c1cs && h < p.c1ce) || (h >= p.c2cs && h < p.c2ce);
+        const inDis = (h >= p.c1ds && h < p.c1de) || (h >= p.c2ds && h < p.c2de);
 
-        let chgPow = 0, bessRawOut = 0;
+        let chgPow = 0, gridDraw = 0, bessRawOut = 0;
 
-        if (inC1ch || inC2ch) {
-            // Charge BESS depuis PV
-            const canCharge = (socMax - soc) / 100 * p.bessMWh;
-            chgPow = Math.max(0, Math.min(pvPow, p.bessMW, canCharge / (p.effChg / 100)));
-            soc = Math.min(socMax, soc + chgPow * (p.effChg / 100) / p.bessMWh * 100);
-        } else if (inC1dis || inC2dis) {
-            // Décharge BESS (puissance brute avant prise en compte du réseau)
+        if (inCh) {
+            const canCharge = (socMax - soc) / 100 * p.bessMWh; // MWh disponibles
+            if (bessOnly) {
+                // Charge depuis le réseau : gridDraw limité par raccordement et puissance BESS
+                gridDraw = Math.min(p.gridMW, p.bessMW / effChg, canCharge / effChg);
+                gridDraw = Math.max(0, gridDraw);
+                chgPow   = gridDraw * effChg; // puissance stockée en batterie
+            } else {
+                // Charge depuis PV : chgPow = puissance AC prélevée sur PV
+                chgPow = Math.max(0, Math.min(pvPow, p.bessMW / effChg, canCharge / effChg)) * effChg;
+                // Correction : input AC = chgPow / effChg, mais on ne veut pas dépasser pvPow
+                chgPow = Math.max(0, Math.min(pvPow * effChg, p.bessMW, canCharge));
+            }
+            soc = Math.min(socMax, soc + chgPow / p.bessMWh * 100);
+        } else if (inDis) {
             const canDisch = (soc - socMin) / 100 * p.bessMWh;
-            bessRawOut = Math.max(0, Math.min(p.bessMW, canDisch) * (p.effDch / 100));
-            soc = Math.max(socMin, soc - bessRawOut / (p.effDch / 100) / p.bessMWh * 100);
+            bessRawOut = Math.max(0, Math.min(p.bessMW, canDisch / effDch)) * effDch; // puissance AC sortante
+            soc = Math.max(socMin, soc - (bessRawOut / effDch) / p.bessMWh * 100);
         }
 
-        // Dispatch réseau : PV prioritaire, BESS utilise la capacité restante
-        const pvNet     = Math.max(0, pvPow - chgPow);
-        const pvToGrid  = Math.min(pvNet, p.gridMW);                          // PV injecté
-        const bessToGrid = Math.min(bessRawOut, Math.max(0, p.gridMW - pvToGrid)); // BESS injecté
-
-        // Écrêtement = surproduction non injectable (PV + BESS hors capacité réseau)
-        const curtailment = Math.max(0, pvNet + bessRawOut - p.gridMW);
-
-        chg.push(-chgPow);
-        injD.push(+pvToGrid.toFixed(4));
-        injB.push(+bessToGrid.toFixed(4));
-        curt.push(+curtailment.toFixed(4));
+        if (bessOnly) {
+            // Injection = décharge BESS limitée au raccordement
+            const bessToGrid = Math.min(bessRawOut, p.gridMW);
+            injB.push(+bessToGrid.toFixed(4));
+            injD.push(0);
+            curt.push(0);
+            chg.push(0);
+            draw.push(-gridDraw); // négatif = soutirage réseau
+        } else {
+            // Dispatch PV+BESS : PV prioritaire sur le réseau
+            const pvAcIn  = chgPow / (effChg > 0 ? effChg : 1); // puissance PV absorbée par la BESS
+            const pvNet   = Math.max(0, pvPow - pvAcIn);
+            const pvToGrid   = Math.min(pvNet, p.gridMW);
+            const bessToGrid = Math.min(bessRawOut, Math.max(0, p.gridMW - pvToGrid));
+            const curtailment = Math.max(0, pvNet + bessRawOut - p.gridMW);
+            chg.push(-(pvAcIn));
+            injD.push(+pvToGrid.toFixed(4));
+            injB.push(+bessToGrid.toFixed(4));
+            curt.push(+curtailment.toFixed(4));
+            draw.push(0);
+        }
         socArr.push(+soc.toFixed(2));
     }
 
-    const totalPV   = pv.reduce((a, b) => a + b, 0);
-    const totalInjD = injD.reduce((a, b) => a + b, 0);
-    const totalInjB = injB.reduce((a, b) => a + b, 0);
-    const totalCurt = curt.reduce((a, b) => a + b, 0);
-    const totalChgE = chg.reduce((a, b) => a + Math.abs(b), 0);
-    const cycles    = p.bessMWh > 0 ? totalChgE * (p.effChg / 100) / p.bessMWh : 0;
-    const rte       = totalChgE > 0 ? (totalInjB / (totalChgE * (p.effChg / 100))) * 100 : 0;
-    const peakInj   = Math.max(...injD.map((v, i) => v + injB[i]));
+    const totalPV    = pv.reduce((a, b) => a + b, 0);
+    const totalInjD  = injD.reduce((a, b) => a + b, 0);
+    const totalInjB  = injB.reduce((a, b) => a + b, 0);
+    const totalCurt  = curt.reduce((a, b) => a + b, 0);
+    const totalChgE  = bessOnly
+        ? draw.reduce((a, b) => a + Math.abs(b), 0)   // soutirage réseau (AC in)
+        : chg.reduce((a, b) => a + Math.abs(b), 0);   // absorption PV (AC in)
+    const totalDraw  = draw.reduce((a, b) => a + Math.abs(b), 0);
+    const cycles     = p.bessMWh > 0 ? (totalChgE * effChg) / p.bessMWh : 0;
+    const rte        = totalChgE > 0 ? (totalInjB / totalChgE) * 100 : 0;
+    const peakInj    = Math.max(...injD.map((v, i) => v + injB[i]));
 
     return {
-        pv, chg, injD, injB, curt, soc: socArr, gcap: gcapArr,
+        pv, chg, draw, injD, injB, curt, soc: socArr, gcap: gcapArr, bessOnly,
         windows: [
             { start: p.c1cs, end: p.c1ce, color: 'rgba(181,212,244,0.20)', label: 'Charge C1' },
             { start: p.c1ds, end: p.c1de, color: 'rgba(186,117,23,0.13)',  label: 'Décharge C1' },
             { start: p.c2cs, end: p.c2ce, color: 'rgba(192,221,151,0.20)', label: 'Charge C2' },
             { start: p.c2ds, end: p.c2de, color: 'rgba(226,75,74,0.10)',   label: 'Décharge C2' },
         ],
-        kpis: { totalPV, totalInj: totalInjD + totalInjB, totalInjD, totalInjB, totalCurt, totalChgE, cycles, rte, peakInj }
+        kpis: { totalPV, totalInj: totalInjD + totalInjB, totalInjD, totalInjB,
+                totalCurt, totalChgE, totalDraw, cycles, rte, peakInj, bessOnly }
     };
 }
 
@@ -389,52 +413,78 @@ function fmt1(v) { return v.toFixed(1); }
 function fmt2(v) { return v.toFixed(2); }
 
 function renderKPIs(k, p) {
-    document.getElementById('pageSubtitle').textContent =
-        `${p.pvMWc} MWc PV | BESS ${p.bessMWh} MWh / ${p.bessMW} MW | Irradiance ${p.irr} kWh/m²/j | PR ${p.pr}% | Raccordement ${p.gridMW} MW | DoD ${p.dodMax}%`;
-
-    const kpis = [
-        { label: 'Production PV',    value: fmt1(k.totalPV)   + ' MWh', color: '#378ADD' },
-        { label: 'Injection réseau', value: fmt1(k.totalInj)  + ' MWh', color: '#EF9F27' },
-        { label: 'Écrêtement',       value: fmt1(k.totalCurt) + ' MWh', color: '#E24B4A' },
-        { label: 'Cycles BESS',      value: fmt2(k.cycles)    + ' / j', color: '#7F77DD' },
-        { label: 'RTE BESS',         value: fmt1(k.rte)       + ' %',   color: '#7F77DD' },
-        { label: 'Pic injection',    value: fmt1(k.peakInj)   + ' MW',  color: '#EF9F27' },
-    ];
-    document.getElementById('kpiGrid').innerHTML = kpis.map(c =>
-        `<div class="kpi-card"><div class="kpi-label">${c.label}</div><div class="kpi-value" style="color:${c.color}">${c.value}</div></div>`
-    ).join('');
-
-    const crtPct = k.totalPV > 0 ? fmt1(k.totalCurt / k.totalPV * 100) : '0.0';
-    document.getElementById('kpiDetailTable').innerHTML = `
-        <tr><td class="kl">Production PV</td><td class="kv" style="color:#378ADD">${fmt1(k.totalPV)} MWh</td></tr>
-        <tr><td class="kl">Injection réseau</td><td class="kv" style="color:#EF9F27">${fmt1(k.totalInj)} MWh</td></tr>
-        <tr><td class="kl">&nbsp;dont PV directe</td><td class="kv" style="color:#EF9F27">${fmt1(k.totalInjD)} MWh</td></tr>
-        <tr><td class="kl">&nbsp;dont BESS</td><td class="kv" style="color:#BA7517">${fmt1(k.totalInjB)} MWh</td></tr>
-        <tr><td class="kl">Écrêtement</td><td class="kv" style="color:#E24B4A">${fmt1(k.totalCurt)} MWh (${crtPct}%)</td></tr>
-        <tr><td class="kl">Charge BESS</td><td class="kv" style="color:#1D9E75">${fmt1(k.totalChgE)} MWh</td></tr>
-        <tr><td class="kl">Cycles réalisés</td><td class="kv" style="color:#7F77DD">${fmt2(k.cycles)} / jour</td></tr>
-        <tr><td class="kl">RTE BESS</td><td class="kv" style="color:#7F77DD">${fmt1(k.rte)} %</td></tr>
-        <tr><td class="kl">Pic injection</td><td class="kv" style="color:#EF9F27">${fmt1(k.peakInj)} MW</td></tr>
-    `;
+    if (k.bessOnly) {
+        document.getElementById('pageSubtitle').textContent =
+            `BESS ${p.bessMWh} MWh / ${p.bessMW} MW | Raccordement ${p.gridMW} MW | DoD ${p.dodMax}%`;
+        const kpis = [
+            { label: 'Soutirage réseau',  value: fmt1(k.totalDraw)  + ' MWh', color: '#C9509A' },
+            { label: 'Injection réseau',  value: fmt1(k.totalInj)   + ' MWh', color: '#EF9F27' },
+            { label: 'Cycles BESS',       value: fmt2(k.cycles)     + ' / j', color: '#7F77DD' },
+            { label: 'RTE (AC→AC)',       value: fmt1(k.rte)        + ' %',   color: '#7F77DD' },
+            { label: 'Pic injection',     value: fmt1(k.peakInj)    + ' MW',  color: '#EF9F27' },
+        ];
+        document.getElementById('kpiGrid').innerHTML = kpis.map(c =>
+            `<div class="kpi-card"><div class="kpi-label">${c.label}</div><div class="kpi-value" style="color:${c.color}">${c.value}</div></div>`
+        ).join('');
+        document.getElementById('kpiDetailTable').innerHTML = `
+            <tr><td class="kl">Soutirage réseau</td><td class="kv" style="color:#C9509A">${fmt1(k.totalDraw)} MWh</td></tr>
+            <tr><td class="kl">Énergie stockée (BESS)</td><td class="kv" style="color:#1D9E75">${fmt1(k.totalDraw * p.effChg / 100)} MWh</td></tr>
+            <tr><td class="kl">Injection réseau (BESS)</td><td class="kv" style="color:#EF9F27">${fmt1(k.totalInjB)} MWh</td></tr>
+            <tr><td class="kl">Cycles réalisés</td><td class="kv" style="color:#7F77DD">${fmt2(k.cycles)} / jour</td></tr>
+            <tr><td class="kl">RTE (AC→AC)</td><td class="kv" style="color:#7F77DD">${fmt1(k.rte)} %</td></tr>
+            <tr><td class="kl">Pic injection</td><td class="kv" style="color:#EF9F27">${fmt1(k.peakInj)} MW</td></tr>
+        `;
+    } else {
+        document.getElementById('pageSubtitle').textContent =
+            `${p.pvMWc} MWc PV | BESS ${p.bessMWh} MWh / ${p.bessMW} MW | Irradiance ${p.irr} kWh/m²/j | PR ${p.pr}% | Raccordement ${p.gridMW} MW | DoD ${p.dodMax}%`;
+        const kpis = [
+            { label: 'Production PV',    value: fmt1(k.totalPV)   + ' MWh', color: '#378ADD' },
+            { label: 'Injection réseau', value: fmt1(k.totalInj)  + ' MWh', color: '#EF9F27' },
+            { label: 'Écrêtement',       value: fmt1(k.totalCurt) + ' MWh', color: '#E24B4A' },
+            { label: 'Cycles BESS',      value: fmt2(k.cycles)    + ' / j', color: '#7F77DD' },
+            { label: 'RTE BESS',         value: fmt1(k.rte)       + ' %',   color: '#7F77DD' },
+            { label: 'Pic injection',    value: fmt1(k.peakInj)   + ' MW',  color: '#EF9F27' },
+        ];
+        document.getElementById('kpiGrid').innerHTML = kpis.map(c =>
+            `<div class="kpi-card"><div class="kpi-label">${c.label}</div><div class="kpi-value" style="color:${c.color}">${c.value}</div></div>`
+        ).join('');
+        const crtPct = k.totalPV > 0 ? fmt1(k.totalCurt / k.totalPV * 100) : '0.0';
+        document.getElementById('kpiDetailTable').innerHTML = `
+            <tr><td class="kl">Production PV</td><td class="kv" style="color:#378ADD">${fmt1(k.totalPV)} MWh</td></tr>
+            <tr><td class="kl">Injection réseau</td><td class="kv" style="color:#EF9F27">${fmt1(k.totalInj)} MWh</td></tr>
+            <tr><td class="kl">&nbsp;dont PV directe</td><td class="kv" style="color:#EF9F27">${fmt1(k.totalInjD)} MWh</td></tr>
+            <tr><td class="kl">&nbsp;dont BESS</td><td class="kv" style="color:#BA7517">${fmt1(k.totalInjB)} MWh</td></tr>
+            <tr><td class="kl">Écrêtement</td><td class="kv" style="color:#E24B4A">${fmt1(k.totalCurt)} MWh (${crtPct}%)</td></tr>
+            <tr><td class="kl">Charge BESS</td><td class="kv" style="color:#1D9E75">${fmt1(k.totalChgE)} MWh</td></tr>
+            <tr><td class="kl">Cycles réalisés</td><td class="kv" style="color:#7F77DD">${fmt2(k.cycles)} / jour</td></tr>
+            <tr><td class="kl">RTE BESS</td><td class="kv" style="color:#7F77DD">${fmt1(k.rte)} %</td></tr>
+            <tr><td class="kl">Pic injection</td><td class="kv" style="color:#EF9F27">${fmt1(k.peakInj)} MW</td></tr>
+        `;
+    }
 }
 
 function renderCharts(res) {
     if (chartMain) { chartMain.destroy(); chartMain = null; }
     if (chartSoc)  { chartSoc.destroy();  chartSoc  = null; }
 
+    const mainDatasets = res.bessOnly ? [
+        // Mode BESS-only : soutirage réseau (négatif) + injection BESS (positif)
+        { label: 'Injection BESS',    data: res.injB, backgroundColor: '#EF9F27', stack: 'pos' },
+        { label: 'Soutirage réseau',  data: res.draw, backgroundColor: '#C9509A', stack: 'neg' },
+        { type: 'line', label: 'Raccordement réseau', data: res.gcap, borderColor: '#A32D2D', borderWidth: 1.5, borderDash: [6,3], pointRadius: 0, fill: false, order: 0 },
+    ] : [
+        // Mode PV+BESS
+        { label: 'Injection PV directe', data: res.injD, backgroundColor: '#EF9F27', stack: 'pos' },
+        { label: 'Injection BESS',        data: res.injB, backgroundColor: '#BA7517', stack: 'pos' },
+        { label: 'Écrêtement',            data: res.curt, backgroundColor: '#E24B4A', stack: 'pos' },
+        { label: 'Charge BESS (≥PV)',     data: res.chg,  backgroundColor: '#1D9E75', stack: 'neg' },
+        { type: 'line', label: 'Production PV',       data: res.pv,   borderColor: '#378ADD', borderWidth: 2.5, pointRadius: 2, fill: false, tension: 0.35, order: 0 },
+        { type: 'line', label: 'Raccordement réseau', data: res.gcap, borderColor: '#A32D2D', borderWidth: 1.5, borderDash: [6,3], pointRadius: 0, fill: false, order: 0 },
+    ];
+
     chartMain = new Chart(document.getElementById('cMain'), {
         type: 'bar', plugins: [WINDOW_PLUGIN],
-        data: {
-            labels: LABELS,
-            datasets: [
-                { label: 'Injection PV directe', data: res.injD, backgroundColor: '#EF9F27', stack: 'pos' },
-                { label: 'Injection BESS',        data: res.injB, backgroundColor: '#BA7517', stack: 'pos' },
-                { label: 'Écrêtement',            data: res.curt, backgroundColor: '#E24B4A', stack: 'pos' },
-                { label: 'Charge BESS',           data: res.chg,  backgroundColor: '#1D9E75', stack: 'neg' },
-                { type: 'line', label: 'Production PV',       data: res.pv,   borderColor: '#378ADD', borderWidth: 2.5, pointRadius: 2, fill: false, tension: 0.35, order: 0 },
-                { type: 'line', label: 'Raccordement réseau', data: res.gcap, borderColor: '#A32D2D', borderWidth: 1.5, borderDash: [6,3], pointRadius: 0, fill: false, order: 0 },
-            ]
-        },
+        data: { labels: LABELS, datasets: mainDatasets },
         options: {
             responsive: true, maintainAspectRatio: false,
             plugins: {
@@ -544,7 +594,8 @@ function resetToSiteData() {
                 const el = document.getElementById(id);
                 if (el && val != null && !isNaN(parseFloat(val))) el.value = parseFloat(val).toFixed(3);
             };
-            if (site.pvCapacity)   set('pvCapacity',   site.pvCapacity   / 1000);  // kWc → MWc
+            // pvCapacity peut être 0 (site BESS-only) : on utilise != null plutôt que la vérité JS
+            if (site.pvCapacity != null) set('pvCapacity', (site.pvCapacity || 0) / 1000); // kWc → MWc
             if (site.pvGridPower)  set('gridCap',      site.pvGridPower);           // MW  (stocké en MW)
             if (site.bessCapacity) set('bessCapacity', site.bessCapacity / 1000);  // kWh → MWh
             if (site.bessPower)    set('bessPower',    site.bessPower    / 1000);  // kW  → MW
@@ -570,8 +621,20 @@ document.querySelectorAll('.params-body input').forEach(el => {
     el.addEventListener('input', () => { clearTimeout(_debounce); _debounce = setTimeout(runAndRender, 400); });
 });
 
+// Masque les champs PV non pertinents en mode BESS-only
+function adaptUIForMode() {
+    const pvMWc = parseFloat(document.getElementById('pvCapacity').value) || 0;
+    const bessOnly = pvMWc < 0.001;
+    ['irradiance', 'pr'].forEach(id => {
+        const grp = document.getElementById(id)?.closest('.param-group');
+        if (grp) { grp.style.opacity = bessOnly ? '0.3' : '1'; grp.style.pointerEvents = bessOnly ? 'none' : ''; }
+    });
+}
+
 // Lancement initial
 loadParams();
+adaptUIForMode();
+document.getElementById('pvCapacity').addEventListener('input', adaptUIForMode);
 runAndRender();
 </script>
 </body>
