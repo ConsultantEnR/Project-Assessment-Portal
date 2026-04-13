@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fiche complète du site</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 :root {
     --bg: #F7F6F3; --surface: #FFFFFF; --border: #E2E0DB; --border-focus: #1863DC;
@@ -588,7 +587,7 @@ function buildSections(site, project) {
                 { key: 'pvProdP50',     label: 'Productible annuel P50',       type: 'number', unit: 'kWh/kWc/an',   required: false, source: 'site' },
                 { key: 'pvDegradation', label: 'Dégradation annuelle modules', type: 'number', unit: '%/an',          required: true,  step: '0.01', source: 'site' },
                 { key: 'pvLifetime',    label: 'Durée de vie modules',         type: 'number', unit: 'ans',           required: true,  source: 'site' },
-                { key: 'pvGridPower',   label: 'Puissance de raccordement',    type: 'number', unit: 'kVA',           required: true,  source: 'site' },
+                { key: 'pvGridPower',   label: 'Puissance de raccordement',    type: 'number', unit: 'MW',            required: true,  source: 'site' },
                 { key: 'pvGridType',    label: 'Nature du réseau',             type: 'select', required: false, source: 'site',
                   options: ['HTA','HTB1','HTB2'] },
             ]

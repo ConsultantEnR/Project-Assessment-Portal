@@ -4,9 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tableau de bord site</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="fonts/fonts.css">
+<script src="libs/chart.umd.min.js"></script>
 <script src="financial_model.js"></script>
 <style>
 :root {
@@ -1266,7 +1265,7 @@ function loadData() {
 
     // Energy card link → site-specific simulation
     document.getElementById('energyCard').addEventListener('click', () => {
-        window.location.href = 'simulation_flux_energetiques.html?project=' + projectId + '&site=' + siteId;
+        window.location.href = 'flux_energetique_site.html?project=' + projectId + '&site=' + siteId;
     });
 
     // Financial card → inline financial results modal
@@ -1440,7 +1439,7 @@ function renderDataGrid(site) {
         if (site.pvProdP90) items.push({ label: 'Productible P90', value: site.pvProdP90.toLocaleString('fr-FR') + ' kWh/kWc/an' });
         if (site.pvLifetime) items.push({ label: 'Durée de vie', value: site.pvLifetime + ' ans' });
         if (site.pvGridType) items.push({ label: 'Réseau', value: site.pvGridType });
-        if (site.pvGridPower) items.push({ label: 'Raccordement', value: (site.pvGridPower / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' MVA' });
+        if (site.pvGridPower) items.push({ label: 'Raccordement', value: site.pvGridPower.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' MW' });
         if (site.pvDegradation) items.push({ label: 'Dégradation PV', value: site.pvDegradation + ' %/an' });
     }
 

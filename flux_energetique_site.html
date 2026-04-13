@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flux énergétiques — Site</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<script src="libs/chart.umd.min.js"></script>
+<style>
+:root {
+    --bg: #F7F6F3; --surface: #FFFFFF; --border: #E2E0DB;
+    --text: #1A1A1A; --text-muted: #7A7670;
+    --accent: #1863DC; --accent-light: rgba(24,99,220,0.08); --accent-lighter: rgba(24,99,220,0.04);
+    --success: #2E9E6E; --warning: #E8A020;
+    --sidebar-bg: #0E1520; --sidebar-text: #B8C4D8; --sidebar-text-active: #FFFFFF;
+    --sidebar-hover: rgba(255,255,255,0.07); --sidebar-active: rgba(24,99,220,0.22);
+    --sidebar-width: 240px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); --radius: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+body::before { content: ''; position: fixed; inset: 0; background-image: url("Banque d'images/solar-panels-and-wind-energy-plants-e1696032292423.jpg"); background-size: cover; background-position: center; opacity: 0.08; pointer-events: none; z-index: 0; }
+
+/* SIDEBAR */
+.sidebar { position: fixed; left: 0; top: 0; width: var(--sidebar-width); height: 100vh; background: var(--sidebar-bg); display: flex; flex-direction: column; z-index: 100; border-right: 1px solid rgba(255,255,255,0.05); overflow-y: auto; animation: slideIn 0.35s cubic-bezier(0.22,1,0.36,1) forwards; }
+.sidebar-logo { display: flex; align-items: center; justify-content: center; padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.sidebar-logo-img { height: 44px; width: auto; object-fit: contain; filter: brightness(0) invert(1); opacity: 0.92; }
+.sidebar-user { padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.sidebar-user-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.3); margin-bottom: 6px; font-family: 'Poppins', sans-serif; }
+.sidebar-user-name { font-size: 13px; color: var(--sidebar-text); display: flex; align-items: center; gap: 8px; }
+.user-avatar { width: 28px; height: 28px; background: rgba(24,99,220,0.35); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff; flex-shrink: 0; font-family: 'Poppins', sans-serif; }
+.sidebar-nav { flex: 1; padding: 12px 10px; }
+.nav-section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.25); padding: 12px 10px 6px; font-family: 'Poppins', sans-serif; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; font-size: 13px; color: var(--sidebar-text); text-decoration: none; transition: background var(--transition), color var(--transition); cursor: pointer; margin-bottom: 2px; font-weight: 400; }
+.nav-item:hover { background: var(--sidebar-hover); color: var(--sidebar-text-active); }
+.nav-item.active { background: var(--sidebar-active); color: var(--sidebar-text-active); font-weight: 500; }
+.nav-item svg { width: 18px; height: 18px; opacity: 0.6; flex-shrink: 0; }
+.nav-item.active svg { opacity: 1; }
+.nav-item .nav-badge { margin-left: auto; background: rgba(24,99,220,0.35); color: #B8D4FF; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 12px; font-family: 'Poppins', sans-serif; }
+.nav-crumb { font-size: 11px; color: rgba(255,255,255,0.35); padding: 4px 12px 8px; font-family: 'Poppins', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px; color: rgba(255,255,255,0.2); font-family: 'Poppins', sans-serif; }
+.btn-logout { display: flex; align-items: center; gap: 7px; width: 100%; padding: 8px 12px; border-radius: 8px; font-size: 12px; color: rgba(255,255,255,0.4); background: none; border: none; cursor: pointer; font-family: 'Poppins', sans-serif; transition: background var(--transition), color var(--transition); margin-top: 4px; }
+.btn-logout:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.75); }
+.btn-logout svg { width: 15px; height: 15px; opacity: 0.6; }
+
+/* MAIN */
+.main { margin-left: var(--sidebar-width); flex: 1; min-height: 100vh; display: flex; flex-direction: column; position: relative; z-index: 1; animation: fadeIn 0.4s ease 0.15s both; }
+.page-header { background: rgba(255,255,255,0.96); border-bottom: 1px solid var(--border); padding: 0 36px; height: 72px; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 50; backdrop-filter: blur(4px); }
+.page-title { font-family: 'Teko', sans-serif; font-size: 26px; font-weight: 500; letter-spacing: 0.5px; color: var(--text); line-height: 1; }
+.page-sub { font-size: 12px; color: var(--text-muted); font-weight: 300; }
+.content { flex: 1; padding: 28px 36px 48px; }
+.section-label { font-size: 10.5px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; margin: 20px 0 10px; font-family: 'Poppins', sans-serif; }
+
+/* PARAMS PANEL */
+.params-panel { background: rgba(255,255,255,0.97); border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; box-shadow: var(--shadow-sm); margin-bottom: 24px; }
+.params-panel-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+.params-panel-title { font-family: 'Teko', sans-serif; font-size: 18px; font-weight: 500; letter-spacing: 0.3px; }
+.params-toggle-btn { display: flex; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 600; color: var(--accent); cursor: pointer; background: var(--accent-light); border: none; border-radius: 6px; padding: 5px 12px; }
+.params-toggle-btn svg { transition: transform 0.25s; }
+.params-toggle-btn.open svg { transform: rotate(180deg); }
+.params-body { margin-top: 18px; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px 20px; overflow: hidden; max-height: 0; opacity: 0; transition: max-height 0.35s ease, opacity 0.3s ease, margin 0.3s; margin-top: 0; }
+.params-body.open { max-height: 800px; opacity: 1; margin-top: 18px; }
+.param-group { display: flex; flex-direction: column; gap: 4px; }
+.param-group label { font-family: 'Poppins', sans-serif; font-size: 10.5px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.param-group input[type="number"] { width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-family: 'Montserrat', sans-serif; font-size: 13px; color: var(--text); background: var(--bg); transition: border-color var(--transition); }
+.param-group input[type="number"]:focus { outline: none; border-color: var(--accent); background: #fff; }
+.section-divider { grid-column: 1 / -1; font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); border-top: 1px solid var(--accent-light); padding-top: 10px; margin-top: 4px; }
+.recalc-btn { grid-column: 1 / -1; display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: background var(--transition); justify-self: start; }
+.recalc-btn:hover { background: #1250B0; }
+
+/* KPI CARDS */
+.grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 8px; }
+.kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow-sm); }
+.kpi-label { font-size: 10.5px; color: var(--text-muted); margin-bottom: 6px; font-family: 'Poppins', sans-serif; }
+.kpi-value { font-family: 'Teko', sans-serif; font-size: 24px; font-weight: 500; letter-spacing: 0.3px; line-height: 1; }
+
+/* CHARTS */
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; font-size: 11.5px; color: var(--text-muted); }
+.legend span { display: flex; align-items: center; gap: 5px; }
+.sq { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex-shrink: 0; }
+.chart-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 16px; position: relative; box-shadow: var(--shadow-sm); }
+.chart-wrap canvas { width: 100% !important; }
+.layout { display: grid; grid-template-columns: 1fr 230px; gap: 16px; align-items: start; margin-bottom: 16px; }
+table.kpis { width: 100%; border-collapse: collapse; font-size: 12px; }
+table.kpis tr { border-bottom: 1px solid #f0f0f0; }
+td.kl { color: var(--text-muted); padding: 5px 0; font-weight: 300; }
+td.kv { text-align: right; font-weight: 600; padding: 5px 0; white-space: nowrap; }
+.kpi-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: var(--shadow-sm); }
+.kpi-box h3 { font-size: 10.5px; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.07em; font-family: 'Poppins', sans-serif; }
+
+@keyframes slideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+@media (max-width: 768px) {
+    :root { --sidebar-width: 56px; }
+    .sidebar-user, .nav-section-label, .nav-item span, .nav-item .nav-badge, .nav-crumb, .sidebar-footer { display: none; }
+    .sidebar-logo { padding: 16px 12px; }
+    .nav-item { justify-content: center; padding: 10px; }
+    .content { padding: 20px; }
+    .page-header { padding: 0 16px; }
+}
+</style>
+<script src="auth.js"></script>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <img src="Banque d'images/DOL-COG-IV-020-A -Logo final Groupe Dolfines FR transp.png" class="sidebar-logo-img" alt="Dolfines">
+    </div>
+    <div class="sidebar-user">
+        <div class="sidebar-user-label">Utilisateur</div>
+        <div class="sidebar-user-name"><div class="user-avatar" id="userAvatar">?</div><span id="userName">—</span></div>
+    </div>
+    <div class="sidebar-nav">
+        <div class="nav-section-label">Navigation</div>
+        <a class="nav-item" href="portefeuille_projets.html" title="Portefeuille">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span>Projets</span>
+            <span class="nav-badge" id="navProjectCount">0</span>
+        </a>
+        <a class="nav-item" id="navProject" href="#" title="Projet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span id="navProjectName">Projet</span>
+        </a>
+        <div class="nav-crumb" id="navCrumb"></div>
+        <a class="nav-item" id="navSite" href="#" title="Site">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+            <span id="navSiteName">Site</span>
+        </a>
+        <a class="nav-item active" href="#" title="Flux énergétiques">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <span>Flux énergétiques</span>
+        </a>
+    </div>
+    <div class="sidebar-footer">
+        <button class="btn-logout" onclick="Auth.logout()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Déconnexion
+        </button>
+        v1.0
+    </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+    <header class="page-header">
+        <div>
+            <div class="page-title" id="pageTitle">Flux énergétiques</div>
+            <div class="page-sub" id="pageSubtitle">Simulation horaire — PV + BESS</div>
+        </div>
+    </header>
+
+    <div class="content">
+
+        <!-- Params panel -->
+        <div class="params-panel">
+            <div class="params-panel-header" onclick="toggleParams()">
+                <div class="params-panel-title">Paramètres de la simulation</div>
+                <button class="params-toggle-btn" id="toggleBtn">
+                    <span id="toggleLabel">Modifier</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+            </div>
+            <div class="params-body" id="paramsBody">
+
+                <div class="section-divider">Installation PV</div>
+                <div class="param-group">
+                    <label>Capacité PV (MWc)</label>
+                    <input type="number" id="pvCapacity" value="50" min="0.1" max="2000" step="0.5">
+                </div>
+                <div class="param-group">
+                    <label>Irradiance (kWh/m²/j)</label>
+                    <input type="number" id="irradiance" value="5.5" min="1" max="9" step="0.1">
+                </div>
+                <div class="param-group">
+                    <label>PR — Performance Ratio (%)</label>
+                    <input type="number" id="pr" value="82" min="50" max="99" step="0.5">
+                </div>
+                <div class="param-group">
+                    <label>Raccordement réseau (MW)</label>
+                    <input type="number" id="gridCap" value="60" min="1" max="2000" step="0.5">
+                </div>
+
+                <div class="section-divider">Stockage BESS</div>
+                <div class="param-group">
+                    <label>Capacité BESS (MWh)</label>
+                    <input type="number" id="bessCapacity" value="100" min="0" max="5000" step="1">
+                </div>
+                <div class="param-group">
+                    <label>Puissance BESS (MW)</label>
+                    <input type="number" id="bessPower" value="50" min="0" max="2000" step="0.5">
+                </div>
+                <div class="param-group">
+                    <label>DoD max (%)</label>
+                    <input type="number" id="dodMax" value="90" min="10" max="100" step="1">
+                </div>
+                <div class="param-group">
+                    <label>SoC initial (%)</label>
+                    <input type="number" id="socInit" value="10" min="0" max="100" step="1">
+                </div>
+                <div class="param-group">
+                    <label>Rendement charge (%)</label>
+                    <input type="number" id="effChg" value="95" min="50" max="100" step="0.5">
+                </div>
+                <div class="param-group">
+                    <label>Rendement décharge (%)</label>
+                    <input type="number" id="effDch" value="95" min="50" max="100" step="0.5">
+                </div>
+
+                <div class="section-divider">Fenêtres de charge / décharge</div>
+                <div class="param-group"><label>Début charge C1 (h)</label><input type="number" id="c1cs" value="7"  min="0" max="23" step="1"></div>
+                <div class="param-group"><label>Fin charge C1 (h)</label>  <input type="number" id="c1ce" value="10" min="0" max="23" step="1"></div>
+                <div class="param-group"><label>Début décharge C1 (h)</label><input type="number" id="c1ds" value="10" min="0" max="23" step="1"></div>
+                <div class="param-group"><label>Fin décharge C1 (h)</label>  <input type="number" id="c1de" value="13" min="0" max="23" step="1"></div>
+                <div class="param-group"><label>Début charge C2 (h)</label><input type="number" id="c2cs" value="13" min="0" max="23" step="1"></div>
+                <div class="param-group"><label>Fin charge C2 (h)</label>  <input type="number" id="c2ce" value="16" min="0" max="23" step="1"></div>
+                <div class="param-group"><label>Début décharge C2 (h)</label><input type="number" id="c2ds" value="18" min="0" max="23" step="1"></div>
+                <div class="param-group"><label>Fin décharge C2 (h)</label>  <input type="number" id="c2de" value="22" min="0" max="23" step="1"></div>
+
+                <button class="recalc-btn" onclick="saveAndRecalc()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+                    Recalculer
+                </button>
+                <button class="recalc-btn" onclick="resetToSiteData()" style="background:var(--text-muted);margin-left:8px;" title="Efface les paramètres sauvegardés et recharge les données du site">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                    Réinitialiser depuis le site
+                </button>
+            </div>
+        </div>
+
+        <div class="section-label">KPIs journaliers</div>
+        <div class="grid-kpi" id="kpiGrid"></div>
+
+        <div class="section-label">Flux énergétiques horaires</div>
+        <div class="legend">
+            <span><span class="sq" style="background:#378ADD"></span>Production PV</span>
+            <span><span class="sq" style="background:#EF9F27"></span>Injection PV directe</span>
+            <span><span class="sq" style="background:#BA7517"></span>Injection BESS</span>
+            <span><span class="sq" style="background:#1D9E75"></span>Charge BESS</span>
+            <span><span class="sq" style="background:#E24B4A"></span>Écrêtement</span>
+            <span><span class="sq" style="background:#A32D2D; height:3px; border-radius:0;"></span>Raccordement réseau</span>
+        </div>
+        <div class="layout">
+            <div class="chart-wrap" style="height:320px"><canvas id="cMain"></canvas></div>
+            <div class="kpi-box"><h3>Détail journalier</h3><table class="kpis" id="kpiDetailTable"></table></div>
+        </div>
+
+        <div class="section-label">État de charge BESS</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="cSoc"></canvas></div>
+
+    </div>
+</div>
+
+<script>
+Auth.checkAuth();
+
+// ─── Init sidebar ───
+(function() {
+    try {
+        const projects = JSON.parse(localStorage.getItem('pi_projects')) || [];
+        document.getElementById('navProjectCount').textContent = projects.length;
+    } catch(e) {}
+})();
+
+// ─── Toggle params ───
+function toggleParams() {
+    const body = document.getElementById('paramsBody');
+    const btn  = document.getElementById('toggleBtn');
+    const lbl  = document.getElementById('toggleLabel');
+    const open = body.classList.toggle('open');
+    btn.classList.toggle('open', open);
+    lbl.textContent = open ? 'Réduire' : 'Modifier';
+}
+
+// ─── Simulation engine (logique fidèle à flux_énergétiques_site.py) ───
+function runSimulation(p) {
+    const HOURS = Array.from({length: 24}, (_, i) => i);
+
+    // Profil PV gaussien centré à 12h30 (même formule que le script Python)
+    const dailyProd = p.pvMWc * p.irr * p.pr / 100;
+    const mu = 12.5, sigma = 3.2;
+    const rawG = HOURS.map(h => Math.exp(-0.5 * Math.pow((h + 0.5 - mu) / sigma, 2)));
+    const gSum = rawG.reduce((a, b) => a + b, 0);
+    const pvH  = rawG.map(g => g / gSum * dailyProd);
+
+    const socMin = 100 - p.dodMax;
+    const socMax = 100;
+    let soc = p.socInit;
+
+    const pv = [], chg = [], injD = [], injB = [], curt = [], socArr = [];
+    const gcapArr = HOURS.map(() => p.gridMW);
+
+    for (let h = 0; h < 24; h++) {
+        const pvPow = pvH[h];
+        pv.push(pvPow);
+
+        const inC1ch  = h >= p.c1cs && h < p.c1ce;
+        const inC2ch  = h >= p.c2cs && h < p.c2ce;
+        const inC1dis = h >= p.c1ds && h < p.c1de;
+        const inC2dis = h >= p.c2ds && h < p.c2de;
+
+        let chgPow = 0, bessRawOut = 0;
+
+        if (inC1ch || inC2ch) {
+            // Charge BESS depuis PV
+            const canCharge = (socMax - soc) / 100 * p.bessMWh;
+            chgPow = Math.max(0, Math.min(pvPow, p.bessMW, canCharge / (p.effChg / 100)));
+            soc = Math.min(socMax, soc + chgPow * (p.effChg / 100) / p.bessMWh * 100);
+        } else if (inC1dis || inC2dis) {
+            // Décharge BESS (puissance brute avant prise en compte du réseau)
+            const canDisch = (soc - socMin) / 100 * p.bessMWh;
+            bessRawOut = Math.max(0, Math.min(p.bessMW, canDisch) * (p.effDch / 100));
+            soc = Math.max(socMin, soc - bessRawOut / (p.effDch / 100) / p.bessMWh * 100);
+        }
+
+        // Dispatch réseau : PV prioritaire, BESS utilise la capacité restante
+        const pvNet     = Math.max(0, pvPow - chgPow);
+        const pvToGrid  = Math.min(pvNet, p.gridMW);                          // PV injecté
+        const bessToGrid = Math.min(bessRawOut, Math.max(0, p.gridMW - pvToGrid)); // BESS injecté
+
+        // Écrêtement = surproduction non injectable (PV + BESS hors capacité réseau)
+        const curtailment = Math.max(0, pvNet + bessRawOut - p.gridMW);
+
+        chg.push(-chgPow);
+        injD.push(+pvToGrid.toFixed(4));
+        injB.push(+bessToGrid.toFixed(4));
+        curt.push(+curtailment.toFixed(4));
+        socArr.push(+soc.toFixed(2));
+    }
+
+    const totalPV   = pv.reduce((a, b) => a + b, 0);
+    const totalInjD = injD.reduce((a, b) => a + b, 0);
+    const totalInjB = injB.reduce((a, b) => a + b, 0);
+    const totalCurt = curt.reduce((a, b) => a + b, 0);
+    const totalChgE = chg.reduce((a, b) => a + Math.abs(b), 0);
+    const cycles    = p.bessMWh > 0 ? totalChgE * (p.effChg / 100) / p.bessMWh : 0;
+    const rte       = totalChgE > 0 ? (totalInjB / (totalChgE * (p.effChg / 100))) * 100 : 0;
+    const peakInj   = Math.max(...injD.map((v, i) => v + injB[i]));
+
+    return {
+        pv, chg, injD, injB, curt, soc: socArr, gcap: gcapArr,
+        windows: [
+            { start: p.c1cs, end: p.c1ce, color: 'rgba(181,212,244,0.20)', label: 'Charge C1' },
+            { start: p.c1ds, end: p.c1de, color: 'rgba(186,117,23,0.13)',  label: 'Décharge C1' },
+            { start: p.c2cs, end: p.c2ce, color: 'rgba(192,221,151,0.20)', label: 'Charge C2' },
+            { start: p.c2ds, end: p.c2de, color: 'rgba(226,75,74,0.10)',   label: 'Décharge C2' },
+        ],
+        kpis: { totalPV, totalInj: totalInjD + totalInjB, totalInjD, totalInjB, totalCurt, totalChgE, cycles, rte, peakInj }
+    };
+}
+
+// ─── Charts ───
+let chartMain = null, chartSoc = null;
+
+const WINDOW_PLUGIN = {
+    id: 'windowPlugin',
+    beforeDraw(chart, _args, options) {
+        if (!options || !options.windows) return;
+        const ctx = chart.ctx, xScale = chart.scales.x, yScale = chart.scales.y;
+        options.windows.forEach(w => {
+            const x1 = xScale.getPixelForValue(w.start);
+            const x2 = xScale.getPixelForValue(w.end);
+            ctx.save(); ctx.fillStyle = w.color;
+            ctx.fillRect(x1, yScale.top, x2 - x1, yScale.bottom - yScale.top);
+            ctx.restore();
+        });
+    }
+};
+
+const LABELS = ['0h','1h','2h','3h','4h','5h','6h','7h','8h','9h','10h','11h','12h','13h','14h','15h','16h','17h','18h','19h','20h','21h','22h','23h'];
+
+function getParams() {
+    const n = id => parseFloat(document.getElementById(id).value) || 0;
+    return {
+        pvMWc:   n('pvCapacity'), irr:    n('irradiance'), pr:     n('pr'),
+        gridMW:  n('gridCap'),   bessMWh: n('bessCapacity'), bessMW: n('bessPower'),
+        dodMax:  n('dodMax'),    socInit: n('socInit'),
+        effChg:  n('effChg'),    effDch:  n('effDch'),
+        c1cs: n('c1cs'), c1ce: n('c1ce'), c1ds: n('c1ds'), c1de: n('c1de'),
+        c2cs: n('c2cs'), c2ce: n('c2ce'), c2ds: n('c2ds'), c2de: n('c2de'),
+    };
+}
+
+function fmt1(v) { return v.toFixed(1); }
+function fmt2(v) { return v.toFixed(2); }
+
+function renderKPIs(k, p) {
+    document.getElementById('pageSubtitle').textContent =
+        `${p.pvMWc} MWc PV | BESS ${p.bessMWh} MWh / ${p.bessMW} MW | Irradiance ${p.irr} kWh/m²/j | PR ${p.pr}% | Raccordement ${p.gridMW} MW | DoD ${p.dodMax}%`;
+
+    const kpis = [
+        { label: 'Production PV',    value: fmt1(k.totalPV)   + ' MWh', color: '#378ADD' },
+        { label: 'Injection réseau', value: fmt1(k.totalInj)  + ' MWh', color: '#EF9F27' },
+        { label: 'Écrêtement',       value: fmt1(k.totalCurt) + ' MWh', color: '#E24B4A' },
+        { label: 'Cycles BESS',      value: fmt2(k.cycles)    + ' / j', color: '#7F77DD' },
+        { label: 'RTE BESS',         value: fmt1(k.rte)       + ' %',   color: '#7F77DD' },
+        { label: 'Pic injection',    value: fmt1(k.peakInj)   + ' MW',  color: '#EF9F27' },
+    ];
+    document.getElementById('kpiGrid').innerHTML = kpis.map(c =>
+        `<div class="kpi-card"><div class="kpi-label">${c.label}</div><div class="kpi-value" style="color:${c.color}">${c.value}</div></div>`
+    ).join('');
+
+    const crtPct = k.totalPV > 0 ? fmt1(k.totalCurt / k.totalPV * 100) : '0.0';
+    document.getElementById('kpiDetailTable').innerHTML = `
+        <tr><td class="kl">Production PV</td><td class="kv" style="color:#378ADD">${fmt1(k.totalPV)} MWh</td></tr>
+        <tr><td class="kl">Injection réseau</td><td class="kv" style="color:#EF9F27">${fmt1(k.totalInj)} MWh</td></tr>
+        <tr><td class="kl">&nbsp;dont PV directe</td><td class="kv" style="color:#EF9F27">${fmt1(k.totalInjD)} MWh</td></tr>
+        <tr><td class="kl">&nbsp;dont BESS</td><td class="kv" style="color:#BA7517">${fmt1(k.totalInjB)} MWh</td></tr>
+        <tr><td class="kl">Écrêtement</td><td class="kv" style="color:#E24B4A">${fmt1(k.totalCurt)} MWh (${crtPct}%)</td></tr>
+        <tr><td class="kl">Charge BESS</td><td class="kv" style="color:#1D9E75">${fmt1(k.totalChgE)} MWh</td></tr>
+        <tr><td class="kl">Cycles réalisés</td><td class="kv" style="color:#7F77DD">${fmt2(k.cycles)} / jour</td></tr>
+        <tr><td class="kl">RTE BESS</td><td class="kv" style="color:#7F77DD">${fmt1(k.rte)} %</td></tr>
+        <tr><td class="kl">Pic injection</td><td class="kv" style="color:#EF9F27">${fmt1(k.peakInj)} MW</td></tr>
+    `;
+}
+
+function renderCharts(res) {
+    if (chartMain) { chartMain.destroy(); chartMain = null; }
+    if (chartSoc)  { chartSoc.destroy();  chartSoc  = null; }
+
+    chartMain = new Chart(document.getElementById('cMain'), {
+        type: 'bar', plugins: [WINDOW_PLUGIN],
+        data: {
+            labels: LABELS,
+            datasets: [
+                { label: 'Injection PV directe', data: res.injD, backgroundColor: '#EF9F27', stack: 'pos' },
+                { label: 'Injection BESS',        data: res.injB, backgroundColor: '#BA7517', stack: 'pos' },
+                { label: 'Écrêtement',            data: res.curt, backgroundColor: '#E24B4A', stack: 'pos' },
+                { label: 'Charge BESS',           data: res.chg,  backgroundColor: '#1D9E75', stack: 'neg' },
+                { type: 'line', label: 'Production PV',       data: res.pv,   borderColor: '#378ADD', borderWidth: 2.5, pointRadius: 2, fill: false, tension: 0.35, order: 0 },
+                { type: 'line', label: 'Raccordement réseau', data: res.gcap, borderColor: '#A32D2D', borderWidth: 1.5, borderDash: [6,3], pointRadius: 0, fill: false, order: 0 },
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { mode: 'index', intersect: false, callbacks: { label: ctx => `${ctx.dataset.label}: ${Math.abs(ctx.raw).toFixed(1)} MWh` } },
+                windowPlugin: { windows: res.windows }
+            },
+            scales: {
+                x: { stacked: true, ticks: { font: { size: 10, family: 'Montserrat' }, autoSkip: false } },
+                y: { stacked: true, title: { display: true, text: 'MWh', font: { size: 11, family: 'Montserrat' } }, ticks: { font: { size: 10, family: 'Montserrat' }, callback: v => v.toFixed(0) } }
+            }
+        }
+    });
+
+    const p = getParams();
+    chartSoc = new Chart(document.getElementById('cSoc'), {
+        type: 'line', plugins: [WINDOW_PLUGIN],
+        data: {
+            labels: LABELS,
+            datasets: [
+                { label: 'SoC (%)', data: res.soc, borderColor: '#7F77DD', backgroundColor: 'rgba(127,119,221,0.12)', fill: true, tension: 0.4, pointRadius: 2.5 },
+                { label: `SoC min (DoD ${p.dodMax}%)`, data: new Array(24).fill(100 - p.dodMax), borderColor: '#E24B4A', borderWidth: 1.2, borderDash: [5,3], pointRadius: 0, fill: false },
+                { label: 'SoC max (100%)', data: new Array(24).fill(100), borderColor: '#1D9E75', borderWidth: 1.2, borderDash: [5,3], pointRadius: 0, fill: false },
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 10, family: 'Montserrat' }, boxWidth: 12 } },
+                windowPlugin: { windows: res.windows }
+            },
+            scales: {
+                x: { ticks: { font: { size: 10, family: 'Montserrat' }, autoSkip: false } },
+                y: { min: 0, max: 110, title: { display: true, text: 'SoC (%)', font: { size: 11, family: 'Montserrat' } }, ticks: { font: { size: 10, family: 'Montserrat' } } }
+            }
+        }
+    });
+}
+
+// ─── Persistence params (clé par site) ───
+const SIM_PARAM_IDS = ['pvCapacity','irradiance','pr','gridCap','bessCapacity','bessPower','dodMax','socInit','effChg','effDch','c1cs','c1ce','c1ds','c1de','c2cs','c2ce','c2ds','c2de'];
+let _storageKey = 'pi_sim_params';
+
+function saveParams() {
+    const saved = {};
+    SIM_PARAM_IDS.forEach(id => { const el = document.getElementById(id); if (el) saved[id] = el.value; });
+    localStorage.setItem(_storageKey, JSON.stringify(saved));
+}
+
+function loadParams() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(_storageKey));
+        if (!saved) return;
+        SIM_PARAM_IDS.forEach(id => { const el = document.getElementById(id); if (el && saved[id] !== undefined) el.value = saved[id]; });
+    } catch(e) {}
+}
+
+function runAndRender() {
+    const p = getParams();
+    const res = runSimulation(p);
+    renderKPIs(res.kpis, p);
+    renderCharts(res);
+}
+
+function saveAndRecalc() { saveParams(); runAndRender(); }
+
+function resetToSiteData() {
+    if (!confirm('Réinitialiser tous les paramètres depuis les données du site ?')) return;
+    localStorage.removeItem(_storageKey);
+    location.reload();
+}
+
+// ─── Chargement contexte site depuis URL ───
+(function() {
+    const params    = new URLSearchParams(window.location.search);
+    const projectId = params.get('project');
+    const siteId    = params.get('site');
+
+    if (!projectId || !siteId) {
+        document.getElementById('pageTitle').textContent = 'Flux énergétiques — Aucun site sélectionné';
+        return;
+    }
+
+    _storageKey = 'pi_sim_params_' + siteId;
+
+    // Liens sidebar
+    document.getElementById('navProject').href = 'projet_dashboard.html?id=' + projectId;
+    document.getElementById('navSite').href    = 'site_dashboard.html?project=' + projectId + '&site=' + siteId;
+
+    try {
+        const projects = JSON.parse(localStorage.getItem('pi_projects')) || [];
+        const project  = projects.find(pr => pr.id === projectId);
+        const site     = project && (project.sites || []).find(s => s.id === siteId);
+
+        if (project) document.getElementById('navProjectName').textContent = project.name || 'Projet';
+        if (site)    document.getElementById('navSiteName').textContent    = site.name    || 'Site';
+        if (site)    document.getElementById('navCrumb').textContent       = site.name    || '';
+
+        const siteName = site ? (site.name || siteId) : siteId;
+        document.getElementById('pageTitle').textContent = 'Flux énergétiques — ' + siteName;
+        document.title = 'Flux énergétiques — ' + siteName;
+
+        // Paramètres structurels : toujours synchronisés depuis les données du site
+        // (ignorent le cache — une modification de pvGridPower/pvCapacity doit être visible immédiatement)
+        if (site) {
+            const set = (id, val) => {
+                const el = document.getElementById(id);
+                if (el && val != null && !isNaN(parseFloat(val))) el.value = parseFloat(val).toFixed(3);
+            };
+            if (site.pvCapacity)   set('pvCapacity',   site.pvCapacity   / 1000);  // kWc → MWc
+            if (site.pvGridPower)  set('gridCap',      site.pvGridPower);           // MW  (stocké en MW)
+            if (site.bessCapacity) set('bessCapacity', site.bessCapacity / 1000);  // kWh → MWh
+            if (site.bessPower)    set('bessPower',    site.bessPower    / 1000);  // kW  → MW
+            // Irradiance dérivée de P90 : recalculée à chaque fois pour rester cohérente
+            if (site.pvProdP90 && site.pvProdP90 > 0) {
+                const prFrac = (parseFloat(document.getElementById('pr').value) || 82) / 100;
+                document.getElementById('irradiance').value = (site.pvProdP90 / prFrac / 365).toFixed(2);
+            }
+
+            // Paramètres de stratégie : chargés depuis le cache uniquement si pas de sauvegarde
+            if (!localStorage.getItem(_storageKey)) {
+                if (site.bessEffACDC) set('effChg', site.bessEffACDC);
+                if (site.bessEffDCAC) set('effDch', site.bessEffDCAC);
+                if (site.bessMinSoH)  set('dodMax', 100 - site.bessMinSoH);
+            }
+        }
+    } catch(e) { console.warn('[flux_site] contexte :', e); }
+})();
+
+// Debounce sur changement d'inputs
+let _debounce;
+document.querySelectorAll('.params-body input').forEach(el => {
+    el.addEventListener('input', () => { clearTimeout(_debounce); _debounce = setTimeout(runAndRender, 400); });
+});
+
+// Lancement initial
+loadParams();
+runAndRender();
+</script>
+</body>
+</html>

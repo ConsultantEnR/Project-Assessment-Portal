@@ -32,12 +32,15 @@
     };
 
     /**
-     * Monthly irradiation normalisation factors (sum = 12).
-     * Calibrated for southern Europe / Iberian Peninsula.
+     * Monthly revenue normalisation factors (sum = 12, average = 1.0).
+     * Combines irradiance seasonality with capture-rate adjustment:
+     * spring/summer months are damped to reflect negative spot-price hours
+     * (solar cannibalization); winter months carry a slight scarcity premium.
+     * Ratio peak/trough ≈ 2.0× (vs ~2.65× for raw irradiance).
      */
     const MONTHLY_FACTORS = [
-        0.52, 0.63, 0.86, 1.00, 1.15, 1.26,
-        1.30, 1.22, 1.02, 0.78, 0.57, 0.49,
+        0.67, 0.80, 1.04, 1.11, 1.19, 1.26,
+        1.28, 1.24, 1.14, 0.92, 0.71, 0.64,
     ];
 
     // ─────────────────────────────────────────────

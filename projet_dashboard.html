@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tableau de bord projet</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 :root {
     --bg: #F7F6F3;
@@ -712,96 +711,55 @@ body::before {
 .main { animation: fadeIn 0.4s ease 0.15s both; }
 
 /* ─── Teaser button ─── */
-.btn-teaser {
+/* ─── Export financier ─── */
+.btn-export {
     display: flex; align-items: center; gap: 6px;
     padding: 7px 14px;
-    background: var(--accent); border: 1.5px solid var(--accent);
+    background: var(--bg); border: 1.5px solid var(--border);
     border-radius: 8px; font-family: 'Montserrat', sans-serif;
-    font-size: 12px; font-weight: 600; color: #fff;
-    cursor: pointer; transition: all var(--transition);
-    flex-shrink: 0;
+    font-size: 12px; font-weight: 600; color: var(--text);
+    cursor: pointer; transition: all var(--transition); flex-shrink: 0;
 }
-.btn-teaser svg { width: 14px; height: 14px; }
-.btn-teaser:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn-export svg { width: 14px; height: 14px; }
+.btn-export:hover { border-color: var(--accent); color: var(--accent); }
 
-/* Teaser modal */
-.teaser-overlay {
+.export-overlay {
     display: none; position: fixed; inset: 0;
     background: rgba(14,21,32,0.55); z-index: 450;
-    align-items: flex-start; justify-content: center;
-    padding: 60px 20px; overflow-y: auto;
+    align-items: center; justify-content: center;
     backdrop-filter: blur(2px);
 }
-.teaser-overlay.open { display: flex; }
-.teaser-modal {
-    background: #fff; border-radius: 16px; padding: 32px 36px 28px;
-    width: 100%; max-width: 680px;
+.export-overlay.open { display: flex; }
+.export-modal {
+    background: var(--bg); border-radius: 16px; padding: 32px 36px 28px;
+    width: 100%; max-width: 540px;
     box-shadow: 0 24px 64px rgba(0,0,0,0.20);
     animation: modalIn 0.2s cubic-bezier(0.4,0,0.2,1) both;
 }
-.teaser-modal-title { font-family: 'Teko', sans-serif; font-size: 24px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
-.teaser-modal-sub { font-size: 12px; color: var(--text-muted); font-family: 'Poppins', sans-serif; margin-bottom: 24px; }
-.teaser-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 14px;
-    margin-bottom: 24px;
-    max-height: 360px;
-    overflow-y: auto;
-    padding: 2px;
+.export-modal-title { font-family: 'Teko', sans-serif; font-size: 26px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.export-modal-sub { font-size: 12px; color: var(--text-muted); font-family: 'Poppins', sans-serif; margin-bottom: 28px; line-height: 1.5; }
+.export-formats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 28px; }
+.export-fmt-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    padding: 20px 12px; border-radius: 12px; cursor: pointer;
+    border: 2px solid var(--border); background: var(--bg);
+    transition: all var(--transition); text-align: center;
 }
-.teaser-tmpl-card {
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: border-color var(--transition), box-shadow var(--transition);
-    background: var(--bg);
-    display: flex; flex-direction: column;
-}
-.teaser-tmpl-card:hover { border-color: rgba(24,99,220,0.4); }
-.teaser-tmpl-card.selected { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(24,99,220,0.12); }
-.teaser-tmpl-preview {
-    aspect-ratio: 4/3;
+.export-fmt-btn:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(24,99,220,0.10); }
+.export-fmt-icon {
+    width: 48px; height: 48px; border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
-    background: var(--accent-lighter);
-    overflow: hidden; position: relative;
-}
-.teaser-tmpl-preview canvas { width: 100%; height: 100%; object-fit: cover; display: block; }
-.teaser-type-icon {
-    width: 44px; height: 44px; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Teko', sans-serif; font-size: 14px; font-weight: 600;
+    font-family: 'Teko', sans-serif; font-size: 15px; font-weight: 600;
     letter-spacing: 0.5px; color: #fff;
 }
-.teaser-type-icon.pptx { background: linear-gradient(135deg, #D04B24, #E8622B); }
-.teaser-type-icon.pdf  { background: linear-gradient(135deg, #D94F4F, #E8786B); }
-.teaser-type-icon.docx { background: linear-gradient(135deg, #1863DC, #3B82F6); }
-.teaser-type-icon.xlsx { background: linear-gradient(135deg, #1A7B47, #2E9E6E); }
-.teaser-type-icon.default { background: linear-gradient(135deg, #7A7670, #A5A09A); }
-.teaser-tmpl-info { padding: 10px 12px 12px; }
-.teaser-tmpl-name { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
-.teaser-tmpl-meta { font-size: 10px; color: var(--text-muted); font-family: 'Poppins', sans-serif; }
-.teaser-empty-state {
-    grid-column: 1 / -1; text-align: center; padding: 48px 24px;
-    color: var(--text-muted); font-family: 'Poppins', sans-serif; font-size: 13px;
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
-}
-.teaser-empty-link { color: var(--accent); text-decoration: underline; cursor: pointer; }
-.teaser-gen-note {
-    background: var(--accent-lighter); border: 1px solid rgba(24,99,220,0.15);
-    border-radius: 10px; padding: 12px 16px; margin-bottom: 20px;
-    font-size: 12px; color: var(--text-muted); font-family: 'Poppins', sans-serif;
-    display: flex; align-items: flex-start; gap: 10px;
-}
-.teaser-gen-note svg { width: 16px; height: 16px; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
-.teaser-modal-footer { display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 20px; }
-.btn-teaser-cancel { padding: 9px 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-muted); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all var(--transition); }
-.btn-teaser-cancel:hover { border-color: var(--text-muted); color: var(--text); }
-.btn-teaser-generate { padding: 9px 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; color: #fff; background: var(--accent); border: none; border-radius: 8px; cursor: pointer; transition: background var(--transition); display: flex; align-items: center; gap: 7px; }
-.btn-teaser-generate:hover { background: var(--accent-hover); }
-.btn-teaser-generate:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-teaser-generate svg { width: 15px; height: 15px; }
+.export-fmt-btn.xlsx .export-fmt-icon { background: linear-gradient(135deg, #1A7B47, #2E9E6E); }
+.export-fmt-btn.docx .export-fmt-icon { background: linear-gradient(135deg, #1863DC, #3B82F6); }
+.export-fmt-btn.pptx .export-fmt-icon { background: linear-gradient(135deg, #D04B24, #E8622B); }
+.export-fmt-label { font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700; color: var(--text); }
+.export-fmt-desc { font-family: 'Poppins', sans-serif; font-size: 10px; color: var(--text-muted); line-height: 1.4; }
+.export-modal-footer { display: flex; justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 20px; }
+.btn-export-cancel { padding: 9px 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-muted); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all var(--transition); }
+.btn-export-cancel:hover { border-color: var(--text-muted); color: var(--text); }
 
 /* ─── Edit project ─── */
 .btn-edit-project {
@@ -1102,13 +1060,13 @@ body::before {
     .content { padding: 20px; }
 }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="libs/chart.umd.min.js"></script>
 <script src="financial_model.js"></script>
 <script src="auth.js"></script>
 <script src="github_sync_client.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="libs/pdf.min.js"></script>
+<script src="libs/jszip.min.js"></script>
+<script src="libs/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -1456,6 +1414,16 @@ body::before {
             </div>
         </details>
 
+        <!-- Field analysis panel — shown when a DOCX/PPTX is selected -->
+        <div id="teaserFieldsPanel" style="display:none;margin-bottom:16px;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+            <div style="padding:10px 14px;background:rgba(24,99,220,0.06);border-bottom:1px solid var(--border);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:8px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                Champs détectés dans le modèle
+                <span id="teaserFieldsCount" style="margin-left:auto;font-size:10px;font-weight:500;color:var(--text-muted);text-transform:none;letter-spacing:0;"></span>
+            </div>
+            <div id="teaserFieldsList" style="padding:10px 14px;max-height:200px;overflow-y:auto;"></div>
+        </div>
+
         <div class="teaser-modal-footer">
             <button class="btn-teaser-cancel" onclick="closeTeaserModal()">Annuler</button>
             <button class="btn-teaser-generate" id="btnGenerate" onclick="generateTeaser()" disabled>
@@ -1504,6 +1472,18 @@ body::before {
         <div class="proj-extract-footer">
             <button class="edit-proj-btn-cancel" onclick="closeProjExtractModal()">Annuler</button>
             <button class="edit-proj-btn-save" onclick="applyProjExtract()">Appliquer les données</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ CONFIRM DELETE MODAL ═══ -->
+<div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-modal">
+        <div class="confirm-title" id="confirmTitle">Confirmer la suppression</div>
+        <div class="confirm-body" id="confirmBody"></div>
+        <div class="confirm-footer">
+            <button class="btn-confirm-cancel" onclick="closeConfirm()">Annuler</button>
+            <button class="btn-confirm-delete" id="confirmDeleteBtn" onclick="deleteSite()">Supprimer</button>
         </div>
     </div>
 </div>
@@ -1667,11 +1647,16 @@ function renderSites(project) {
                 <td>${pvCell}</td>
                 <td>${bessCell}</td>
                 <td style="text-align:center;">
-                    <button class="btn-delete-site" title="Supprimer ce site" onclick="event.stopPropagation(); confirmDeleteSite('${site.id}', ${JSON.stringify(site.name || 'Site ' + (i + 1))})">
+                    <button class="btn-delete-site" title="Supprimer ce site" data-site-id="${site.id}" data-site-name="${(site.name || 'Site ' + (i + 1)).replace(/"/g, '&quot;')}">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
                     </button>
                 </td>
             `;
+            tr.querySelector('.btn-delete-site').addEventListener('click', e => {
+                e.stopPropagation();
+                const btn = e.currentTarget;
+                confirmDeleteSite(btn.dataset.siteId, btn.dataset.siteName);
+            });
             tr.addEventListener('click', () => {
                 window.location.href = 'site_dashboard.html?project=' + project.id + '&site=' + site.id;
             });
@@ -1735,6 +1720,7 @@ function confirmDeleteSite(siteId, siteName) {
     _pendingDeleteSiteId = siteId;
     document.getElementById('confirmTitle').textContent = 'Supprimer le site';
     document.getElementById('confirmBody').innerHTML = `Supprimer définitivement le site <strong>${siteName}</strong> et toutes ses données ?<br><br>Cette action est irréversible.`;
+    document.getElementById('confirmDeleteBtn').onclick = deleteSite;
     document.getElementById('confirmOverlay').classList.add('open');
 }
 function deleteSite() {
@@ -1885,7 +1871,7 @@ async function openTeaserModal() {
     // PDF thumbnails from ArrayBuffer
     if (typeof pdfjsLib !== 'undefined') {
         pdfjsLib.GlobalWorkerOptions.workerSrc =
-            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            'libs/pdf.worker.min.js';
         templates.forEach(t => {
             if (extOfTeaser(t.name) === 'pdf' && t.data) {
                 const canvas = document.getElementById('tCanvas_' + t.id);
@@ -1913,12 +1899,226 @@ function closeTeaserModal() {
     _selectedTeaserId = null;
 }
 
-function selectTeaserTemplate(id) {
+// ─── Alias table: short / natural names → canonical placeholder key ──────────
+// Allows [TRI], [IRR], [Nom du projet], [EBITDA], {{CAPEX}}, etc. in templates.
+const FIELD_ALIASES = {
+    // Projet
+    NOM:                'NOM_PROJET',
+    NOM_DU_PROJET:      'NOM_PROJET',
+    PROJET:             'NOM_PROJET',
+    BROKER:             'COURTIER',
+    EMAIL:              'EMAIL_CONTACT',
+    CONTACT:            'EMAIL_CONTACT',
+    DATE:               'DATE_GENERATION',
+    DATE_DEBUT:         'DATE_DEBUT',
+    DATE_DE_DEBUT:      'DATE_DEBUT',
+    // Sites
+    SITES:              'LISTE_SITES',
+    LISTE:              'LISTE_SITES',
+    NB_SITES:           'NB_SITES',
+    NOMBRE_DE_SITES:    'NB_SITES',
+    LOCALISATION:       'PAYS',
+    REGION:             'PAYS',
+    // Capacités
+    PV:                 'CAPACITE_PV_MWC',
+    PUISSANCE_PV:       'CAPACITE_PV_MWC',
+    CAPACITE_PV:        'CAPACITE_PV_MWC',
+    MWC:                'CAPACITE_PV_MWC',
+    STOCKAGE:           'CAPACITE_BESS_MWH',
+    BESS:               'CAPACITE_BESS_MWH',
+    CAPACITE_BESS:      'CAPACITE_BESS_MWH',
+    MWH:                'CAPACITE_BESS_MWH',
+    PUISSANCE_BESS:     'PUISSANCE_BESS_MW',
+    // Finance – hypothèses
+    CAPEX:              'CAPEX_TOTAL',
+    INVESTISSEMENT:     'CAPEX_TOTAL',
+    COUT_PROJET:        'CAPEX_TOTAL',
+    PRIX_ELEC:          'PRIX_ELECTRICITE',
+    TARIF:              'PRIX_ELECTRICITE',
+    PART_DETTE:         'DETTE_PERCENT',
+    LEVERAGE:           'DETTE_PERCENT',
+    GEARING:            'DETTE_PERCENT',
+    TAUX:               'TAUX_DETTE',
+    DUREE_VIE:          'DUREE_VIE',
+    DUREE:              'DUREE_VIE',
+    LIFETIME:           'DUREE_VIE',
+    DUREE_DETTE:        'DUREE_DETTE',
+    // KPIs
+    TRI:                'TRI_PROJET',
+    IRR:                'TRI_PROJET',
+    TRI_PROJET:         'TRI_PROJET',
+    PROJECT_IRR:        'TRI_PROJET',
+    TRI_EQUITY:         'TRI_EQUITY',
+    EQUITY_IRR:         'TRI_EQUITY',
+    VAN:                'VAN',
+    NPV:                'VAN',
+    DSCR:               'DSCR_MIN',
+    DSCR_MIN:           'DSCR_MIN',
+    DSCR_MINIMUM:       'DSCR_MIN',
+    DSCR_MOYEN:         'DSCR_MOY',
+    DETTE_SENIOR:       'DETTE',
+    EQUITY:             'FONDS_PROPRES',
+    APPORT:             'FONDS_PROPRES',
+    REVENU:             'REVENU_AN1',
+    REVENUS:            'REVENU_AN1',
+    CA:                 'REVENU_AN1',
+    CHIFFRE_AFFAIRES:   'REVENU_AN1',
+    EBITDA:             'EBITDA_AN1',
+    MARGE:              'EBITDA_AN1',
+};
+
+// Normalise a free-text field name: strip accents, uppercase, spaces/hyphens → underscore
+function normalizeFieldName(s) {
+    return String(s).trim()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, '_')
+        .replace(/^_|_$/g, '');
+}
+
+// Resolves a normalised key: direct hit → alias hit → null
+function resolveFieldKey(normKey, placeholders) {
+    if (normKey in placeholders) return normKey;
+    const via = FIELD_ALIASES[normKey];
+    if (via && via in placeholders) return via;
+    return null;
+}
+
+// Returns canonical placeholders extended with every alias key (for {{TRI}}, [IRR], etc.)
+function buildExtendedPlaceholders(project) {
+    const base = buildTeaserPlaceholders(project);
+    const ext  = Object.assign({}, base);
+    for (const [alias, canonical] of Object.entries(FIELD_ALIASES)) {
+        if (canonical in base && !(alias in ext)) ext[alias] = base[canonical];
+    }
+    return ext;
+}
+
+async function selectTeaserTemplate(id) {
     _selectedTeaserId = id;
     document.querySelectorAll('.teaser-tmpl-card').forEach(c => c.classList.remove('selected'));
     const card = document.getElementById('tCard_' + id);
     if (card) card.classList.add('selected');
     document.getElementById('btnGenerate').disabled = false;
+
+    // ── Field analysis panel ──────────────────────────────────────────────────
+    const panel = document.getElementById('teaserFieldsPanel');
+    const list  = document.getElementById('teaserFieldsList');
+    const badge = document.getElementById('teaserFieldsCount');
+    if (!panel) return;
+
+    const tmpl = await _teaserGetOne(id);
+    if (!tmpl) return;
+    const ext = extOfTeaser(tmpl.name);
+
+    if (!['docx','pptx'].includes(ext) || typeof JSZip === 'undefined') {
+        panel.style.display = 'none';
+        return;
+    }
+
+    panel.style.display = 'block';
+    list.innerHTML = '<div style="color:var(--text-muted);font-size:11px;font-family:\'Poppins\',sans-serif;padding:4px 0;">Analyse en cours…</div>';
+    badge.textContent = '';
+
+    try {
+        const project      = getProject();
+        const placeholders = project ? buildExtendedPlaceholders(project) : {};
+        const result       = await analyzeTemplateFields(tmpl, placeholders);
+
+        if (!result || result.fields.length === 0) {
+            list.innerHTML = `<div style="color:var(--text-muted);font-size:11px;font-family:'Poppins',sans-serif;padding:4px 0;">Aucun marqueur détecté. Insérez des balises <code style="font-size:10px;color:var(--accent);">{{CLE}}</code> dans votre modèle pour activer le remplissage automatique.</div>`;
+            badge.textContent = '0 champ';
+            return;
+        }
+
+        const nMatch   = result.fields.filter(f => f.matched).length;
+        const nUnknown = result.fields.length - nMatch;
+        badge.textContent = nMatch + ' mappé' + (nMatch > 1 ? 's' : '') +
+            (nUnknown ? ' · ' + nUnknown + ' non reconnu' + (nUnknown > 1 ? 's' : '') : '');
+
+        list.innerHTML = result.fields.map(f => `
+            <div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--border);">
+                <span style="width:7px;height:7px;border-radius:50%;background:${f.matched ? '#22c55e' : '#f59e0b'};flex-shrink:0;"></span>
+                <span style="font-family:'Poppins',sans-serif;font-size:10px;color:var(--accent);flex:0 0 auto;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${_escHtml(f.token)}">${_escHtml(f.token)}</span>
+                <span style="flex:1;min-width:0;"></span>
+                <span style="font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;color:${f.matched ? 'var(--text)' : 'var(--text-muted)'};text-align:right;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis;" title="${f.matched ? _escHtml(f.value) : ''}">${f.matched ? _escHtml(f.value) : '<em style="opacity:.5;font-weight:400;">non mappé</em>'}</span>
+            </div>`).join('');
+    } catch(e) {
+        console.warn('Template analysis error:', e);
+        list.innerHTML = '<div style="color:var(--text-muted);font-size:11px;padding:4px 0;">Impossible d\'analyser ce fichier.</div>';
+    }
+}
+
+function _escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── Analyse the placeholders / content-controls present in a template ───────
+async function analyzeTemplateFields(tmpl, placeholders) {
+    if (!tmpl.data || typeof JSZip === 'undefined') return null;
+    const ext = extOfTeaser(tmpl.name);
+    const zip = await JSZip.loadAsync(tmpl.data);
+
+    // Determine XML files to scan
+    const xmlFiles = [];
+    if (ext === 'docx') {
+        ['word/document.xml','word/header1.xml','word/footer1.xml',
+         'word/header2.xml','word/footer2.xml'].forEach(p => {
+            const f = zip.file(p); if (f) xmlFiles.push(f);
+        });
+    } else if (ext === 'pptx') {
+        zip.forEach((path, file) => {
+            if (/^ppt\/slides\/slide\d+\.xml$/.test(path)) xmlFiles.push(file);
+        });
+    }
+
+    const found = new Map(); // token string → {token, key, value, matched}
+
+    const addField = (token, key, value) => {
+        if (!found.has(token))
+            found.set(token, { token, key, value: value ?? null, matched: key in placeholders,
+                               resolvedValue: placeholders[key] ?? null });
+    };
+
+    for (const file of xmlFiles) {
+        const xml = await file.async('string');
+
+        // Merge per-paragraph run text (handles placeholders split across <w:r>/<a:r> runs)
+        const isDocx = ext === 'docx';
+        const paraRe = isDocx ? /<w:p(?:\s[^>]*)?>[\s\S]*?<\/w:p>/g : /<a:p(?:\s[^>]*)?>[\s\S]*?<\/a:p>/g;
+        const tRe    = isDocx ? /<w:t(?:\s[^>]*)?>([^<]*)<\/w:t>/g  : /<a:t(?:\s[^>]*)?>([^<]*)<\/a:t>/g;
+        const allParaText = [...xml.matchAll(paraRe)]
+            .map(m => [...m[0].matchAll(tRe)].map(t => t[1]).join(''))
+            .join('\n');
+
+        // 1. {{KEY}} in merged paragraph text + raw XML
+        for (const src of [allParaText, xml]) {
+            for (const m of src.matchAll(/\{\{([A-Z_0-9]+)\}\}/g)) {
+                const key = m[1];
+                addField('{{' + key + '}}', key, placeholders[key]);
+            }
+        }
+
+        // 2. [any text] bracket tokens — normalise + resolve via alias table
+        for (const m of allParaText.matchAll(/\[([^\]<>]{2,60})\]/g)) {
+            const text     = m[1];
+            const normKey  = normalizeFieldName(text);
+            const finalKey = resolveFieldKey(normKey, placeholders) ?? normKey;
+            addField('[' + text + ']', finalKey, placeholders[finalKey]);
+        }
+
+        // 3. Word Content Controls (w:sdt + w:tag)
+        if (isDocx) {
+            for (const m of xml.matchAll(/<w:tag\s+w:val="([^"]+)"/g)) {
+                const key = m[1];
+                addField('⬜ ' + key, key, placeholders[key]);
+            }
+        }
+    }
+
+    const fields = [...found.values()];
+    fields.sort((a, b) => (b.matched ? 1 : 0) - (a.matched ? 1 : 0));
+    return { total: fields.length, matched: fields.filter(f => f.matched).length, fields };
 }
 
 // ─── Build placeholder map from project data + financial model ───
@@ -2028,16 +2228,19 @@ function buildTeaserPlaceholders(project) {
     };
 }
 
-// ─── Replace placeholders in one XML string ───
-// Two passes: direct + paragraph-level run merging (handles PowerPoint's split runs)
+// ─── Replace placeholders in one XML string ──────────────────────────────────
+// Supports: {{KEY}}, [KEY], and native Word Content Controls (w:sdt + w:tag)
+// Four passes: direct · PPTX run-merge · DOCX run-merge · DOCX content-controls
 function replacePlaceholdersInXml(xml, placeholders) {
     const xmlEsc = s => String(s)
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-    // Pass 1 — direct (placeholder typed as a single unit in the XML text)
+    // Pass 1 — direct substitution (placeholder written as a single XML text node)
     let out = xml;
     for (const [k, v] of Object.entries(placeholders)) {
-        out = out.split('{{' + k + '}}').join(xmlEsc(v));
+        const esc = xmlEsc(v);
+        out = out.split('{{' + k + '}}').join(esc);
+        out = out.split('[' + k + ']').join(esc);   // exact bracket key (already includes aliases)
     }
 
     // Pass 2 — PPTX: merge adjacent <a:r> runs within <a:p> paragraphs
@@ -2047,15 +2250,12 @@ function replacePlaceholdersInXml(xml, placeholders) {
         let newText = combined;
         let changed = false;
         for (const [k, v] of Object.entries(placeholders)) {
-            if (newText.includes('{{' + k + '}}')) {
-                newText = newText.split('{{' + k + '}}').join(String(v));
-                changed = true;
-            }
+            if (newText.includes('{{' + k + '}}')) { newText = newText.split('{{' + k + '}}').join(String(v)); changed = true; }
+            if (newText.includes('[' + k + ']'))   { newText = newText.split('[' + k + ']').join(String(v));   changed = true; }
         }
         if (!changed) return para;
         const rProp = (para.match(/<a:rPr[\s\S]*?(?:\/>|<\/a:rPr>)/) || [''])[0];
         const safe  = xmlEsc(newText);
-        // Remove all existing runs, inject a single rebuilt run
         let newPara = para.replace(/<a:r(?:\s[^>]*)?>[\s\S]*?<\/a:r>/g, '');
         return newPara.replace(/<\/a:p>$/, `<a:r>${rProp}<a:t>${safe}</a:t></a:r></a:p>`);
     });
@@ -2067,16 +2267,36 @@ function replacePlaceholdersInXml(xml, placeholders) {
         let newText = combined;
         let changed = false;
         for (const [k, v] of Object.entries(placeholders)) {
-            if (newText.includes('{{' + k + '}}')) {
-                newText = newText.split('{{' + k + '}}').join(String(v));
-                changed = true;
-            }
+            if (newText.includes('{{' + k + '}}')) { newText = newText.split('{{' + k + '}}').join(String(v)); changed = true; }
+            if (newText.includes('[' + k + ']'))   { newText = newText.split('[' + k + ']').join(String(v));   changed = true; }
         }
         if (!changed) return para;
         const rProp = (para.match(/<w:rPr[\s\S]*?(?:\/>|<\/w:rPr>)/) || [''])[0];
         const safe  = xmlEsc(newText);
         let newPara = para.replace(/<w:r(?:\s[^>]*)?>[\s\S]*?<\/w:r>/g, '');
         return newPara.replace(/<\/w:p>$/, `<w:r>${rProp}<w:t>${safe}</w:t></w:r></w:p>`);
+    });
+
+    // Pass 4 — DOCX Content Controls: replace <w:sdtContent> when <w:tag w:val="KEY"/> matches
+    out = out.replace(/<w:sdt(?:\s[^>]*)?>[\s\S]*?<\/w:sdt>/g, block => {
+        const tagM = block.match(/<w:tag\s+w:val="([^"]+)"/);
+        if (!tagM) return block;
+        const resolvedKey = resolveFieldKey(normalizeFieldName(tagM[1]), placeholders) ??
+                            (tagM[1] in placeholders ? tagM[1] : null);
+        if (!resolvedKey) return block;
+        const val = xmlEsc(String(placeholders[resolvedKey]));
+        return block.replace(
+            /(<w:sdtContent(?:\s[^>]*)?>)[\s\S]*?(<\/w:sdtContent>)/,
+            `$1<w:p><w:r><w:t>${val}</w:t></w:r></w:p>$2`
+        );
+    });
+
+    // Pass 5 — Natural-language bracket fallback: [Nom du projet], [IRR], etc.
+    // Catches anything not resolved in Pass 1 (e.g. mixed-case, accented, multi-word)
+    out = out.replace(/\[([^\]<>]{2,60})\]/g, (match, text) => {
+        const normKey     = normalizeFieldName(text);
+        const resolvedKey = resolveFieldKey(normKey, placeholders);
+        return resolvedKey ? xmlEsc(String(placeholders[resolvedKey])) : match;
     });
 
     return out;
@@ -2115,7 +2335,7 @@ async function generateTeaser() {
 
         const ext        = extOfTeaser(tmpl.name);
         const isZipBased = ['pptx','ppt','docx','doc','xlsx','xls'].includes(ext);
-        const placeholders = buildTeaserPlaceholders(project);
+        const placeholders = buildExtendedPlaceholders(project);
 
         let outputBuffer, outputName;
 
@@ -2218,7 +2438,7 @@ function _readAs(file, as) {
 async function _extractPdfText(buf) {
     try {
         pdfjsLib.GlobalWorkerOptions.workerSrc =
-            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            'libs/pdf.worker.min.js';
         const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
         let text = '';
         for (let i = 1; i <= Math.min(pdf.numPages, 30); i++) {
@@ -2987,18 +3207,6 @@ function _pfRenderTable(annual, params) {
     }).join('');
 }
 </script>
-
-<!-- ═══ CONFIRM DELETE MODAL ═══ -->
-<div class="confirm-overlay" id="confirmOverlay">
-    <div class="confirm-modal">
-        <div class="confirm-title" id="confirmTitle">Confirmer la suppression</div>
-        <div class="confirm-body" id="confirmBody"></div>
-        <div class="confirm-footer">
-            <button class="btn-confirm-cancel" onclick="closeConfirm()">Annuler</button>
-            <button class="btn-confirm-delete" id="confirmDeleteBtn" onclick="deleteSite()">Supprimer</button>
-        </div>
-    </div>
-</div>
 
 <!-- ═══ PROJECT FINANCIAL RESULTS MODAL ═══ -->
 <div class="fin-modal-overlay" id="pfModalOverlay">

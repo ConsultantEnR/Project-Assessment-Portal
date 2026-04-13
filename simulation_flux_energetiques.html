@@ -4,9 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Simulation des flux énergétiques — Portail Investissement</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="fonts/fonts.css">
+<script src="libs/chart.umd.min.js"></script>
 <style>
 :root {
     --bg: #F7F6F3;
@@ -262,8 +261,12 @@ td.kv { text-align: right; font-weight: 600; padding: 5px 0; white-space: nowrap
 <div class="main">
 
     <header class="page-header">
+        <a id="backToSite" style="display:none; align-items:center; gap:6px; font-size:12px; font-family:'Poppins',sans-serif; font-weight:500; color:var(--accent); text-decoration:none; background:var(--accent-light); padding:6px 14px; border-radius:20px; white-space:nowrap; flex-shrink:0;" href="#">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Retour au site
+        </a>
         <div>
-            <div class="page-title">Simulation des flux énergétiques</div>
+            <div class="page-title" id="pageTitle">Simulation des flux énergétiques</div>
             <div class="page-sub" id="pageSubtitle">Centrale PV utility-scale — Injection réseau avec stockage BESS</div>
         </div>
     </header>
@@ -646,26 +649,54 @@ function renderCharts(res) {
         const project  = projects.find(pr => pr.id === projectId);
         const site     = project && (project.sites || []).find(s => s.id === siteId);
         if (!site) return;
-        // Show context banner
-        const header = document.querySelector('.page-header');
-        if (header) {
-            const banner = document.createElement('div');
-            banner.style.cssText = 'font-size:12px;font-family:Poppins,sans-serif;color:var(--accent);font-weight:500;margin-left:12px;background:var(--accent-light);padding:4px 12px;border-radius:20px;';
-            banner.textContent = 'Site : ' + (site.name || siteId);
-            header.appendChild(banner);
-        }
-        // Store site context for save/load keys
+
+        // Titre et lien retour
+        const siteName = site.name || siteId;
+        document.getElementById('pageTitle').textContent = 'Flux énergétiques — ' + siteName;
+        document.title = 'Flux énergétiques — ' + siteName;
+        const backLink = document.getElementById('backToSite');
+        backLink.href = 'site_dashboard.html?project=' + projectId + '&site=' + siteId;
+        backLink.style.display = 'flex';
+
+        // Contexte pour la clé de sauvegarde
         window._simSiteId = siteId;
-        // If no saved params for this site, pre-populate from site data
+
+        // Pré-remplissage si aucun paramètre sauvegardé pour ce site
         const key = 'pi_sim_params_' + siteId;
         if (!localStorage.getItem(key)) {
-            const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined && val !== null) el.value = val; };
-            if (site.pvCapacity)   set('pvCapacity',   (site.pvCapacity  / 1000).toFixed(2));   // kWc → MWc
-            if (site.bessCapacity) set('bessCapacity', (site.bessCapacity/ 1000).toFixed(2));   // kWh → MWh
-            if (site.bessPower)    set('bessPower',    (site.bessPower   / 1000).toFixed(2));   // kW  → MW
-            if (site.pvGridPower)  set('gridCap',      (site.pvGridPower / 1000).toFixed(2));   // kW  → MW
+            const set = (id, val) => {
+                const el = document.getElementById(id);
+                if (el && val != null && !isNaN(val)) el.value = val;
+            };
+
+            // PV — conversion kWc → MWc
+            if (site.pvCapacity)   set('pvCapacity',   (site.pvCapacity  / 1000).toFixed(3));
+            // Raccordement réseau — stocké en MW
+            if (site.pvGridPower)  set('gridCap',      site.pvGridPower.toFixed(3));
+
+            // BESS — conversion kW/kWh → MW/MWh
+            if (site.bessCapacity) set('bessCapacity', (site.bessCapacity / 1000).toFixed(3));
+            if (site.bessPower)    set('bessPower',    (site.bessPower   / 1000).toFixed(3));
+
+            // Rendements BESS (stockés en %, directement utilisables)
+            if (site.bessEffACDC)  set('effChg', site.bessEffACDC);
+            if (site.bessEffDCAC)  set('effDch', site.bessEffDCAC);
+
+            // DoD depuis SoH minimum (si présent)
+            if (site.bessMinSoH)   set('dodMax', (100 - site.bessMinSoH).toFixed(1));
+
+            // Irradiance journalière dérivée de la production P90
+            // pvProdP90 est en kWh/kWc/an → kWh/m²/j = P90 / PR / 365
+            const pr = parseFloat(document.getElementById('pr').value) || 82;
+            if (site.pvProdP90 && site.pvProdP90 > 0) {
+                const prFrac = pr / 100;
+                const irrDaily = site.pvProdP90 / prFrac / 365;
+                set('irradiance', irrDaily.toFixed(2));
+            }
+
+            // C-rate → nb cycles/jour influence les fenêtres (info seulement, fenêtres manuelles)
         }
-    } catch(e) {}
+    } catch(e) { console.warn('[sim] contexte site :', e); }
 })();
 
 // ─── Persistence des paramètres ───
